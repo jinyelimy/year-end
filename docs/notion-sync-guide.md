@@ -60,6 +60,7 @@ GitHub 저장소 `Settings -> Secrets and variables -> Actions`에는 아래 두
 | `NOTION_DATABASE_ID` | 업로드 대상 데이터베이스 ID |
 
 제목 속성은 스크립트가 데이터베이스 스키마에서 자동 탐지하고, 문서 경로 속성은 `Source Path`를 사용한다.
+GitHub Actions에서는 현재 push에서 변경된 Markdown 문서만 골라서 동기화한다.
 
 ## 주의할 점
 - 원본은 Notion이 아니라 `docs/`이다.

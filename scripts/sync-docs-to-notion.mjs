@@ -61,6 +61,32 @@ async function main() {
 }
 
 async function collectMarkdownFiles(dir) {
+  const configuredFiles = process.env.NOTION_SYNC_FILES
+    ?.split(/\r?\n|;/)
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => path.join(rootDir, value));
+
+  if (configuredFiles?.length) {
+    const existingFiles = [];
+    for (const filePath of configuredFiles) {
+      if (path.extname(filePath) !== ".md") {
+        continue;
+      }
+
+      try {
+        const stat = await fs.stat(filePath);
+        if (stat.isFile()) {
+          existingFiles.push(filePath);
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return existingFiles.sort();
+  }
+
   const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
   const files = [];
 

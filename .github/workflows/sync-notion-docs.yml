@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,5 +40,28 @@ jobs:
           test -n "$NOTION_TOKEN"
           test -n "$NOTION_DATABASE_ID"
 
+      - name: Detect changed docs
+        id: changed-docs
+        run: |
+          before_sha="${{ github.event.before }}"
+          if [ -z "$before_sha" ] || [ "$before_sha" = "0000000000000000000000000000000000000000" ]; then
+            changed_docs=$(git ls-files 'docs/**/*.md')
+          else
+            changed_docs=$(git diff --name-only "$before_sha" "${{ github.sha }}" -- 'docs/**/*.md')
+          fi
+
+          {
+            echo 'files<<EOF'
+            echo "$changed_docs"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Skip when no docs changed
+        if: ${{ steps.changed-docs.outputs.files == '' }}
+        run: echo "No docs changed in this push."
+
       - name: Sync docs to Notion
+        if: ${{ steps.changed-docs.outputs.files != '' }}
+        env:
+          NOTION_SYNC_FILES: ${{ steps.changed-docs.outputs.files }}
         run: npm run notion:sync
