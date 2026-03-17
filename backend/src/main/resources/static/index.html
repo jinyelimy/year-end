@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>2025 연말정산 홈</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2b8cee",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922"
+          },
+          fontFamily: {
+            display: ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: "Inter", "Noto Sans KR", sans-serif; }
+    .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+    .material-symbols-fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+  </style>
+</head>
+<body class="bg-background-light font-display text-slate-900">
+  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+    <header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur-md lg:px-40">
+      <div class="flex items-center gap-3">
+        <div class="rounded-lg bg-primary p-1.5 text-white">
+          <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+        </div>
+        <h2 class="text-lg font-bold tracking-tight">2025 연말정산 홈</h2>
+      </div>
+      <div class="flex gap-3">
+        <button class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200">
+          <span class="material-symbols-outlined text-slate-600">notifications</span>
+        </button>
+        <button class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200">
+          <span class="material-symbols-outlined text-slate-600">settings</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex flex-1 flex-col items-center px-4 py-8 lg:px-40">
+      <div class="flex w-full max-w-[960px] flex-col gap-8">
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div class="flex flex-col gap-2">
+            <div class="mb-2 flex items-center gap-3">
+              <div class="rounded-full border-2 border-primary/20 bg-primary/10 p-1">
+                <img alt="User" class="h-12 w-12 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUdNQUns4-Cf8goZ08Yk3iQLPaaFFVi656E_cyjck3uG68Wwvn-fjF64MKL7cywNf42WbwyxTu_Wkt2Sza-WXiCv2gGvAcfq5BJwrKW0eY5uTvMdPo-fVr54K2PHLvagqkfu9FU3RbbHAu7yO_cWoOayDbirgiUvDsqcsnH3eTAUzOmKTAsJFKEt-UkEeD8gw7Fx9W4FedXcSBFKyV1udAmPgGEcchnKnqU2fp41djEpX6NCSnKeuuE5uLiW1ezUC7np3lDl2Ibvgu">
+              </div>
+              <div>
+                <span class="rounded bg-primary/10 px-2 py-0.5 text-sm font-semibold text-primary">일반 근로자</span>
+                <h1 class="mt-0.5 text-2xl font-bold">홍길동님, 안녕하세요!</h1>
+              </div>
+            </div>
+            <p class="text-slate-500">2025년 연말정산 기간입니다. 꼼꼼하게 챙겨드릴게요.</p>
+          </div>
+          <div class="flex min-w-[200px] flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-slate-600">정산 진행률</span>
+              <span class="text-sm font-bold text-primary">65%</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div class="h-full rounded-full bg-primary" style="width: 65%;"></div>
+            </div>
+            <p class="text-[11px] text-slate-400">서류를 더 제출하면 정확도가 올라가요</p>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-600 p-8 text-white shadow-lg">
+          <div class="relative z-10 flex flex-col items-center justify-between gap-6 md:flex-row">
+            <div class="flex flex-col gap-2 text-center md:text-left">
+              <span class="text-sm font-medium text-blue-100 opacity-90">현재 기준 예상 환급액</span>
+              <div class="flex items-baseline justify-center gap-1 md:justify-start">
+                <h2 class="text-4xl font-black tracking-tight">450,000</h2>
+                <span class="text-xl font-bold">원</span>
+              </div>
+              <p class="mt-4 max-w-sm text-sm text-blue-100">지금까지 입력된 데이터를 바탕으로 산출된 금액입니다. 공제 항목을 모두 채우면 더 받을 수 있어요!</p>
+              <a class="mt-4 inline-flex w-fit rounded-lg bg-white px-6 py-2.5 font-bold text-primary shadow-md transition-colors hover:bg-blue-50" href="/results.html">상세 내역 보기</a>
+            </div>
+            <div class="flex h-40 w-40 items-center justify-center rounded-full bg-white/20 p-6 backdrop-blur-md">
+              <span class="material-symbols-outlined material-symbols-fill text-7xl text-white">savings</span>
+            </div>
+          </div>
+          <div class="absolute right-0 top-0 h-64 w-64 translate-x-1/4 -translate-y-1/2 rounded-full bg-white/10 blur-3xl"></div>
+          <div class="absolute bottom-0 left-0 h-48 w-48 -translate-x-1/4 translate-y-1/2 rounded-full bg-blue-400/20 blur-2xl"></div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <a class="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/50" href="/income.html">
+            <div class="flex items-center gap-4">
+              <div class="rounded-xl bg-blue-50 p-3 transition-colors group-hover:bg-primary group-hover:text-white">
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-lg font-bold">소득 확인</span>
+                <span class="text-sm text-slate-500">급여 및 상여금 내역</span>
+              </div>
+            </div>
+          </a>
+          <a class="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/50" href="/income.html">
+            <div class="flex items-center gap-4">
+              <div class="rounded-xl bg-green-50 p-3 transition-colors group-hover:bg-green-600 group-hover:text-white">
+                <span class="material-symbols-outlined">family_restroom</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-lg font-bold">부양가족 설정</span>
+                <span class="text-sm text-slate-500">인적 공제 대상 등록</span>
+              </div>
+            </div>
+          </a>
+          <a class="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-primary/50" href="/deductions.html">
+            <div class="flex items-center gap-4">
+              <div class="rounded-xl bg-orange-50 p-3 transition-colors group-hover:bg-orange-600 group-hover:text-white">
+                <span class="material-symbols-outlined">receipt_long</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-lg font-bold">지출 내역 확인</span>
+                <span class="text-sm text-slate-500">카드 및 기부금 영수증</span>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <h3 class="text-lg font-bold">정산 단계별 리스트</h3>
+          <div class="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div class="flex items-center justify-between p-5 transition-colors hover:bg-slate-50">
+              <div class="flex items-center gap-4">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">1</div>
+                <div class="flex flex-col">
+                  <span class="font-semibold">기본 정보 입력</span>
+                  <span class="text-xs text-slate-500">주민등록번호 및 주소지 확인</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-green-500">check_circle</span>
+            </div>
+            <div class="flex items-center justify-between p-5 transition-colors hover:bg-slate-50">
+              <div class="flex items-center gap-4">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">2</div>
+                <div class="flex flex-col">
+                  <span class="font-semibold">연말정산 간소화 자료</span>
+                  <span class="text-xs text-slate-500">국세청 자료 자동 불러오기</span>
+                </div>
+              </div>
+              <a class="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary" href="/income.html">진행하기</a>
+            </div>
+            <div class="flex items-center justify-between p-5 transition-colors hover:bg-slate-50">
+              <div class="flex items-center gap-4">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">3</div>
+                <div class="flex flex-col">
+                  <span class="font-semibold">기타 증빙 서류</span>
+                  <span class="text-xs text-slate-500">누락된 영수증 직접 등록</span>
+                </div>
+              </div>
+              <a class="text-slate-400" href="/deductions.html">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 rounded-xl border border-orange-100 bg-orange-50 p-4">
+          <span class="material-symbols-outlined text-orange-500">lightbulb</span>
+          <p class="text-sm text-orange-800">
+            <span class="font-bold">절세 팁:</span> 주택청약저축 납입 증명서를 제출하시면 최대 40%까지 소득공제가 가능합니다.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <nav class="sticky bottom-0 z-50 flex items-center justify-around border-t border-slate-200 bg-white py-3 md:hidden">
+      <a class="flex flex-col items-center text-primary" href="/index.html">
+        <span class="material-symbols-outlined material-symbols-fill">home</span>
+        <span class="mt-1 text-[10px] font-bold">홈</span>
+      </a>
+      <a class="flex flex-col items-center text-slate-400" href="/deductions.html">
+        <span class="material-symbols-outlined">description</span>
+        <span class="mt-1 text-[10px]">서류</span>
+      </a>
+      <a class="flex flex-col items-center text-slate-400" href="/results.html">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="mt-1 text-[10px]">리포트</span>
+      </a>
+      <a class="flex flex-col items-center text-slate-400" href="/index.html">
+        <span class="material-symbols-outlined">person</span>
+        <span class="mt-1 text-[10px]">내정보</span>
+      </a>
+    </nav>
+  </div>
+</body>
+</html>

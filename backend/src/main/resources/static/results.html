@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>연말정산 예상 결과</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2b8cee",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922"
+          },
+          fontFamily: {
+            display: ["Inter", "Noto Sans KR", "sans-serif"]
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background-light font-display text-slate-900">
+  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+    <header class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
+      <div class="flex items-center gap-4">
+        <div class="text-primary">
+          <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+        </div>
+        <h2 class="text-lg font-bold tracking-tight">연말정산 2025</h2>
+      </div>
+      <div class="flex gap-3">
+        <button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+          <span class="material-symbols-outlined">person</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex flex-1 justify-center px-4 py-8 md:px-10">
+      <div class="flex max-w-[960px] flex-1 flex-col gap-8">
+        <div class="flex flex-col gap-2">
+          <h1 class="text-4xl font-black tracking-tight text-slate-900">연말정산 예상 결과</h1>
+          <p class="text-base text-slate-500">고객님의 2025년 귀속 근로소득에 대한 예상 세액 계산 결과입니다.</p>
+        </div>
+
+        <div class="flex flex-col items-center gap-8 rounded-xl border border-slate-100 bg-white p-8 shadow-sm md:flex-row">
+          <div class="relative flex h-48 w-48 items-center justify-center rounded-full border-[12px] border-primary/10">
+            <div class="absolute inset-0 -rotate-45 rounded-full border-[12px] border-primary border-t-transparent"></div>
+            <div class="text-center">
+              <span class="material-symbols-outlined text-5xl text-primary">celebration</span>
+              <p class="mt-1 text-sm font-semibold text-primary">환급 확정</p>
+            </div>
+          </div>
+          <div class="flex flex-1 flex-col gap-4 text-center md:text-left">
+            <div>
+              <p class="text-lg font-medium text-slate-500">최종 예상 환급액</p>
+              <h2 class="mt-1 text-5xl font-black tracking-tight text-primary">450,200원</h2>
+            </div>
+            <div class="rounded-lg bg-primary/5 p-4">
+              <p class="leading-relaxed text-slate-700">
+                기분 좋은 소식이에요! 이번 연말정산 결과, 세금을 <span class="font-bold text-primary">돌려받으실 예정</span>입니다.
+                맞벌이 부부라면 배우자의 공제 항목도 함께 확인해보세요.
+              </p>
+            </div>
+            <div class="mt-2 flex flex-wrap justify-center gap-3 md:justify-start">
+              <button class="rounded-lg bg-primary px-8 py-3 font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90">신고서 제출하기</button>
+              <button class="rounded-lg bg-slate-100 px-6 py-3 font-bold text-slate-700">상세 내역 다운로드</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div class="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h3 class="mb-6 flex items-center gap-2 text-lg font-bold">
+              <span class="material-symbols-outlined text-primary">analytics</span>
+              세액 계산 요약
+            </h3>
+            <div class="space-y-6">
+              <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-500">결정세액 (내가 낼 세금)</span>
+                  <span class="font-semibold">1,200,000원</span>
+                </div>
+                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div class="h-full w-[40%] bg-primary"></div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-slate-500">기납부세액 (이미 낸 세금)</span>
+                  <span class="font-semibold">1,650,200원</span>
+                </div>
+                <div class="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div class="h-full w-[55%] bg-slate-400"></div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                <span class="font-bold text-slate-900">차감 징수 세액</span>
+                <span class="text-2xl font-black text-primary">-450,200원</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+            <h3 class="mb-6 flex items-center gap-2 text-lg font-bold">
+              <span class="material-symbols-outlined text-primary">pie_chart</span>
+              공제 항목별 비중
+            </h3>
+            <div class="flex items-center justify-center gap-8 py-4">
+              <svg class="h-32 w-32" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#e2e8f0" stroke-width="4"></circle>
+                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#2b8cee" stroke-dasharray="70 100" stroke-dashoffset="25" stroke-width="4"></circle>
+                <circle cx="18" cy="18" r="15.9" fill="transparent" stroke="#94a3b8" stroke-dasharray="20 100" stroke-dashoffset="95" stroke-width="4"></circle>
+              </svg>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="h-3 w-3 rounded-full bg-primary"></span>
+                  <span class="text-slate-500">인적공제</span>
+                  <span class="font-bold">70%</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="h-3 w-3 rounded-full bg-slate-400"></span>
+                  <span class="text-slate-500">보험료/의료비</span>
+                  <span class="font-bold">20%</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="h-3 w-3 rounded-full bg-slate-200"></span>
+                  <span class="text-slate-500">기타</span>
+                  <span class="font-bold">10%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div class="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-5">
+            <span class="material-symbols-outlined text-primary">info</span>
+            <p class="text-sm font-bold">총급여액</p>
+            <p class="text-xl font-bold">54,000,000원</p>
+          </div>
+          <div class="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-5">
+            <span class="material-symbols-outlined text-primary">local_atm</span>
+            <p class="text-sm font-bold">소득공제 합계</p>
+            <p class="text-xl font-bold">12,400,000원</p>
+          </div>
+          <div class="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-5">
+            <span class="material-symbols-outlined text-primary">receipt_long</span>
+            <p class="text-sm font-bold">세액공제 합계</p>
+            <p class="text-xl font-bold">2,150,000원</p>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-primary/20 bg-primary/5 p-6">
+          <div class="flex items-start gap-4">
+            <div class="rounded-lg bg-primary p-2 text-white">
+              <span class="material-symbols-outlined">lightbulb</span>
+            </div>
+            <div>
+              <h4 class="mb-1 font-bold text-primary">세금 더 아끼는 팁</h4>
+              <p class="text-sm text-slate-700">연금저축 및 IRP 납입액을 늘려보세요. 최대 900만원까지 세액공제 혜택을 받을 수 있어 내년에는 더 많은 환급을 기대할 수 있습니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-200 pt-8">
+          <a class="flex items-center gap-2 text-slate-600 hover:text-primary" href="/deductions.html">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>이전: 공제 입력</span>
+          </a>
+          <a class="rounded-lg bg-primary px-6 py-3 font-bold text-white hover:bg-primary/90" href="/index.html">홈으로 이동</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="mt-auto border-t border-slate-200 px-6 py-10 text-center">
+      <p class="text-sm text-slate-500">본 결과는 입력된 데이터를 바탕으로 산출된 예상치이며, 실제 국세청 확정 결과와 다를 수 있습니다.</p>
+    </footer>
+  </div>
+</body>
+</html>

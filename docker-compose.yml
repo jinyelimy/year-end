@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: yearend-postgres
+    environment:
+      POSTGRES_DB: yearend
+      POSTGRES_USER: yearend
+      POSTGRES_PASSWORD: yearend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: yearend-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: yearend-backend
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: yearend
+      DB_USERNAME: yearend
+      DB_PASSWORD: yearend
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: change-me-in-production-change-me-in-production-1234567890
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:
