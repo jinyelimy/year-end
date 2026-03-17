@@ -22,8 +22,7 @@ jobs:
     env:
       NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
       NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-      NOTION_TITLE_PROPERTY: ${{ secrets.NOTION_TITLE_PROPERTY }}
-      NOTION_SOURCE_PATH_PROPERTY: ${{ secrets.NOTION_SOURCE_PATH_PROPERTY }}
+      NOTION_SOURCE_PATH_PROPERTY: Source Path
       NOTION_SYNC_DOCS_DIR: docs
     steps:
       - name: Checkout
@@ -38,8 +37,6 @@ jobs:
         run: |
           test -n "$NOTION_TOKEN"
           test -n "$NOTION_DATABASE_ID"
-          test -n "$NOTION_TITLE_PROPERTY"
-          test -n "$NOTION_SOURCE_PATH_PROPERTY"
 
       - name: Sync docs to Notion
         run: npm run notion:sync

@@ -11,8 +11,6 @@ loadDotEnv(envPath);
 
 const notionToken = requiredEnv("NOTION_TOKEN");
 const databaseId = requiredEnv("NOTION_DATABASE_ID");
-const titleProperty = process.env.NOTION_TITLE_PROPERTY || "Name";
-const sourcePathProperty = process.env.NOTION_SOURCE_PATH_PROPERTY || "Source Path";
 const docsDir = path.join(rootDir, process.env.NOTION_SYNC_DOCS_DIR || "docs");
 
 async function main() {
@@ -24,6 +22,8 @@ async function main() {
 
   const state = await readState();
   const schema = await getDatabaseSchema(databaseId);
+  const titleProperty = resolveTitleProperty(schema);
+  const sourcePathProperty = resolveSourcePathProperty(schema);
   validateSchema(schema, titleProperty, sourcePathProperty);
 
   let syncedCount = 0;
@@ -105,6 +105,33 @@ function validateSchema(schema, titleProp, sourceProp) {
   }
 }
 
+function resolveTitleProperty(schema) {
+  const configuredTitleProperty = process.env.NOTION_TITLE_PROPERTY;
+  if (configuredTitleProperty && schema.properties?.[configuredTitleProperty]?.type === "title") {
+    return configuredTitleProperty;
+  }
+
+  const titleEntry = Object.entries(schema.properties || {}).find(([, property]) => property.type === "title");
+  if (!titleEntry) {
+    throw new Error("Notion database must contain a title property.");
+  }
+
+  return titleEntry[0];
+}
+
+function resolveSourcePathProperty(schema) {
+  const configuredSourcePathProperty = process.env.NOTION_SOURCE_PATH_PROPERTY;
+  if (configuredSourcePathProperty && schema.properties?.[configuredSourcePathProperty]?.type === "rich_text") {
+    return configuredSourcePathProperty;
+  }
+
+  if (schema.properties?.["Source Path"]?.type === "rich_text") {
+    return "Source Path";
+  }
+
+  return configuredSourcePathProperty || "Source Path";
+}
+
 async function findPageIdBySourcePath(databaseIdValue, sourceProp, relativePath) {
   const response = await notionRequest(`databases/${databaseIdValue}/query`, {
     method: "POST",
@@ -154,6 +181,10 @@ async function updatePageProperties(pageId, titleProp, sourceProp, title, relati
 async function replacePageContent(pageId, blocks) {
   const children = await listBlockChildren(pageId);
   for (const child of children) {
+    if (child.archived || child.in_trash) {
+      continue;
+    }
+
     await notionRequest(`blocks/${child.id}`, {
       method: "DELETE"
     });
