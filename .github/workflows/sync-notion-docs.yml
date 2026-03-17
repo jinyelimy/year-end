@@ -1,0 +1,45 @@
+name: Sync Notion Docs
+
+on:
+  push:
+    paths:
+      - "docs/**/*.md"
+      - "scripts/sync-docs-to-notion.mjs"
+      - "package.json"
+      - ".github/workflows/sync-notion-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-notion-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      NOTION_TITLE_PROPERTY: ${{ secrets.NOTION_TITLE_PROPERTY }}
+      NOTION_SOURCE_PATH_PROPERTY: ${{ secrets.NOTION_SOURCE_PATH_PROPERTY }}
+      NOTION_SYNC_DOCS_DIR: docs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate required secrets
+        run: |
+          test -n "$NOTION_TOKEN"
+          test -n "$NOTION_DATABASE_ID"
+          test -n "$NOTION_TITLE_PROPERTY"
+          test -n "$NOTION_SOURCE_PATH_PROPERTY"
+
+      - name: Sync docs to Notion
+        run: npm run notion:sync

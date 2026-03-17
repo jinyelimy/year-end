@@ -1,0 +1,8 @@
+{
+  "name": "year-end",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "notion:sync": "node ./scripts/sync-docs-to-notion.mjs"
+  }
+}
