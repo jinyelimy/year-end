@@ -63,8 +63,8 @@
           <div class="rounded-2xl border border-primary/20 bg-primary/5 p-5">
             <h3 class="text-sm font-bold text-primary">안내</h3>
             <p class="mt-2 text-sm leading-6 text-slate-600">
-              기본정보를 저장한 뒤 다음 단계로 이동하면 부양가족 입력 화면으로 이어집니다.
-              1단계 완료는 부양가족 화면에서 최종 확정 버튼을 눌러야 반영됩니다.
+              기본정보를 저장하면 다음 단계인 부양정보 입력 화면으로 이동합니다.
+              이미 1단계를 확정한 상태라면 먼저 확정을 풀어야 수정할 수 있습니다.
             </p>
           </div>
         </div>
@@ -73,13 +73,9 @@
       <section class="lg:col-span-8">
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div class="border-b border-slate-200 px-6 py-6">
-            <a class="mb-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900" href="/index.html">
-              <span class="material-symbols-outlined text-base">arrow_back</span>
-              대시보드로 돌아가기
-            </a>
             <h1 class="text-2xl font-bold text-slate-900">기본정보 입력</h1>
             <p class="mt-2 text-sm text-slate-500">
-              연말정산 1단계의 첫 화면입니다. 기본정보를 저장한 뒤 부양가족 입력 단계로 이동합니다.
+              연말정산 1단계의 시작 화면입니다. 먼저 기본정보를 확인하고 다음 단계로 이동하세요.
             </p>
           </div>
 
@@ -105,7 +101,7 @@
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <label class="block text-sm font-medium text-slate-700" for="state">주/도</label>
+                  <label class="block text-sm font-medium text-slate-700" for="state">주 / 지역</label>
                   <select class="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm" id="state">
                     <option value="서울특별시">서울특별시</option>
                     <option value="경기도">경기도</option>
@@ -129,14 +125,14 @@
                   <input checked class="sr-only" name="reporting_type" type="radio" value="SALARY_WORKER">
                   <div>
                     <span class="block text-sm font-bold text-slate-900">근로소득 중심</span>
-                    <span class="mt-1 block text-xs text-slate-500">급여를 기준으로 기본 흐름을 진행합니다.</span>
+                    <span class="mt-1 block text-xs text-slate-500">급여를 기준으로 기본 연말정산 흐름을 진행합니다.</span>
                   </div>
                 </label>
                 <label class="relative flex cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary">
                   <input class="sr-only" name="reporting_type" type="radio" value="YEAR_END_ADJUSTMENT">
                   <div>
                     <span class="block text-sm font-bold text-slate-900">연말정산 조정</span>
-                    <span class="mt-1 block text-xs text-slate-500">간소화 자료와 연결해 화면 흐름을 확인합니다.</span>
+                    <span class="mt-1 block text-xs text-slate-500">간소화 자료와 연결해서 정산값을 확인합니다.</span>
                   </div>
                 </label>
               </div>
@@ -150,8 +146,9 @@
             </div>
 
             <div class="flex items-center justify-between border-t border-slate-200 pt-6">
-              <button class="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900" id="basic-info-cancel" type="button">취소</button>
+              <button class="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900" id="basic-info-cancel" type="button">대시보드</button>
               <div class="flex gap-4">
+                <button class="hidden rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-300 hover:bg-red-100" id="basic-info-unlock" type="button">1단계 확정 풀기</button>
                 <button class="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50" id="basic-info-save" type="button">저장</button>
                 <button class="rounded-xl bg-primary px-8 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90" id="basic-info-next" type="submit">다음 단계</button>
               </div>
@@ -167,11 +164,15 @@
     const basicInfoForm = document.getElementById("basic-info-form");
     const basicInfoMessage = document.getElementById("basic-info-message");
     const saveButton = document.getElementById("basic-info-save");
+    const nextButton = document.getElementById("basic-info-next");
     const cancelButton = document.getElementById("basic-info-cancel");
+    const unlockButton = document.getElementById("basic-info-unlock");
     const basicPageAvatar = document.getElementById("basic-page-avatar");
     const basicPageUserName = document.getElementById("basic-page-user-name");
     const basicPageStatus = document.getElementById("basic-page-status");
+    const basicInfoFields = Array.from(document.querySelectorAll("#basic-info-form input, #basic-info-form select, #basic-info-form textarea"));
     let currentSession = null;
+    let currentUser = null;
 
     function showBasicInfoMessage(type, message) {
       basicInfoMessage.className = "mx-6 mt-6 rounded-lg border px-4 py-3 text-sm";
@@ -182,6 +183,17 @@
       );
       basicInfoMessage.textContent = message;
       basicInfoMessage.classList.remove("hidden");
+    }
+
+    function setBasicInfoLocked(locked) {
+      basicInfoFields.forEach(function (field) {
+        field.disabled = locked;
+      });
+      saveButton.disabled = locked;
+      nextButton.disabled = locked;
+      saveButton.classList.toggle("hidden", locked);
+      nextButton.classList.toggle("hidden", locked);
+      unlockButton.classList.toggle("hidden", !locked);
     }
 
     function fillBasicInfoForm(session) {
@@ -227,6 +239,7 @@
       basicPageUserName.textContent = displayName;
       basicPageStatus.textContent = window.YearEndApp.hasDependentsConfirmed(session) ? "1단계 완료" : "1단계 진행 중";
       basicPageAvatar.textContent = displayName.slice(0, 2).toUpperCase();
+      setBasicInfoLocked(window.YearEndApp.hasDependentsConfirmed(session));
     }
 
     async function saveBasicInfo(redirectNext) {
@@ -240,10 +253,11 @@
         const updatedSession = await window.YearEndApp.updateBasicInfo(sessionId, buildBasicInfoPayload());
         currentSession = updatedSession;
         window.YearEndApp.saveCurrentSession(updatedSession);
+        updatePageIdentity(currentUser, updatedSession);
         showBasicInfoMessage(
           "success",
           redirectNext
-            ? "기본정보를 저장했습니다. 부양가족 입력 화면으로 이동합니다."
+            ? "기본정보를 저장했습니다. 부양정보 입력 화면으로 이동합니다."
             : "기본정보를 저장했습니다."
         );
 
@@ -259,15 +273,45 @@
 
     basicInfoForm.addEventListener("submit", async function (event) {
       event.preventDefault();
+      if (window.YearEndApp.hasDependentsConfirmed(currentSession)) {
+        return;
+      }
       await saveBasicInfo(true);
     });
 
     saveButton.addEventListener("click", async function () {
+      if (window.YearEndApp.hasDependentsConfirmed(currentSession)) {
+        return;
+      }
       await saveBasicInfo(false);
     });
 
     cancelButton.addEventListener("click", function () {
       window.location.href = "/index.html";
+    });
+
+    unlockButton.addEventListener("click", async function () {
+      const sessionId = window.YearEndApp.getCurrentSessionId();
+      if (!sessionId || !currentSession) {
+        return;
+      }
+
+      try {
+        const basicInfo = window.YearEndApp.parseBasicInfo(currentSession);
+        const updatedSession = await window.YearEndApp.updateBasicInfo(sessionId, {
+          basicInfoJsonb: JSON.stringify({
+            ...basicInfo,
+            dependentsConfirmed: false
+          }),
+          memo: currentSession.memo || ""
+        });
+        currentSession = updatedSession;
+        window.YearEndApp.saveCurrentSession(updatedSession);
+        updatePageIdentity(currentUser, updatedSession);
+        showBasicInfoMessage("success", "1단계 확정을 풀었습니다. 이제 기본정보를 수정할 수 있습니다.");
+      } catch (error) {
+        showBasicInfoMessage("error", error.message || "1단계 확정 풀기에 실패했습니다.");
+      }
     });
 
     (async function bootstrapBasicInfo() {
@@ -277,6 +321,7 @@
 
       try {
         const context = await window.YearEndApp.initializeAuthenticatedContext();
+        currentUser = context.user;
         currentSession = context.currentSession;
         updatePageIdentity(context.user, context.currentSession);
         fillBasicInfoForm(context.currentSession);
