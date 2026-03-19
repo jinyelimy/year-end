@@ -39,6 +39,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
                     "/",
+                    "/auth.html",
+                    "/basic-info.html",
+                    "/dependents.html",
+                    "/import-data.html",
+                    "/evidence-docs.html",
+                    "/submit-status.html",
                     "/index.html",
                     "/income.html",
                     "/deductions.html",

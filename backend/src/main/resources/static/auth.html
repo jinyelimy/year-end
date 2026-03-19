@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Tax-Easy | 로그인 및 회원가입</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4b91e2",
+            "background-light": "#f6f7f8",
+            "background-dark": "#121820"
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display flex flex-col">
+  <div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 md:px-10 py-3">
+        <div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+          <div class="size-8 text-primary">
+            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Tax-Easy</h2>
+        </div>
+        <button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors" type="button">
+          <span class="truncate">고객 센터</span>
+        </button>
+      </header>
+
+      <main class="flex-1 flex items-center justify-center p-4 md:p-8">
+        <div class="max-w-[480px] w-full bg-white dark:bg-slate-900 shadow-xl rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+          <div class="p-8 pb-4">
+            <div class="flex flex-col gap-2 mb-8">
+              <h1 class="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]">로그인 및 회원가입</h1>
+              <p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">연말정산 조정을 간소화하세요.</p>
+            </div>
+
+            <div class="pb-6">
+              <div class="flex border-b border-slate-200 dark:border-slate-800 px-0 gap-8">
+                <button class="tab-link flex flex-col items-center justify-center border-b-[3px] border-primary text-slate-900 dark:text-white pb-[13px] pt-2" data-tab-target="login" type="button">
+                  <p class="text-sm font-bold leading-normal tracking-[0.015em]">로그인</p>
+                </button>
+                <button class="tab-link flex flex-col items-center justify-center border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 pb-[13px] pt-2 hover:text-slate-700 dark:hover:text-slate-200 transition-colors" data-tab-target="signup" type="button">
+                  <p class="text-sm font-bold leading-normal tracking-[0.015em]">회원가입</p>
+                </button>
+              </div>
+            </div>
+
+            <div class="hidden rounded-lg border px-4 py-3 text-sm mb-4" id="form-message"></div>
+
+            <form class="space-y-4" id="login-form" novalidate>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal" for="login-email">이메일</label>
+                <input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base font-normal" id="login-email" placeholder="이메일 주소를 입력하세요" type="text"/>
+                <p class="text-sm text-red-600 min-h-5" data-error-for="login-email"></p>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal" for="login-password">비밀번호</label>
+                <div class="relative flex w-full items-center">
+                  <input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 pr-12 text-base font-normal" id="login-password" placeholder="비밀번호를 입력하세요" type="password"/>
+                  <button class="absolute right-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300" data-toggle-target="login-password" type="button">
+                    <span class="material-symbols-outlined text-[22px]">visibility</span>
+                  </button>
+                </div>
+                <p class="text-sm text-red-600 min-h-5" data-error-for="login-password"></p>
+              </div>
+
+              <div class="flex items-center justify-between py-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input class="rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
+                  <span class="text-sm text-slate-600 dark:text-slate-400">로그인 상태 유지</span>
+                </label>
+                <a class="text-sm text-primary font-semibold hover:underline" href="#">비밀번호를 잊으셨나요?</a>
+              </div>
+
+              <button class="w-full flex cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all mt-4 disabled:opacity-60" id="login-submit" type="submit">
+                <span>로그인</span>
+              </button>
+            </form>
+
+            <form class="space-y-4 hidden" id="signup-form" novalidate>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal" for="signup-name">이름</label>
+                <input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base font-normal" id="signup-name" placeholder="이름을 입력하세요" type="text"/>
+                <p class="text-sm text-red-600 min-h-5" data-error-for="signup-name"></p>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal" for="signup-email">이메일</label>
+                <input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base font-normal" id="signup-email" placeholder="이메일 주소를 입력하세요" type="text"/>
+                <p class="text-sm text-red-600 min-h-5" data-error-for="signup-email"></p>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal" for="signup-password">비밀번호</label>
+                <div class="relative flex w-full items-center">
+                  <input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 pr-12 text-base font-normal" id="signup-password" placeholder="비밀번호를 입력하세요" type="password"/>
+                  <button class="absolute right-3 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300" data-toggle-target="signup-password" type="button">
+                    <span class="material-symbols-outlined text-[22px]">visibility</span>
+                  </button>
+                </div>
+                <p class="text-sm text-red-600 min-h-5" data-error-for="signup-password"></p>
+              </div>
+
+              <button class="w-full flex cursor-pointer items-center justify-center rounded-lg h-12 px-4 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all mt-4 disabled:opacity-60" id="signup-submit" type="submit">
+                <span>회원가입</span>
+              </button>
+            </form>
+
+            <div class="relative flex items-center gap-4 py-8">
+              <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+              <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">또는 다음으로 계속하기</span>
+              <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pb-4">
+              <button class="flex items-center justify-center gap-2 h-12 rounded-lg bg-[#FEE500] text-[#191919] text-sm font-bold hover:brightness-95 transition-all" type="button">
+                <span class="material-symbols-outlined text-[20px]">chat</span>
+                카카오
+              </button>
+              <button class="flex items-center justify-center gap-2 h-12 rounded-lg bg-[#03C75A] text-white text-sm font-bold hover:brightness-95 transition-all" type="button">
+                <span class="material-symbols-outlined text-[20px]">circle</span>
+                네이버
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-6 text-center border-t border-slate-200 dark:border-slate-800">
+            <p class="text-slate-500 dark:text-slate-400 text-sm">
+              Tax-Easy가 처음이신가요? <button class="text-primary font-bold hover:underline" data-tab-target="signup" type="button">계정 만들기</button>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer class="p-8 text-center">
+        <p class="text-slate-400 dark:text-slate-600 text-xs">
+          © 2023 Tax-Easy Inc. All rights reserved.
+          <span class="mx-2">|</span>
+          <a class="hover:text-primary transition-colors" href="#">개인정보 처리방침</a>
+          <span class="mx-2">|</span>
+          <a class="hover:text-primary transition-colors" href="#">이용 약관</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const formMessage = document.getElementById("form-message");
+    const loginForm = document.getElementById("login-form");
+    const signupForm = document.getElementById("signup-form");
+    const tabButtons = Array.from(document.querySelectorAll("[data-tab-target]"));
+
+    function clearErrors() {
+      document.querySelectorAll("[data-error-for]").forEach((node) => {
+        node.textContent = "";
+      });
+    }
+
+    function showMessage(type, message) {
+      formMessage.className = "rounded-lg border px-4 py-3 text-sm mb-4";
+      formMessage.classList.add(
+        type === "success" ? "border-emerald-200" : "border-red-200",
+        type === "success" ? "bg-emerald-50" : "bg-red-50",
+        type === "success" ? "text-emerald-700" : "text-red-700"
+      );
+      formMessage.textContent = message;
+      formMessage.classList.remove("hidden");
+    }
+
+    function hideMessage() {
+      formMessage.classList.add("hidden");
+      formMessage.textContent = "";
+    }
+
+    function showFieldError(fieldId, message) {
+      const node = document.querySelector(`[data-error-for="${fieldId}"]`);
+      if (node) {
+        node.textContent = message;
+      }
+    }
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
+    function switchTab(tab) {
+      clearErrors();
+      hideMessage();
+      loginForm.classList.toggle("hidden", tab !== "login");
+      signupForm.classList.toggle("hidden", tab !== "signup");
+      document.querySelectorAll(".tab-link").forEach((button) => {
+        const active = button.dataset.tabTarget === tab;
+        button.classList.toggle("border-primary", active);
+        button.classList.toggle("text-slate-900", active);
+        button.classList.toggle("dark:text-white", active);
+        button.classList.toggle("border-transparent", !active);
+        button.classList.toggle("text-slate-500", !active);
+        button.classList.toggle("dark:text-slate-400", !active);
+      });
+    }
+
+    function setSubmitting(form, submitting) {
+      const button = form.querySelector("button[type='submit']");
+      button.disabled = submitting;
+      button.querySelector("span").textContent = submitting
+        ? (form.id === "login-form" ? "로그인 중..." : "회원가입 중...")
+        : (form.id === "login-form" ? "로그인" : "회원가입");
+    }
+
+    async function callAuth(endpoint, payload) {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json().catch(() => ({
+        success: false,
+        error: { message: "서버 응답을 처리하지 못했습니다." }
+      }));
+
+      if (!response.ok || !result.success) {
+        throw result;
+      }
+
+      return result.data;
+    }
+
+    function saveAuth(data) {
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("expiresInSeconds", String(data.expiresInSeconds));
+      localStorage.setItem("userProfile", JSON.stringify({
+        userId: data.userId,
+        email: data.email,
+        name: data.name,
+        role: data.role
+      }));
+    }
+
+    function applyServerFieldErrors(fieldErrors, prefix) {
+      if (!Array.isArray(fieldErrors)) {
+        return;
+      }
+      fieldErrors.forEach((item) => {
+        if (item.field && item.reason) {
+          showFieldError(`${prefix}-${item.field}`, item.reason);
+        }
+      });
+    }
+
+    function getFriendlyErrorMessage(error, fallback) {
+      const code = error?.error?.code;
+      if (code === "AUTH_409") return "이미 가입된 이메일입니다.";
+      if (code === "AUTH_401" || code === "AUTH_401_1") return "이메일 또는 비밀번호가 올바르지 않습니다.";
+      if (code === "COMMON_422") return "입력값을 다시 확인해주세요.";
+      return error?.error?.message || fallback;
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearErrors();
+      hideMessage();
+
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      let valid = true;
+
+      if (!email) {
+        showFieldError("login-email", "이메일을 입력해주세요.");
+        valid = false;
+      } else if (!isValidEmail(email)) {
+        showFieldError("login-email", "올바른 이메일 형식을 입력해주세요.");
+        valid = false;
+      }
+      if (!password.trim()) {
+        showFieldError("login-password", "비밀번호를 입력해주세요.");
+        valid = false;
+      }
+      if (!valid) return;
+
+      setSubmitting(loginForm, true);
+      try {
+        const data = await callAuth("/api/v1/auth/login", { email, password });
+        saveAuth(data);
+        showMessage("success", "로그인에 성공했습니다. 대시보드로 이동합니다.");
+        window.setTimeout(() => {
+          window.location.href = "/index.html";
+        }, 500);
+      } catch (error) {
+        applyServerFieldErrors(error?.error?.fieldErrors, "login");
+        showMessage("error", getFriendlyErrorMessage(error, "로그인에 실패했습니다. 다시 시도해주세요."));
+      } finally {
+        setSubmitting(loginForm, false);
+      }
+    });
+
+    signupForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearErrors();
+      hideMessage();
+
+      const name = document.getElementById("signup-name").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const password = document.getElementById("signup-password").value;
+      let valid = true;
+
+      if (!name) {
+        showFieldError("signup-name", "이름을 입력해주세요.");
+        valid = false;
+      }
+      if (!email) {
+        showFieldError("signup-email", "이메일을 입력해주세요.");
+        valid = false;
+      } else if (!isValidEmail(email)) {
+        showFieldError("signup-email", "올바른 이메일 형식을 입력해주세요.");
+        valid = false;
+      }
+      if (!password.trim()) {
+        showFieldError("signup-password", "비밀번호를 입력해주세요.");
+        valid = false;
+      } else if (password.length < 8) {
+        showFieldError("signup-password", "비밀번호는 8자 이상이어야 합니다.");
+        valid = false;
+      }
+      if (!valid) return;
+
+      setSubmitting(signupForm, true);
+      try {
+        const data = await callAuth("/api/v1/auth/signup", { name, email, password });
+        saveAuth(data);
+        showMessage("success", "회원가입이 완료되었습니다. 대시보드로 이동합니다.");
+        window.setTimeout(() => {
+          window.location.href = "/index.html";
+        }, 500);
+      } catch (error) {
+        applyServerFieldErrors(error?.error?.fieldErrors, "signup");
+        showMessage("error", getFriendlyErrorMessage(error, "회원가입에 실패했습니다. 다시 시도해주세요."));
+      } finally {
+        setSubmitting(signupForm, false);
+      }
+    });
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => switchTab(button.dataset.tabTarget));
+    });
+
+    document.querySelectorAll("[data-toggle-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById(button.dataset.toggleTarget);
+        input.type = input.type === "password" ? "text" : "password";
+      });
+    });
+
+    switchTab("login");
+  </script>
+</body>
+</html>
