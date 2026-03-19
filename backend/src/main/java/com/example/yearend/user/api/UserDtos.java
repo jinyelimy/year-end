@@ -24,6 +24,7 @@ public final class UserDtos {
         UUID id,
         String email,
         String name,
+        String nickname,
         UserRole role,
         UserStatus status,
         OffsetDateTime lastLoginAt

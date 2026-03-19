@@ -19,7 +19,9 @@
   }
 
   function clearAuth() {
-    Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    Object.values(STORAGE_KEYS).forEach(function (key) {
+      localStorage.removeItem(key);
+    });
   }
 
   function saveUserProfile(profile) {
@@ -93,12 +95,16 @@
     });
 
     if (!response.ok || !payload.success) {
-      const error = new Error(payload.error && payload.error.message ? payload.error.message : "요청에 실패했습니다.");
+      const error = new Error(
+        payload.error && payload.error.message ? payload.error.message : "요청에 실패했습니다."
+      );
       error.status = response.status;
       error.payload = payload;
+
       if (response.status === 401 && requestConfig.auth !== false) {
         clearAuth();
       }
+
       throw error;
     }
 
@@ -159,6 +165,7 @@
     if (!session || !session.basicInfoJsonb) {
       return {};
     }
+
     try {
       return JSON.parse(session.basicInfoJsonb);
     } catch (error) {
@@ -171,9 +178,18 @@
     return Boolean(basicInfo.fullName || basicInfo.address || basicInfo.reportingType);
   }
 
+  function hasDependentsConfirmed(session) {
+    const basicInfo = parseBasicInfo(session);
+    return basicInfo.dependentsConfirmed === true;
+  }
+
+  function isProfileSectionComplete(session) {
+    return hasBasicInfo(session) && hasDependentsConfirmed(session);
+  }
+
   function resolveNextStep(session) {
     if (!session) {
-      return { href: "/basic-info.html", label: "세션 생성 후 시작하기" };
+      return { href: "/basic-info.html", label: "기본정보 및 부양가족 입력 시작하기" };
     }
 
     if (session.sessionStatus === "SUBMITTED" || session.sessionStatus === "REVIEWED" || session.sessionStatus === "REJECTED") {
@@ -181,32 +197,45 @@
     }
 
     if (session.sessionStatus === "CALCULATED") {
-      return { href: "/results.html", label: "계산 결과 확인하기" };
+      return { href: "/results.html", label: "결과 확인하기" };
     }
 
     if (!hasBasicInfo(session)) {
-      return { href: "/basic-info.html", label: "기본 정보 입력하기" };
+      return { href: "/basic-info.html", label: "기본정보 입력하기" };
     }
 
-    return { href: "/dependents.html", label: "부양가족 입력 이어가기" };
+    if (!hasDependentsConfirmed(session)) {
+      return { href: "/dependents.html", label: "부양가족 입력 확정하기" };
+    }
+
+    return { href: "/income.html", label: "소득 확인으로 이동하기" };
   }
 
   function resolveProgress(session) {
     if (!session) {
       return 10;
     }
+
     if (session.sessionStatus === "REVIEWED") {
       return 100;
     }
+
     if (session.sessionStatus === "SUBMITTED") {
       return 90;
     }
+
     if (session.sessionStatus === "CALCULATED") {
       return 75;
     }
-    if (hasBasicInfo(session)) {
-      return 40;
+
+    if (isProfileSectionComplete(session)) {
+      return 55;
     }
+
+    if (hasBasicInfo(session)) {
+      return 35;
+    }
+
     return 20;
   }
 
@@ -216,7 +245,7 @@
     }
 
     const labels = {
-      DRAFT: "입력 중",
+      DRAFT: isProfileSectionComplete(session) ? "1단계 완료" : "1단계 진행 중",
       CALCULATED: "계산 완료",
       SUBMITTED: "제출 완료",
       REVIEWED: "검토 완료",
@@ -228,6 +257,7 @@
 
   async function ensureCurrentSession() {
     const storedSessionId = getCurrentSessionId();
+
     if (storedSessionId) {
       try {
         const storedSession = await getTaxSession(storedSessionId);
@@ -303,6 +333,8 @@
     requireAuthOrRedirect,
     parseBasicInfo,
     hasBasicInfo,
+    hasDependentsConfirmed,
+    isProfileSectionComplete,
     resolveNextStep,
     resolveProgress,
     getSessionStatusLabel,

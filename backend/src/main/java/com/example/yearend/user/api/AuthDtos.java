@@ -41,6 +41,7 @@ public final class AuthDtos {
         UUID userId,
         String email,
         String name,
+        String nickname,
         UserRole role,
         String accessToken,
         String refreshToken,

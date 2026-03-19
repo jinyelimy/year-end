@@ -38,9 +38,17 @@ public class UserService {
             user.getId(),
             user.getEmail(),
             user.getName(),
+            resolveNickname(user),
             user.getRole(),
             user.getStatus(),
             user.getLastLoginAt()
         );
+    }
+
+    private String resolveNickname(User user) {
+        if (user.getNickname() == null || user.getNickname().isBlank()) {
+            return user.getName();
+        }
+        return user.getNickname();
     }
 }

@@ -5,6 +5,20 @@ Spring Boot 3.5 기반의 연말정산 시뮬레이터입니다.
 
 ![대시보드 화면](docs/images/dashboard.png)
 
+## 최신 화면
+
+### 대시보드
+
+![최신 대시보드](docs/images/dashboard-latest.png)
+
+### 기본정보 입력
+
+![최신 기본정보 입력 화면](docs/images/basic-info-latest.png)
+
+### 부양가족 입력
+
+![최신 부양가족 입력 화면](docs/images/dependents-latest.png)
+
 ## 프로젝트 개요
 
 - 목표: 연말정산 입력부터 계산, 증빙 관리, 제출 상태 확인까지 하나의 흐름으로 연결
