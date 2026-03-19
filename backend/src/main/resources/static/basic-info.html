@@ -148,7 +148,6 @@
             <div class="flex items-center justify-between border-t border-slate-200 pt-6">
               <button class="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900" id="basic-info-cancel" type="button">대시보드</button>
               <div class="flex gap-4">
-                <button class="hidden rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-sm font-semibold text-red-600 transition-all hover:border-red-300 hover:bg-red-100" id="basic-info-unlock" type="button">1단계 확정 풀기</button>
                 <button class="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50" id="basic-info-save" type="button">저장</button>
                 <button class="rounded-xl bg-primary px-8 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90" id="basic-info-next" type="submit">다음 단계</button>
               </div>
@@ -166,7 +165,6 @@
     const saveButton = document.getElementById("basic-info-save");
     const nextButton = document.getElementById("basic-info-next");
     const cancelButton = document.getElementById("basic-info-cancel");
-    const unlockButton = document.getElementById("basic-info-unlock");
     const basicPageAvatar = document.getElementById("basic-page-avatar");
     const basicPageUserName = document.getElementById("basic-page-user-name");
     const basicPageStatus = document.getElementById("basic-page-status");
@@ -193,7 +191,6 @@
       nextButton.disabled = locked;
       saveButton.classList.toggle("hidden", locked);
       nextButton.classList.toggle("hidden", locked);
-      unlockButton.classList.toggle("hidden", !locked);
     }
 
     function fillBasicInfoForm(session) {
@@ -288,30 +285,6 @@
 
     cancelButton.addEventListener("click", function () {
       window.location.href = "/index.html";
-    });
-
-    unlockButton.addEventListener("click", async function () {
-      const sessionId = window.YearEndApp.getCurrentSessionId();
-      if (!sessionId || !currentSession) {
-        return;
-      }
-
-      try {
-        const basicInfo = window.YearEndApp.parseBasicInfo(currentSession);
-        const updatedSession = await window.YearEndApp.updateBasicInfo(sessionId, {
-          basicInfoJsonb: JSON.stringify({
-            ...basicInfo,
-            dependentsConfirmed: false
-          }),
-          memo: currentSession.memo || ""
-        });
-        currentSession = updatedSession;
-        window.YearEndApp.saveCurrentSession(updatedSession);
-        updatePageIdentity(currentUser, updatedSession);
-        showBasicInfoMessage("success", "1단계 확정을 풀었습니다. 이제 기본정보를 수정할 수 있습니다.");
-      } catch (error) {
-        showBasicInfoMessage("error", error.message || "1단계 확정 풀기에 실패했습니다.");
-      }
     });
 
     (async function bootstrapBasicInfo() {
