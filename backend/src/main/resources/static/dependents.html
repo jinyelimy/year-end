@@ -1,103 +1,405 @@
 <!DOCTYPE html>
-<html lang="ko"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>부양가족 관리</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#4b91e2",
-                        "background-light": "#f6f7f8",
-                        "background-dark": "#121820",
-                    },
-                    fontFamily: {
-                        "display": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>부양가족 관리</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4b91e2",
+            "background-light": "#f6f7f8",
+            "background-dark": "#121820"
+          },
+          fontFamily: {
+            "display": ["Inter"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          }
         }
-    </script>
+      }
+    };
+  </script>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
-<div class="layout-container flex h-full grow flex-col">
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-4 bg-white dark:bg-background-dark">
-<div class="flex items-center gap-4 text-primary">
-<div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined text-primary">family_history</span>
-</div>
-<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">FamilyLink 포털</h2>
-</div>
-<div class="flex flex-1 justify-end gap-4 items-center">
-<div class="flex gap-2">
-<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">notifications</span></button>
-<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">settings</span></button>
-</div>
-<div class="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/30 bg-cover bg-center" data-alt="Alex Johnson의 프로필 사진" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAR0UK9pV3gZlzvgDS6Rylk7oKPwKU7jxtx92US10yy4BoBQzvSLlymDULBlA0WGQTXVcHzP67ERXnA-nDZkqZuWc6Lr6qE4Kca_O5IMw3xCqALlhHYjF6mFJMWU8RGYjDuzUOj3kGoAddK7D-pEnCZUKizycumK6a08xFBY7j42B-c39sEmSfP7IUCGOstu5vbOdcUb5Y91hjgxNKb111kJQWpaEPW5Wsz5DGlvto5be9VCQkp3GYUICgeB8o7iDZ428czeU-WuUEg');"></div>
-</div>
-</header>
-<main class="flex flex-1 flex-col md:flex-row p-6 gap-6 max-w-7xl mx-auto w-full">
-<div class="flex flex-col w-full md:w-1/3 gap-6">
-<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex gap-4 items-center mb-6">
-<div class="size-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg" data-alt="Alex Johnson 아바타">AJ</div>
-<div class="flex flex-col"><h1 class="text-slate-900 dark:text-slate-100 text-base font-semibold">Alex Johnson</h1><p class="text-slate-500 dark:text-slate-400 text-sm">기본 계정 소유자</p></div>
-</div>
-<nav class="flex flex-col gap-1">
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/index.html"><span class="material-symbols-outlined">dashboard</span><span class="text-sm font-medium">대시보드</span></a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="/dependents.html"><span class="material-symbols-outlined">group</span><span class="text-sm font-semibold">부양가족</span></a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/evidence-docs.html"><span class="material-symbols-outlined">description</span><span class="text-sm font-medium">서류</span></a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/results.html"><span class="material-symbols-outlined">shield_with_heart</span><span class="text-sm font-medium">보험</span></a>
-</nav>
-</div>
-<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex-1">
-<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center"><h3 class="font-bold text-slate-900 dark:text-slate-100">내 부양가족</h3><span class="text-xs font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500">총 3명</span></div>
-<div class="divide-y divide-slate-100 dark:divide-slate-800">
-<div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">JD</div><div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">John Doe</p><p class="text-xs text-slate-500">아들 • 12세</p></div></div><span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">인증됨</span></div></div>
-<div class="p-4 bg-primary/5 border-l-4 border-primary dark:bg-primary/10 cursor-pointer transition-colors group"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-10 rounded-lg bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 flex items-center justify-center font-bold">JD</div><div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Jane Doe</p><p class="text-xs text-slate-500">딸 • 8세</p></div></div><span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded">진행 중</span></div></div>
-<div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center font-bold">RS</div><div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Robert Smith</p><p class="text-xs text-slate-500">부친 • 68세</p></div></div><span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">인증됨</span></div></div>
-</div>
-</div>
-</div>
-<div class="flex-1 flex flex-col gap-6">
-<div class="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex justify-between items-start mb-8">
-<div><h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">부양가족 수정</h2><p class="text-slate-500 dark:text-slate-400">부양가족의 정보 및 서류를 관리하세요.</p></div>
-<button class="text-red-500 hover:text-red-600 flex items-center gap-1 text-sm font-semibold"><span class="material-symbols-outlined text-lg">delete</span>부양가족 삭제</button>
-</div>
-<form class="space-y-6">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="space-y-2"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">성명</label><input class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" type="text" value="Jane Doe"/></div>
-<div class="space-y-2"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">관계</label><select class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"><option>아들</option><option selected="">딸</option><option>배우자</option><option>부모</option><option>기타</option></select></div>
-<div class="space-y-2"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">생년월일</label><input class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" type="date" value="2015-05-12"/></div>
-<div class="space-y-2"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">성별</label><div class="flex gap-4 pt-2"><label class="flex items-center gap-2 cursor-pointer"><input class="text-primary focus:ring-primary h-4 w-4" name="gender" type="radio"/><span class="text-sm text-slate-600 dark:text-slate-400">남성</span></label><label class="flex items-center gap-2 cursor-pointer"><input checked="" class="text-primary focus:ring-primary h-4 w-4" name="gender" type="radio"/><span class="text-sm text-slate-600 dark:text-slate-400">여성</span></label></div></div>
-</div>
-<div class="space-y-4 pt-4">
-<h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">필수 인증</h3>
-<div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-<div class="flex items-center gap-3"><span class="material-symbols-outlined text-slate-400">description</span><div><p class="text-sm font-semibold text-slate-900 dark:text-slate-100">출생 증명서</p><p class="text-xs text-amber-600 dark:text-amber-400">조치 필요: 서류를 업로드하세요</p></div></div>
-<button class="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all" type="button">파일 업로드</button>
-</div>
-</div>
-<div class="flex items-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-<button class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-md transition-all" type="submit">변경사항 저장</button>
-<button class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" type="button">변경 취소</button>
-</div>
-</form>
-</div>
-<div class="bg-primary/5 dark:bg-primary/10 p-6 rounded-xl border border-primary/20 flex items-start gap-4">
-<span class="material-symbols-outlined text-primary text-3xl">info</span>
-<div><h4 class="font-bold text-primary">상태: 진행 중: 서류 업로드 대기</h4><p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Jane의 인증을 위해 서류 업로드가 필요합니다. 업로드가 완료되면 보통 영업일 기준 2-3일 이내에 검토가 진행됩니다. 보험 적용을 위해서는 인증이 완료되어야 합니다.</p></div>
-</div>
-</div>
-</main>
-</div>
-</div>
-</body></html>
+  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-4 bg-white dark:bg-background-dark">
+      <div class="flex items-center gap-4 text-primary">
+        <div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary">family_history</span>
+        </div>
+        <h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">FamilyLink 포털</h2>
+      </div>
+      <div class="flex flex-1 justify-end gap-4 items-center">
+        <div class="flex gap-2">
+          <button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" type="button">
+            <span class="material-symbols-outlined text-xl">notifications</span>
+          </button>
+          <button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" type="button">
+            <span class="material-symbols-outlined text-xl">settings</span>
+          </button>
+        </div>
+        <div class="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center font-bold text-primary">
+          YL
+        </div>
+      </div>
+    </header>
+
+    <main class="flex flex-1 flex-col md:flex-row p-6 gap-6 max-w-7xl mx-auto w-full">
+      <div class="flex flex-col w-full md:w-1/3 gap-6">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex gap-4 items-center mb-6">
+            <div class="size-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg">YL</div>
+            <div class="flex flex-col">
+              <h1 class="text-slate-900 dark:text-slate-100 text-base font-semibold" id="dependent-page-user-name">사용자</h1>
+              <p class="text-slate-500 dark:text-slate-400 text-sm">현재 세션 소유자</p>
+            </div>
+          </div>
+          <nav class="flex flex-col gap-1">
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/index.html">
+              <span class="material-symbols-outlined">dashboard</span>
+              <span class="text-sm font-medium">대시보드</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="/dependents.html">
+              <span class="material-symbols-outlined">group</span>
+              <span class="text-sm font-semibold">부양가족</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/evidence-docs.html">
+              <span class="material-symbols-outlined">description</span>
+              <span class="text-sm font-medium">서류</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" href="/results.html">
+              <span class="material-symbols-outlined">shield_with_heart</span>
+              <span class="text-sm font-medium">계산 결과</span>
+            </a>
+          </nav>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex-1">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center gap-3">
+            <h3 class="font-bold text-slate-900 dark:text-slate-100">내 부양가족</h3>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500" id="dependent-count">총 0명</span>
+              <button class="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all" id="new-dependent-button" type="button">새로 추가</button>
+            </div>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-800" id="dependent-list">
+            <div class="p-6 text-sm text-slate-500">로딩 중입니다...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col gap-6">
+        <div class="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex justify-between items-start mb-8 gap-4">
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100" id="dependent-form-title">부양가족 추가</h2>
+              <p class="text-slate-500 dark:text-slate-400">부양가족의 기본 정보와 공제 대상 여부를 관리하세요.</p>
+            </div>
+            <button class="text-red-500 hover:text-red-600 flex items-center gap-1 text-sm font-semibold opacity-50 cursor-not-allowed" disabled id="delete-dependent-button" type="button">
+              <span class="material-symbols-outlined text-lg">delete</span>
+              부양가족 삭제
+            </button>
+          </div>
+
+          <div class="hidden rounded-lg border px-4 py-3 text-sm mb-4" id="dependent-message"></div>
+
+          <form class="space-y-6" id="dependent-form">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" for="dependent-name">성명</label>
+                <input class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" id="dependent-name" type="text"/>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" for="dependent-relation">관계</label>
+                <select class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" id="dependent-relation">
+                  <option value="SELF">본인</option>
+                  <option value="SPOUSE">배우자</option>
+                  <option value="CHILD">자녀</option>
+                  <option value="PARENT">부모</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" for="dependent-birth-date">생년월일</label>
+                <input class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" id="dependent-birth-date" type="date"/>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" for="dependent-income">연간 소득</label>
+                <input class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" id="dependent-income" min="0" step="1" type="number" value="0"/>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" for="dependent-resident-type">거주자 구분</label>
+                <select class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" id="dependent-resident-type">
+                  <option value="RESIDENT">거주자</option>
+                  <option value="NON_RESIDENT">비거주자</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">공제 조건</label>
+                <div class="grid grid-cols-1 gap-3 pt-2">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input checked class="text-primary focus:ring-primary h-4 w-4" id="dependent-lives-together" type="checkbox"/>
+                    <span class="text-sm text-slate-600 dark:text-slate-400">동거 중</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input class="text-primary focus:ring-primary h-4 w-4" id="dependent-disabled" type="checkbox"/>
+                    <span class="text-sm text-slate-600 dark:text-slate-400">장애인 대상</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input checked class="text-primary focus:ring-primary h-4 w-4" id="dependent-basic-deduction" type="checkbox"/>
+                    <span class="text-sm text-slate-600 dark:text-slate-400">기본공제 대상</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4 pt-4">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">필수 인증</h3>
+              <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-slate-400">description</span>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">출생 증명서</p>
+                    <p class="text-xs text-amber-600 dark:text-amber-400">조치 필요: 서류 화면에서 업로드 상태를 확인하세요</p>
+                  </div>
+                </div>
+                <a class="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all" href="/evidence-docs.html">서류 확인</a>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <button class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-md transition-all" type="submit">변경사항 저장</button>
+              <button class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" id="reset-dependent-button" type="button">변경 취소</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-primary/5 dark:bg-primary/10 p-6 rounded-xl border border-primary/20 flex items-start gap-4">
+          <span class="material-symbols-outlined text-primary text-3xl">info</span>
+          <div>
+            <h4 class="font-bold text-primary">안내</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">기본공제 대상 여부, 거주자 여부, 연간 소득 금액이 실제 공제 판정에 사용됩니다. 저장 후 다음 단계에서 공제 항목과 함께 검토하세요.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    const dependentList = document.getElementById("dependent-list");
+    const dependentCount = document.getElementById("dependent-count");
+    const dependentFormTitle = document.getElementById("dependent-form-title");
+    const dependentMessage = document.getElementById("dependent-message");
+    const dependentForm = document.getElementById("dependent-form");
+    const newDependentButton = document.getElementById("new-dependent-button");
+    const deleteDependentButton = document.getElementById("delete-dependent-button");
+    const resetDependentButton = document.getElementById("reset-dependent-button");
+    const pageUserName = document.getElementById("dependent-page-user-name");
+    const dependentNameInput = document.getElementById("dependent-name");
+    const dependentRelationInput = document.getElementById("dependent-relation");
+    const dependentBirthDateInput = document.getElementById("dependent-birth-date");
+    const dependentIncomeInput = document.getElementById("dependent-income");
+    const dependentResidentTypeInput = document.getElementById("dependent-resident-type");
+    const dependentLivesTogetherInput = document.getElementById("dependent-lives-together");
+    const dependentDisabledInput = document.getElementById("dependent-disabled");
+    const dependentBasicDeductionInput = document.getElementById("dependent-basic-deduction");
+
+    let currentSessionId = null;
+    let dependents = [];
+    let selectedDependentId = null;
+
+    function showDependentMessage(type, message) {
+      dependentMessage.className = "rounded-lg border px-4 py-3 text-sm mb-4";
+      dependentMessage.classList.add(
+        type === "success" ? "border-emerald-200" : "border-red-200",
+        type === "success" ? "bg-emerald-50" : "bg-red-50",
+        type === "success" ? "text-emerald-700" : "text-red-700"
+      );
+      dependentMessage.textContent = message;
+      dependentMessage.classList.remove("hidden");
+    }
+
+    function resetDependentForm() {
+      selectedDependentId = null;
+      dependentFormTitle.textContent = "부양가족 추가";
+      dependentNameInput.value = "";
+      dependentRelationInput.value = "CHILD";
+      dependentBirthDateInput.value = "";
+      dependentIncomeInput.value = "0";
+      dependentResidentTypeInput.value = "RESIDENT";
+      dependentLivesTogetherInput.checked = true;
+      dependentDisabledInput.checked = false;
+      dependentBasicDeductionInput.checked = true;
+      deleteDependentButton.disabled = true;
+      deleteDependentButton.classList.add("opacity-50", "cursor-not-allowed");
+    }
+
+    function fillDependentForm(dependent) {
+      selectedDependentId = dependent.id;
+      dependentFormTitle.textContent = "부양가족 수정";
+      dependentNameInput.value = dependent.name || "";
+      dependentRelationInput.value = dependent.relationType || "CHILD";
+      dependentBirthDateInput.value = dependent.birthDate || "";
+      dependentIncomeInput.value = dependent.annualIncomeAmount || 0;
+      dependentResidentTypeInput.value = dependent.residentType || "RESIDENT";
+      dependentLivesTogetherInput.checked = !!dependent.livesTogether;
+      dependentDisabledInput.checked = !!dependent.disabled;
+      dependentBasicDeductionInput.checked = !!dependent.basicDeductionTarget;
+      deleteDependentButton.disabled = false;
+      deleteDependentButton.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+
+    function buildDependentPayload() {
+      return {
+        name: dependentNameInput.value.trim(),
+        relationType: dependentRelationInput.value,
+        birthDate: dependentBirthDateInput.value,
+        annualIncomeAmount: Number(dependentIncomeInput.value || 0),
+        residentType: dependentResidentTypeInput.value,
+        livesTogether: dependentLivesTogetherInput.checked,
+        disabled: dependentDisabledInput.checked,
+        basicDeductionTarget: dependentBasicDeductionInput.checked
+      };
+    }
+
+    function renderDependents() {
+      dependentCount.textContent = "총 " + dependents.length + "명";
+
+      if (dependents.length === 0) {
+        dependentList.innerHTML = '<div class="p-6 text-sm text-slate-500">등록된 부양가족이 없습니다. 새로 추가해보세요.</div>';
+        return;
+      }
+
+      const relationLabels = {
+        SELF: "본인",
+        SPOUSE: "배우자",
+        CHILD: "자녀",
+        PARENT: "부모"
+      };
+
+      dependentList.innerHTML = dependents.map(function (dependent) {
+        const active = dependent.id === selectedDependentId;
+        const relationLabel = relationLabels[dependent.relationType] || dependent.relationType;
+        const badgeClasses = dependent.basicDeductionTarget
+          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+
+        return `
+          <button class="${active ? 'w-full text-left p-4 bg-primary/5 border-l-4 border-primary dark:bg-primary/10 transition-colors' : 'w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors'}" data-dependent-id="${dependent.id}" type="button">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">${dependent.name.slice(0, 2).toUpperCase()}</div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">${dependent.name}</p>
+                  <p class="text-xs text-slate-500">${relationLabel} • ${dependent.birthDate}</p>
+                </div>
+              </div>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded ${badgeClasses}">
+                ${dependent.basicDeductionTarget ? '공제 대상' : '확인 필요'}
+              </span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      dependentList.querySelectorAll("[data-dependent-id]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const dependent = dependents.find(function (item) {
+            return item.id === button.dataset.dependentId;
+          });
+          if (dependent) {
+            fillDependentForm(dependent);
+            renderDependents();
+          }
+        });
+      });
+    }
+
+    async function refreshDependents() {
+      dependents = await window.YearEndApp.listDependents(currentSessionId);
+      if (selectedDependentId) {
+        const selected = dependents.find(function (item) {
+          return item.id === selectedDependentId;
+        });
+        if (selected) {
+          fillDependentForm(selected);
+        } else {
+          resetDependentForm();
+        }
+      }
+      renderDependents();
+    }
+
+    dependentForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      try {
+        if (selectedDependentId) {
+          await window.YearEndApp.updateDependent(currentSessionId, selectedDependentId, buildDependentPayload());
+          showDependentMessage("success", "부양가족 정보를 수정했습니다.");
+        } else {
+          await window.YearEndApp.createDependent(currentSessionId, buildDependentPayload());
+          showDependentMessage("success", "부양가족을 등록했습니다.");
+        }
+        await refreshDependents();
+      } catch (error) {
+        showDependentMessage("error", error.message || "부양가족 저장에 실패했습니다.");
+      }
+    });
+
+    newDependentButton.addEventListener("click", function () {
+      resetDependentForm();
+      renderDependents();
+    });
+
+    resetDependentButton.addEventListener("click", function () {
+      resetDependentForm();
+      renderDependents();
+    });
+
+    deleteDependentButton.addEventListener("click", async function () {
+      if (!selectedDependentId) {
+        return;
+      }
+      try {
+        await window.YearEndApp.deleteDependent(currentSessionId, selectedDependentId);
+        showDependentMessage("success", "부양가족을 삭제했습니다.");
+        resetDependentForm();
+        await refreshDependents();
+      } catch (error) {
+        showDependentMessage("error", error.message || "부양가족 삭제에 실패했습니다.");
+      }
+    });
+
+    (async function bootstrapDependents() {
+      if (!window.YearEndApp.requireAuthOrRedirect()) {
+        return;
+      }
+
+      try {
+        const context = await window.YearEndApp.initializeAuthenticatedContext();
+        currentSessionId = context.currentSession.id;
+        pageUserName.textContent = context.user.name || context.user.email;
+        resetDependentForm();
+        await refreshDependents();
+      } catch (error) {
+        window.YearEndApp.clearAuth();
+        window.location.replace("/auth.html");
+      }
+    })();
+  </script>
+</body>
+</html>

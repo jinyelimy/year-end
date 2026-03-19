@@ -12,6 +12,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -47,6 +49,7 @@ public class DeductionRule extends BaseTimeEntity {
     @Column(nullable = false, length = 30)
     private RuleCategory ruleCategory;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String parameterJsonb = "{}";
 

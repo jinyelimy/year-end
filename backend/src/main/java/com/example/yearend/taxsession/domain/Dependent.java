@@ -15,6 +15,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -61,6 +63,7 @@ public class Dependent extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean isBasicDeductionTarget;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String attributesJsonb = "{}";
 

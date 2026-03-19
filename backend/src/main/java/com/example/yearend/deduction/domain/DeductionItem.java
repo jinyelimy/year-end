@@ -17,6 +17,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -58,6 +60,7 @@ public class DeductionItem extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private EvidenceStatus evidenceStatus = EvidenceStatus.PENDING;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String attributesJsonb = "{}";
 

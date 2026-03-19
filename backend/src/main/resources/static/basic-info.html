@@ -100,7 +100,8 @@
 <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">기본 정보 입력</h1>
 <p class="mt-1 text-slate-500 dark:text-slate-400">세액 조정을 위한 법적 신원 및 거주 정보를 제공해 주세요.</p>
 </div>
-<form class="p-6 space-y-8">
+<div class="hidden mx-6 mt-6 rounded-lg border px-4 py-3 text-sm" id="basic-info-message"></div>
+<form class="p-6 space-y-8" id="basic-info-form">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="space-y-2"><label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="full_name">전체 성명</label><input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:border-primary focus:ring-primary sm:text-sm" id="full_name" placeholder="홍길동" type="text"/></div>
 <div class="space-y-2"><label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="ssn">주민등록번호(SSN)</label><input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:border-primary focus:ring-primary sm:text-sm" id="ssn" placeholder="XXX-XX-XXXX" type="password"/></div>
@@ -115,8 +116,8 @@
 <div class="space-y-4">
 <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">보고 유형</h3>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<label class="relative flex cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm hover:border-primary transition-all group has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:border-primary"><input checked="" class="sr-only" name="reporting_type" type="radio" value="standard"/><div class="flex flex-1 gap-4"><div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><span class="material-symbols-outlined">analytics</span></div><div><span class="block text-sm font-bold text-slate-900 dark:text-slate-100">표준 보고</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">모든 항목별 공제 및 별표를 포함하는 포괄적인 조정입니다.</span></div></div><div class="shrink-0 text-primary opacity-0 group-has-[:checked]:opacity-100"><span class="material-symbols-outlined">check_circle</span></div></label>
-<label class="relative flex cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm hover:border-primary transition-all group has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:border-primary"><input class="sr-only" name="reporting_type" type="radio" value="simplified"/><div class="flex flex-1 gap-4"><div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><span class="material-symbols-outlined">bolt</span></div><div><span class="block text-sm font-bold text-slate-900 dark:text-slate-100">간소화 신고</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">표준 공제를 사용하는 개인 납세자를 위한 능률적인 프로세스입니다.</span></div></div><div class="shrink-0 text-primary opacity-0 group-has-[:checked]:opacity-100"><span class="material-symbols-outlined">check_circle</span></div></label>
+<label class="relative flex cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm hover:border-primary transition-all group has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:border-primary"><input checked="" class="sr-only" name="reporting_type" type="radio" value="SALARY_WORKER"/><div class="flex flex-1 gap-4"><div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><span class="material-symbols-outlined">analytics</span></div><div><span class="block text-sm font-bold text-slate-900 dark:text-slate-100">표준 보고</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">모든 항목별 공제 및 별표를 포함하는 포괄적인 조정입니다.</span></div></div><div class="shrink-0 text-primary opacity-0 group-has-[:checked]:opacity-100"><span class="material-symbols-outlined">check_circle</span></div></label>
+<label class="relative flex cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm hover:border-primary transition-all group has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:border-primary"><input class="sr-only" name="reporting_type" type="radio" value="YEAR_END_ADJUSTMENT"/><div class="flex flex-1 gap-4"><div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><span class="material-symbols-outlined">bolt</span></div><div><span class="block text-sm font-bold text-slate-900 dark:text-slate-100">간소화 신고</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">표준 공제를 사용하는 개인 납세자를 위한 능률적인 프로세스입니다.</span></div></div><div class="shrink-0 text-primary opacity-0 group-has-[:checked]:opacity-100"><span class="material-symbols-outlined">check_circle</span></div></label>
 </div>
 </div>
 <hr class="border-slate-200 dark:border-slate-800"/>
@@ -126,10 +127,10 @@
 <textarea class="block w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 focus:border-primary focus:ring-primary sm:text-sm" id="notes" placeholder="예: 최근 결혼, 부동산 매각 또는 고액의 의료비 지출..." rows="4"></textarea>
 </div>
 <div class="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-800">
-<button class="px-6 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" type="button">취소</button>
+<button class="px-6 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" id="basic-info-cancel" type="button">취소</button>
 <div class="flex gap-4">
-<button class="px-6 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" type="button">임시 저장</button>
-<button class="px-8 py-2 text-sm font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 shadow-md shadow-primary/20 transition-all" type="submit">다음 단계</button>
+<button class="px-6 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" id="basic-info-save" type="button">임시 저장</button>
+<button class="px-8 py-2 text-sm font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 shadow-md shadow-primary/20 transition-all" id="basic-info-next" type="submit">다음 단계</button>
 </div>
 </div>
 </form>
@@ -150,4 +151,104 @@
 <p class="text-xs text-slate-500 dark:text-slate-400">© 2024 TaxFlow Financial Services Inc. All rights reserved. <span class="mx-2">•</span> 보안 256비트 SSL 암호화</p>
 </div>
 </footer>
+<script src="/js/app.js"></script>
+<script>
+  const basicInfoForm = document.getElementById("basic-info-form");
+  const basicInfoMessage = document.getElementById("basic-info-message");
+  const saveButton = document.getElementById("basic-info-save");
+  const nextButton = document.getElementById("basic-info-next");
+  const cancelButton = document.getElementById("basic-info-cancel");
+
+  function showBasicInfoMessage(type, message) {
+    basicInfoMessage.className = "mx-6 mt-6 rounded-lg border px-4 py-3 text-sm";
+    basicInfoMessage.classList.add(
+      type === "success" ? "border-emerald-200" : "border-red-200",
+      type === "success" ? "bg-emerald-50" : "bg-red-50",
+      type === "success" ? "text-emerald-700" : "text-red-700"
+    );
+    basicInfoMessage.textContent = message;
+    basicInfoMessage.classList.remove("hidden");
+  }
+
+  function fillBasicInfoForm(session) {
+    const basicInfo = window.YearEndApp.parseBasicInfo(session);
+    document.getElementById("full_name").value = basicInfo.fullName || "";
+    document.getElementById("ssn").value = basicInfo.ssnMasked || "";
+    document.getElementById("address").value = basicInfo.address || "";
+    document.getElementById("city").value = basicInfo.city || "";
+    document.getElementById("state").value = basicInfo.state || "서울특별시";
+    document.getElementById("zip").value = basicInfo.zip || "";
+    document.getElementById("notes").value = session.memo || "";
+
+    const reportingType = basicInfo.reportingType || session.filingType || "SALARY_WORKER";
+    const radio = document.querySelector('input[name="reporting_type"][value="' + reportingType + '"]');
+    if (radio) {
+      radio.checked = true;
+    }
+  }
+
+  function buildBasicInfoPayload() {
+    const reportingType = document.querySelector('input[name="reporting_type"]:checked')?.value || "SALARY_WORKER";
+    return {
+      basicInfoJsonb: JSON.stringify({
+        fullName: document.getElementById("full_name").value.trim(),
+        ssnMasked: window.YearEndApp.maskSsn(document.getElementById("ssn").value),
+        address: document.getElementById("address").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        state: document.getElementById("state").value,
+        zip: document.getElementById("zip").value.trim(),
+        reportingType: reportingType
+      }),
+      memo: document.getElementById("notes").value.trim()
+    };
+  }
+
+  async function saveBasicInfo(redirectNext) {
+    const sessionId = window.YearEndApp.getCurrentSessionId();
+    if (!sessionId) {
+      showBasicInfoMessage("error", "현재 작업 세션이 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    try {
+      const updatedSession = await window.YearEndApp.updateBasicInfo(sessionId, buildBasicInfoPayload());
+      window.YearEndApp.saveCurrentSession(updatedSession);
+      showBasicInfoMessage("success", redirectNext ? "기본 정보를 저장했습니다. 다음 단계로 이동합니다." : "기본 정보를 저장했습니다.");
+      if (redirectNext) {
+        window.setTimeout(function () {
+          window.location.href = "/dependents.html";
+        }, 400);
+      }
+    } catch (error) {
+      showBasicInfoMessage("error", error.message || "기본 정보 저장에 실패했습니다.");
+    }
+  }
+
+  basicInfoForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    await saveBasicInfo(true);
+  });
+
+  saveButton.addEventListener("click", async function () {
+    await saveBasicInfo(false);
+  });
+
+  cancelButton.addEventListener("click", function () {
+    window.location.href = "/index.html";
+  });
+
+  (async function bootstrapBasicInfo() {
+    if (!window.YearEndApp.requireAuthOrRedirect()) {
+      return;
+    }
+
+    try {
+      const context = await window.YearEndApp.initializeAuthenticatedContext();
+      fillBasicInfoForm(context.currentSession);
+    } catch (error) {
+      window.YearEndApp.clearAuth();
+      window.location.replace("/auth.html");
+    }
+  })();
+</script>
 </body></html>

@@ -15,6 +15,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -66,9 +68,11 @@ public class CalculationResult extends BaseTimeEntity {
     @Column(nullable = false)
     private Long expectedRefundAmount;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String decisionTraceJsonb = "[]";
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String summaryJsonb = "{}";
 

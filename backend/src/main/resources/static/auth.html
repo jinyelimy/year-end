@@ -176,6 +176,7 @@
     </div>
   </div>
 
+  <script src="/js/app.js"></script>
   <script>
     const formMessage = document.getElementById("form-message");
     const loginForm = document.getElementById("login-form");
@@ -240,36 +241,12 @@
     }
 
     async function callAuth(endpoint, payload) {
-      const response = await fetch(endpoint, {
+      return window.YearEndApp.request(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        body: payload
+      }, {
+        auth: false
       });
-
-      const result = await response.json().catch(() => ({
-        success: false,
-        error: { message: "서버 응답을 처리하지 못했습니다." }
-      }));
-
-      if (!response.ok || !result.success) {
-        throw result;
-      }
-
-      return result.data;
-    }
-
-    function saveAuth(data) {
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("expiresInSeconds", String(data.expiresInSeconds));
-      localStorage.setItem("userProfile", JSON.stringify({
-        userId: data.userId,
-        email: data.email,
-        name: data.name,
-        role: data.role
-      }));
     }
 
     function applyServerFieldErrors(fieldErrors, prefix) {
@@ -316,14 +293,15 @@
       setSubmitting(loginForm, true);
       try {
         const data = await callAuth("/api/v1/auth/login", { email, password });
-        saveAuth(data);
-        showMessage("success", "로그인에 성공했습니다. 대시보드로 이동합니다.");
+        window.YearEndApp.persistAuthTokens(data);
+        const context = await window.YearEndApp.initializeAuthenticatedContext();
+        showMessage("success", context.currentSession ? "로그인에 성공했습니다. 작업 세션을 불러왔습니다." : "로그인에 성공했습니다.");
         window.setTimeout(() => {
           window.location.href = "/index.html";
         }, 500);
       } catch (error) {
-        applyServerFieldErrors(error?.error?.fieldErrors, "login");
-        showMessage("error", getFriendlyErrorMessage(error, "로그인에 실패했습니다. 다시 시도해주세요."));
+        applyServerFieldErrors(error?.payload?.error?.fieldErrors, "login");
+        showMessage("error", getFriendlyErrorMessage(error.payload || error, "로그인에 실패했습니다. 다시 시도해주세요."));
       } finally {
         setSubmitting(loginForm, false);
       }
@@ -362,14 +340,15 @@
       setSubmitting(signupForm, true);
       try {
         const data = await callAuth("/api/v1/auth/signup", { name, email, password });
-        saveAuth(data);
-        showMessage("success", "회원가입이 완료되었습니다. 대시보드로 이동합니다.");
+        window.YearEndApp.persistAuthTokens(data);
+        const context = await window.YearEndApp.initializeAuthenticatedContext();
+        showMessage("success", context.currentSession ? "회원가입이 완료되었습니다. 작업 세션까지 준비했습니다." : "회원가입이 완료되었습니다.");
         window.setTimeout(() => {
           window.location.href = "/index.html";
         }, 500);
       } catch (error) {
-        applyServerFieldErrors(error?.error?.fieldErrors, "signup");
-        showMessage("error", getFriendlyErrorMessage(error, "회원가입에 실패했습니다. 다시 시도해주세요."));
+        applyServerFieldErrors(error?.payload?.error?.fieldErrors, "signup");
+        showMessage("error", getFriendlyErrorMessage(error.payload || error, "회원가입에 실패했습니다. 다시 시도해주세요."));
       } finally {
         setSubmitting(signupForm, false);
       }
@@ -387,6 +366,16 @@
     });
 
     switchTab("login");
+
+    if (localStorage.getItem(window.YearEndApp.STORAGE_KEYS.accessToken)) {
+      window.YearEndApp.initializeAuthenticatedContext()
+        .then(() => {
+          window.location.replace("/index.html");
+        })
+        .catch(() => {
+          window.YearEndApp.clearAuth();
+        });
+    }
   </script>
 </body>
 </html>
