@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import {
   clearAuth,
   getAccessToken,
+  hasDependentsConfirmed,
+  hasIncomeConfirmed,
   initializeAuthenticatedContext,
-  isProfileSectionComplete,
   listDeductionItems,
   listDocumentChecklists,
   listIncomeItems,
@@ -23,139 +24,97 @@ import {
 } from "@/lib/yearEndView";
 
 const STAGES = [
-  {
-    index: 1,
-    title: "기본정보 입력 및 부양가족 설정",
-    description: "기본정보를 저장하고 부양가족 화면에서 1단계를 확정합니다.",
-    href: "/basic-info"
-  },
-  {
-    index: 2,
-    title: "소득 확인",
-    description: "급여 및 기타 소득 내역을 검토하고 다음 단계로 넘어갑니다.",
-    href: "/income"
-  },
-  {
-    index: 3,
-    title: "간소화 자료 불러오기",
-    description: "가져온 자료와 체크리스트를 바탕으로 증빙 상태를 점검합니다.",
-    href: "/import-data"
-  },
-  {
-    index: 4,
-    title: "공제 항목 입력",
-    description: "적용 가능한 공제 항목을 확인하고 금액을 반영합니다.",
-    href: "/deductions"
-  },
-  {
-    index: 5,
-    title: "증빙 서류 관리",
-    description: "추가 증빙과 검토 상태를 점검해 제출 준비를 마칩니다.",
-    href: "/evidence-docs"
-  },
-  {
-    index: 6,
-    title: "결과 확인 및 제출",
-    description: "최종 환급 예상액을 확인하고 제출 상태까지 마무리합니다.",
-    href: "/results"
-  }
+  { index: 1, title: "기본정보 및 부양가족", description: "기본정보 저장과 부양가족 설정을 마무리하고 1단계를 확정합니다.", href: "/dependents" },
+  { index: 2, title: "소득 확인", description: "소득 내역을 확인하고 2단계를 확정하면 다음 단계가 열립니다.", href: "/income" },
+  { index: 3, title: "간소화 자료 불러오기", description: "현재까지 등록된 데이터를 기준으로 필요한 자료 상태를 확인합니다.", href: "/import-data" },
+  { index: 4, title: "공제 항목 입력", description: "공제 항목과 증빙 상태를 확인하며 금액을 반영합니다.", href: "/deductions" },
+  { index: 5, title: "증빙 서류 관리", description: "제출 전 필요한 서류와 검토 상태를 점검합니다.", href: "/evidence-docs" },
+  { index: 6, title: "결과 확인 및 제출", description: "최종 계산 결과를 확인하고 제출을 마무리합니다.", href: "/results" }
 ];
 
+function getAvatarUrl(user) {
+  const seed = encodeURIComponent(user?.name || user?.email || "easy-tax");
+  return `https://api.dicebear.com/9.x/adventurer/png?seed=${seed}&backgroundColor=dbeafe,c7d2fe,fde68a`;
+}
+
 function getDisplayName(user) {
-  return `${user?.nickname || user?.name || "사용자"}님`;
+  return `${user?.name || "사용자"}님`;
 }
 
-function getAvatarSeed(user) {
-  return (user?.nickname || user?.name || "Y").slice(0, 1).toUpperCase();
-}
-
-function resolveStageProgress(session, incomeItems, deductionItems, documentChecklists) {
-  const status = session?.sessionStatus;
-  const profileComplete = isProfileSectionComplete(session);
-  const incomeComplete = incomeItems.length > 0 || ["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(status);
-  const importComplete = documentChecklists.length > 0 || ["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(status);
-  const deductionComplete = deductionItems.length > 0 || ["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(status);
-  const evidenceComplete = documentChecklists.some(
-    (item) => item.submittedYn || item.reviewStatus === "APPROVED" || item.reviewStatus === "REJECTED"
-  ) || ["SUBMITTED", "REVIEWED", "REJECTED"].includes(status);
-  const resultComplete = status === "REVIEWED";
-
-  const completionMap = {
-    1: profileComplete,
-    2: incomeComplete,
-    3: importComplete,
-    4: deductionComplete,
-    5: evidenceComplete,
-    6: resultComplete
-  };
-
-  let activeStage = 1;
-
-  if (["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(status)) {
-    activeStage = 6;
-  } else if (!profileComplete) {
-    activeStage = 1;
-  } else if (!incomeComplete) {
-    activeStage = 2;
-  } else if (!importComplete) {
-    activeStage = 3;
-  } else if (!deductionComplete) {
-    activeStage = 4;
-  } else if (!evidenceComplete) {
-    activeStage = 5;
-  } else {
-    activeStage = 6;
-  }
-
-  return { activeStage, completionMap };
-}
-
-function StageCard({ stage, status }) {
-  const className = status === "complete"
+function StageCard({ stage, locked, complete, active }) {
+  const className = complete
     ? "border-slate-200 bg-white shadow-soft"
-    : status === "active"
-      ? "border-primary bg-[#f6f9ff] shadow-lg"
+    : active
+      ? "border-primary bg-[#f0f8ff] shadow-lg"
       : "border-slate-100 bg-slate-50/80";
 
-  const numberClass = status === "complete"
+  const numberClass = complete
     ? "bg-blue-50 text-primary"
-    : status === "active"
+    : active
       ? "bg-primary text-white"
       : "bg-slate-100 text-slate-400";
 
-  return (
+  const content = (
     <div className={`flex items-center gap-4 rounded-[22px] border px-5 py-5 ${className}`}>
       <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold ${numberClass}`}>
         {stage.index}
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className={`text-lg font-bold ${status === "locked" ? "text-slate-400" : "text-slate-900"}`}>
-          {stage.title}
-        </h4>
-        <p className={`mt-1 text-sm ${status === "locked" ? "text-slate-400" : "text-slate-500"}`}>
-          {stage.description}
-        </p>
+        <h4 className={`text-lg font-bold ${locked ? "text-slate-400" : "text-slate-900"}`}>{stage.title}</h4>
+        <p className={`mt-1 text-sm ${locked ? "text-slate-400" : "text-slate-500"}`}>{stage.description}</p>
       </div>
-      {status === "complete" ? (
-        <span className="material-symbols-outlined shrink-0 text-[24px] text-green-500">check_circle</span>
-      ) : null}
-      {status === "locked" ? (
-        <span className="material-symbols-outlined shrink-0 text-[22px] text-slate-300">lock</span>
-      ) : null}
-      {status !== "locked" ? (
-        <Link
-          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-            status === "complete"
-              ? "border border-primary bg-white text-primary hover:bg-blue-50"
-              : "bg-primary text-white hover:bg-blue-600"
-          }`}
-          href={stage.href}
-        >
-          {status === "complete" && stage.index === 1 ? "수정하기" : "진행하기"}
-        </Link>
+      {complete ? <span className="material-symbols-outlined shrink-0 text-[24px] text-green-500">check_circle</span> : null}
+      {locked ? <span className="material-symbols-outlined shrink-0 text-[22px] text-slate-300">lock</span> : null}
+      {!locked ? (
+        <span className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
+          complete ? "border border-primary bg-white text-primary" : "bg-primary text-white"
+        }`}>
+          {complete ? "확인하기" : "진행하기"}
+        </span>
       ) : null}
     </div>
   );
+
+  if (locked) {
+    return content;
+  }
+
+  return <Link href={stage.href}>{content}</Link>;
+}
+
+function SummaryCard({ title, description, amount, tone = "blue", href, enabled }) {
+  const baseClass = tone === "green"
+    ? "bg-green-50 text-green-600"
+    : tone === "orange"
+      ? "bg-orange-50 text-orange-600"
+      : "bg-blue-50 text-primary";
+
+  const inner = (
+    <div className={`group flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all ${
+      enabled ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-not-allowed opacity-50"
+    }`}>
+      <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${baseClass}`}>
+        <span className="material-symbols-outlined">
+          {tone === "orange" ? "group" : tone === "green" ? "receipt_long" : "payments"}
+        </span>
+      </div>
+      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
+      <div className="mt-auto pt-5">
+        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+          enabled ? baseClass : "bg-slate-100 text-slate-500"
+        }`}>
+          {amount}
+        </span>
+      </div>
+    </div>
+  );
+
+  if (!enabled) {
+    return inner;
+  }
+
+  return <Link href={href}>{inner}</Link>;
 }
 
 export default function DashboardPage() {
@@ -223,21 +182,38 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 font-sans text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-500">
         대시보드를 불러오는 중입니다...
       </div>
     );
   }
 
+  const avatarUrl = getAvatarUrl(user);
   const displayName = getDisplayName(user);
-  const avatarSeed = getAvatarSeed(user);
   const progress = resolveProgress(session);
   const nextStep = resolveNextStep(session);
   const financialSummary = calculateFinancialSummary(incomeItems, deductionItems);
-  const sessionStatusText = getSessionStatusText(session?.sessionStatus);
-  const phaseOneComplete = isProfileSectionComplete(session);
-  const { activeStage, completionMap } = resolveStageProgress(session, incomeItems, deductionItems, documentChecklists);
-  const profileBadgeClass = getStatusBadgeClass(session?.sessionStatus);
+  const statusText = getSessionStatusText(session?.sessionStatus);
+  const stepOneComplete = hasDependentsConfirmed(session);
+  const stepTwoComplete = hasIncomeConfirmed(session);
+  const canOpenIncome = stepOneComplete;
+  const canOpenDeductions = stepTwoComplete;
+  const stageState = {
+    1: { complete: stepOneComplete, active: !stepOneComplete, locked: false },
+    2: { complete: stepTwoComplete, active: stepOneComplete && !stepTwoComplete, locked: !stepOneComplete },
+    3: { complete: documentChecklists.length > 0, active: stepTwoComplete && documentChecklists.length === 0, locked: !stepTwoComplete },
+    4: { complete: deductionItems.length > 0, active: stepTwoComplete && deductionItems.length === 0, locked: !stepTwoComplete },
+    5: {
+      complete: documentChecklists.some((item) => item.submittedYn || item.reviewStatus === "APPROVED"),
+      active: stepTwoComplete && documentChecklists.length > 0,
+      locked: !stepTwoComplete
+    },
+    6: {
+      complete: session?.sessionStatus === "REVIEWED",
+      active: ["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(session?.sessionStatus) || stepTwoComplete,
+      locked: !stepTwoComplete
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased">
@@ -273,19 +249,14 @@ export default function DashboardPage() {
               >
                 <div className="hidden text-right sm:block">
                   <p className="text-sm font-semibold text-slate-900">{displayName}</p>
-                  <p className="text-xs text-slate-400">{user?.email || "-"}</p>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-sm font-bold text-slate-600 ring-2 ring-primary/20">
-                  {avatarSeed}
-                </div>
+                <img alt="프로필 아바타" className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20" src={avatarUrl} />
               </button>
 
               {isProfileOpen ? (
                 <div className="absolute left-1/2 top-full z-[60] mt-4 w-[320px] -translate-x-1/2 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)]">
                   <section className="flex flex-col items-center border-b border-gray-50 px-6 pb-5 pt-7 text-center">
-                    <div className="mb-3 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100 text-2xl font-bold text-slate-600 shadow-sm">
-                      {avatarSeed}
-                    </div>
+                    <img alt="프로필 아바타" className="mb-3 h-20 w-20 rounded-full border-4 border-white object-cover shadow-sm" src={avatarUrl} />
                     <h2 className="text-xl font-bold text-gray-800">{displayName}</h2>
                     <p className="mt-1 text-sm font-medium text-primary">연말정산 서비스 사용자</p>
                   </section>
@@ -301,8 +272,8 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium text-gray-500">현재 상태</span>
-                      <span className={`rounded-full px-2 py-1 text-xs font-bold ${profileBadgeClass}`}>
-                        {sessionStatusText}
+                      <span className={`rounded-full px-2 py-1 text-xs font-bold ${getStatusBadgeClass(session?.sessionStatus)}`}>
+                        {statusText}
                       </span>
                     </div>
                   </section>
@@ -318,27 +289,14 @@ export default function DashboardPage() {
                         <div className="h-2.5 rounded-full bg-primary transition-[width]" style={{ width: `${progress}%` }} />
                       </div>
                     </div>
-                    <div className="flex items-center justify-between rounded-xl border border-blue-50 bg-white p-4 shadow-sm">
-                      <span className="text-sm text-gray-500">예상 환급액</span>
-                      <span className="text-lg font-bold text-blue-600">
-                        {formatCurrency(financialSummary.estimatedRefund)}
-                      </span>
-                    </div>
                   </section>
 
                   <div className="grid grid-cols-2 gap-3 p-5">
-                    <Link
-                      className="flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200"
-                      href="/basic-info"
-                    >
+                    <Link className="flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200" href="/basic-info">
                       <span className="material-symbols-outlined text-sm">edit</span>
-                      1단계 이동
+                      정보 수정
                     </Link>
-                    <button
-                      className="flex items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-500 transition-colors hover:bg-red-100"
-                      onClick={handleLogout}
-                      type="button"
-                    >
+                    <button className="flex items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-500 transition-colors hover:bg-red-100" onClick={handleLogout} type="button">
                       <span className="material-symbols-outlined text-sm">logout</span>
                       로그아웃
                     </button>
@@ -354,9 +312,7 @@ export default function DashboardPage() {
         <section className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{displayName}, 안녕하세요</h1>
-            <p className="mt-1 text-slate-500">
-              {session?.taxYear}년 귀속 연말정산 세션이 준비되어 있습니다.
-            </p>
+            <p className="mt-1 text-slate-500">{session?.taxYear}년 귀속 연말정산 세션이 준비되어 있습니다.</p>
           </div>
 
           <div className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm md:max-w-[18rem]">
@@ -367,56 +323,49 @@ export default function DashboardPage() {
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div className="h-full bg-primary transition-[width]" style={{ width: `${progress}%` }} />
             </div>
-            <p className="mt-2 text-xs text-slate-400">현재 세션 상태: {sessionStatusText}</p>
+            <p className="mt-2 text-xs text-slate-400">현재 세션 상태: {statusText}</p>
           </div>
         </section>
 
-        <section className="relative mb-8 overflow-hidden rounded-3xl bg-primary p-6 text-white shadow-lg shadow-blue-200">
-          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
-              <p className="text-sm font-medium text-blue-100 opacity-90">
-                {session?.taxYear}년 기준 예상 환급액
-              </p>
-              <div className="mt-2 flex items-baseline gap-2">
-                <h2 className="text-4xl font-extrabold tracking-tight lg:text-[2.75rem]">
+        <section className="relative mb-8 overflow-hidden rounded-[32px] bg-[#5b8ee6] px-6 py-6 text-white shadow-xl shadow-[0_20px_45px_-18px_rgba(91,142,230,0.7)] md:min-h-[340px] md:px-8 md:py-8">
+          <div className="relative z-10 flex h-full flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
+            <div className="flex max-w-xl flex-1 flex-col justify-between">
+              <p className="text-sm font-medium text-blue-100 opacity-90">{session?.taxYear}년 기준 예상환급액</p>
+              <div className="mt-3 flex items-baseline gap-2">
+                <h2 className="text-5xl font-extrabold tracking-tight lg:text-[3.2rem]">
                   {new Intl.NumberFormat("ko-KR").format(financialSummary.estimatedRefund)}
                 </h2>
                 <span className="text-xl font-bold">원</span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-blue-100/80">
-                1단계에서는 기본정보 입력과 부양가족 설정을 한 번에 마무리합니다.
-                확정 버튼을 누르면 단계별 화면으로 순서대로 이어서 진행할 수 있습니다.
+              <p className="mt-5 whitespace-pre-line text-[15px] leading-relaxed text-blue-50">
+                {"지금까지 입력된 데이터를 바탕으로 산출 된 금액입니다.\n공제항목을 모두 채우면 더 받을 수 있어요!"}
               </p>
-              <div className="mt-6 flex gap-3">
-                <Link className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm transition-all hover:bg-blue-50" href={nextStep.href}>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link className="rounded-xl bg-white px-6 py-2.5 text-sm font-bold text-primary shadow-sm transition-all hover:bg-blue-50" href={nextStep.href}>
                   {nextStep.label}
                 </Link>
-                <Link className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20" href="/submit-status">
+                <Link className="rounded-xl border border-white/[0.25] bg-white/[0.12] px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20" href="/submit-status">
                   제출 상태 보기
                 </Link>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-[22rem]">
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                <p className="text-xs font-medium text-blue-200">1단계 상태</p>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-lg font-bold">{phaseOneComplete ? "완료" : "진행 중"}</span>
-                </div>
+            <div className="grid grid-cols-1 gap-3 self-center sm:grid-cols-2 lg:w-[31rem]">
+              <div className="rounded-2xl border border-white/[0.15] bg-white/[0.12] p-5 backdrop-blur-sm">
+                <p className="text-xs font-medium text-blue-100">기납부세액</p>
+                <div className="mt-2 text-[1.9rem] font-bold">{formatCurrency(financialSummary.totalWithheldTax)}</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                <p className="text-xs font-medium text-blue-200">다음 화면</p>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-lg font-bold">{nextStep.label}</span>
-                </div>
+              <div className="rounded-2xl border border-white/[0.15] bg-white/[0.12] p-5 backdrop-blur-sm">
+                <p className="text-xs font-medium text-blue-100">결정세액</p>
+                <div className="mt-2 text-[1.9rem] font-bold">{formatCurrency(financialSummary.estimatedTax)}</div>
               </div>
-              <div className="col-span-1 rounded-2xl border border-white/10 bg-white/5 p-3.5 sm:col-span-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-blue-200">소득 합계</span>
+              <div className="col-span-1 rounded-2xl border border-white/[0.15] bg-white/[0.1] p-5 sm:col-span-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-blue-100">총 소득</span>
                   <span className="font-semibold">{formatCurrency(financialSummary.totalGrossIncome)}</span>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-blue-200">공제 합계</span>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span className="text-blue-100">총 공제</span>
                   <span className="font-semibold">{formatCurrency(financialSummary.totalDeduction)}</span>
                 </div>
               </div>
@@ -425,88 +374,48 @@ export default function DashboardPage() {
         </section>
 
         <section className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <Link className="group flex flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md" href="/dependents">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-500 shadow-sm">
-              <span className="material-symbols-outlined">group</span>
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">부양가족 설정</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              기본정보 다음으로 이어지는 대표 작업입니다. 등록과 확정 상태를 이곳에서 바로 확인할 수 있습니다.
-            </p>
-            <div className="mt-auto pt-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">현재 상태</span>
-                <span className="text-lg font-bold text-slate-900">{phaseOneComplete ? "완료" : "진행 중"}</span>
-              </div>
-              <span className="mt-3 inline-flex items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-600">
-                {phaseOneComplete ? "확정 완료" : "확정 필요"}
-              </span>
-            </div>
-          </Link>
-
-          <Link className="group flex flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md" href="/income">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-primary">
-              <span className="material-symbols-outlined">payments</span>
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">소득 확인</h3>
-            <p className="mt-1 text-sm text-slate-500">급여와 기타 소득 내역을 실제 데이터 기준으로 수정하고 저장할 수 있습니다.</p>
-            <div className="mt-auto pt-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-400">등록 건수</span>
-                <span className="text-lg font-bold text-slate-900">{incomeItems.length}건</span>
-              </div>
-              <span className="mt-3 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-primary">
-                총 {formatCurrency(financialSummary.totalGrossIncome)}
-              </span>
-            </div>
-          </Link>
-
-          <Link className="group flex flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md" href="/deductions">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-500">
-              <span className="material-symbols-outlined">receipt_long</span>
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">공제 항목</h3>
-            <p className="mt-1 text-sm text-slate-500">공제 데이터와 증빙 준비 상태를 함께 보면서 금액을 바로 반영할 수 있습니다.</p>
-            <div className="mt-auto pt-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-400">등록 건수</span>
-                <span className="text-lg font-bold text-slate-900">{deductionItems.length}건</span>
-              </div>
-              <span className="mt-3 inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
-                총 {formatCurrency(financialSummary.totalDeduction)}
-              </span>
-            </div>
-          </Link>
+          <SummaryCard
+            amount={stepOneComplete ? "완료 상태" : "진행 중"}
+            description="기본정보와 부양가족 입력을 마무리하고 1단계를 확정할 수 있습니다."
+            enabled
+            href="/dependents"
+            title="기본정보 및 부양가족"
+            tone="orange"
+          />
+          <SummaryCard
+            amount={canOpenIncome ? (stepTwoComplete ? "완료 상태" : "진행 중") : "잠김"}
+            description="1단계 완료 후 소득 내역을 확인하고 2단계를 확정할 수 있습니다."
+            enabled={canOpenIncome}
+            href="/income"
+            title="소득확인"
+            tone="blue"
+          />
+          <SummaryCard
+            amount={canOpenDeductions ? "진행 가능" : "잠김"}
+            description="2단계를 확정해야 공제 항목 화면으로 이동할 수 있습니다."
+            enabled={canOpenDeductions}
+            href="/deductions"
+            title="공제항목"
+            tone="green"
+          />
         </section>
 
         <section className="mb-12">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900">정산 단계별 리스트</h3>
+            <h3 className="text-xl font-bold text-slate-900">정산단계별 리스트</h3>
             <span className="text-sm text-slate-500">현재 과정의 {progress}%가 완료되었습니다.</span>
           </div>
 
           <div className="space-y-4">
-            {STAGES.map((stage) => {
-              const status = completionMap[stage.index]
-                ? "complete"
-                : stage.index === activeStage
-                  ? "active"
-                  : "locked";
-
-              return <StageCard key={stage.index} stage={stage} status={status} />;
-            })}
-          </div>
-        </section>
-
-        <section className="mb-12 text-center">
-          <Link className="inline-flex w-full max-w-md items-center justify-center rounded-2xl bg-primary px-8 py-5 text-lg font-bold text-white shadow-xl shadow-blue-300/50 transition-all hover:-translate-y-0.5 hover:bg-blue-600" href={nextStep.href}>
-            <span>{nextStep.label}</span>
-            <span className="material-symbols-outlined ml-2 text-[20px]">arrow_forward</span>
-          </Link>
-          <div className="mt-6">
-            <Link className="text-sm font-medium text-slate-400 transition-colors hover:text-primary" href="/submit-status">
-              제출 상태 화면 바로가기
-            </Link>
+            {STAGES.map((stage) => (
+              <StageCard
+                key={stage.index}
+                active={stageState[stage.index].active}
+                complete={stageState[stage.index].complete}
+                locked={stageState[stage.index].locked}
+                stage={stage}
+              />
+            ))}
           </div>
         </section>
       </main>

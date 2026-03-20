@@ -23,7 +23,11 @@ public final class AuthDtos {
 
         @NotBlank
         @Size(max = 50)
-        String name
+        String name,
+
+        @NotBlank
+        @Size(max = 50)
+        String nickname
     ) {
     }
 
@@ -46,6 +50,21 @@ public final class AuthDtos {
         String accessToken,
         String refreshToken,
         long expiresInSeconds
+    ) {
+    }
+
+    public record SocialAuthorizeUrlResponse(
+        String provider,
+        String authorizeUrl
+    ) {
+    }
+
+    public record SocialExchangeRequest(
+        @NotBlank
+        String code,
+        String state,
+        @NotBlank
+        String redirectUri
     ) {
     }
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, startTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState, startTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   clearAuth,
+  exchangeSocialCode,
   getAccessToken,
+  getSocialAuthorizeUrl,
   initializeAuthenticatedContext,
   persistAuthTokens,
   request
@@ -15,6 +17,7 @@ const DEFAULT_ERRORS = {
   loginEmail: "",
   loginPassword: "",
   signupName: "",
+  signupNickname: "",
   signupEmail: "",
   signupPassword: ""
 };
@@ -28,11 +31,7 @@ function AuthMessage({ message }) {
     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
     : "border-red-200 bg-red-50 text-red-700";
 
-  return (
-    <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${toneClasses}`}>
-      {message.text}
-    </div>
-  );
+  return <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${toneClasses}`}>{message.text}</div>;
 }
 
 function FieldError({ children }) {
@@ -69,12 +68,25 @@ function applyServerFieldErrors(fieldErrors, prefix, setErrors) {
   });
 }
 
-export default function AuthPage() {
+function buildRedirectUri() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return `${window.location.origin}/auth`;
+}
+
+function buildProviderRedirectUri(provider) {
+  return `${buildRedirectUri()}?provider=${provider}`;
+}
+
+function AuthPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("login");
   const [message, setMessage] = useState(null);
   const [errors, setErrors] = useState(DEFAULT_ERRORS);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [socialLoadingProvider, setSocialLoadingProvider] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({
@@ -84,9 +96,20 @@ export default function AuthPage() {
   });
   const [signupForm, setSignupForm] = useState({
     name: "",
+    nickname: "",
     email: "",
     password: ""
   });
+
+  const socialCode = searchParams.get("code");
+  const socialState = searchParams.get("state");
+  const socialProvider = useMemo(() => {
+    const provider = searchParams.get("provider");
+    if (provider === "kakao" || provider === "naver") {
+      return provider;
+    }
+    return "";
+  }, [searchParams]);
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -117,6 +140,54 @@ export default function AuthPage() {
       active = false;
     };
   }, [router]);
+
+  useEffect(() => {
+    if (!socialProvider || !socialCode) {
+      return;
+    }
+
+    let active = true;
+
+    (async () => {
+      setMessage(null);
+      setSocialLoadingProvider(socialProvider);
+
+      try {
+        const data = await exchangeSocialCode(socialProvider, {
+          code: socialCode,
+          state: socialState,
+          redirectUri: buildProviderRedirectUri(socialProvider)
+        });
+
+        if (!active) {
+          return;
+        }
+
+        persistAuthTokens(data);
+        await initializeAuthenticatedContext();
+        startTransition(() => {
+          router.replace("/");
+        });
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+
+        setMessage({
+          type: "error",
+          text: getFriendlyErrorMessage(error?.payload, `${socialProvider} 로그인 연동에 실패했습니다.`)
+        });
+      } finally {
+        if (active) {
+          setSocialLoadingProvider("");
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [router, socialCode, socialProvider, socialState]);
 
   function resetFeedback(nextTab) {
     setActiveTab(nextTab);
@@ -206,6 +277,11 @@ export default function AuthPage() {
       valid = false;
     }
 
+    if (!signupForm.nickname.trim()) {
+      nextErrors.signupNickname = "닉네임을 입력해 주세요.";
+      valid = false;
+    }
+
     if (!signupForm.email.trim()) {
       nextErrors.signupEmail = "이메일을 입력해 주세요.";
       valid = false;
@@ -232,6 +308,7 @@ export default function AuthPage() {
     try {
       const data = await callAuth("/api/v1/auth/signup", {
         name: signupForm.name.trim(),
+        nickname: signupForm.nickname.trim(),
         email: signupForm.email.trim(),
         password: signupForm.password
       });
@@ -258,6 +335,23 @@ export default function AuthPage() {
     }
   }
 
+  async function handleSocialLogin(provider) {
+    setMessage(null);
+    setSocialLoadingProvider(provider);
+
+    try {
+      const state = crypto.randomUUID();
+      const data = await getSocialAuthorizeUrl(provider, buildProviderRedirectUri(provider), state);
+      window.location.href = data.authorizeUrl;
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: getFriendlyErrorMessage(error?.payload, `${provider} 로그인 설정을 확인해 주세요.`)
+      });
+      setSocialLoadingProvider("");
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background-light font-display dark:bg-background-dark">
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
@@ -277,7 +371,7 @@ export default function AuthPage() {
               </h2>
             </div>
             <button
-              className="flex h-10 min-w-[84px] cursor-pointer items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold leading-normal tracking-[0.015em] text-white transition-colors hover:bg-primary/90"
+              className="flex h-10 min-w-[84px] cursor-pointer items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-primary/90"
               type="button"
             >
               <span className="truncate">고객 센터</span>
@@ -285,14 +379,14 @@ export default function AuthPage() {
           </header>
 
           <main className="flex flex-1 items-center justify-center p-4 md:p-8">
-            <div className="w-full max-w-[480px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <div className="w-full max-w-[520px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
               <div className="p-8 pb-4">
                 <div className="mb-8 flex flex-col gap-2">
                   <h1 className="text-3xl font-black leading-tight tracking-[-0.033em] text-slate-900 dark:text-white">
                     로그인 및 회원가입
                   </h1>
-                  <p className="text-base font-normal leading-normal text-slate-500 dark:text-slate-400">
-                    연말정산 조정을 간소화하세요.
+                  <p className="text-base text-slate-500 dark:text-slate-400">
+                    연말정산 진행을 쉽게 이어가 보세요.
                   </p>
                 </div>
 
@@ -305,7 +399,7 @@ export default function AuthPage() {
                         <button
                           key={tab}
                           className={[
-                            "flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-2 text-sm font-bold leading-normal tracking-[0.015em] transition-colors",
+                            "flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-2 text-sm font-bold transition-colors",
                             active
                               ? "border-primary text-slate-900 dark:text-white"
                               : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -325,12 +419,12 @@ export default function AuthPage() {
                 {activeTab === "login" ? (
                   <form className="space-y-4" noValidate onSubmit={handleLogin}>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold leading-normal text-slate-900 dark:text-slate-100" htmlFor="login-email">
+                      <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="login-email">
                         이메일
                       </label>
                       <input
                         autoComplete="email"
-                        className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base font-normal text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         id="login-email"
                         onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))}
                         placeholder="이메일 주소를 입력하세요"
@@ -341,13 +435,13 @@ export default function AuthPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold leading-normal text-slate-900 dark:text-slate-100" htmlFor="login-password">
+                      <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="login-password">
                         비밀번호
                       </label>
                       <div className="relative flex w-full items-center">
                         <input
                           autoComplete="current-password"
-                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 pr-12 text-base font-normal text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 pr-12 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                           id="login-password"
                           onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
                           placeholder="비밀번호를 입력하세요"
@@ -377,14 +471,11 @@ export default function AuthPage() {
                         />
                         <span className="text-sm text-slate-600 dark:text-slate-400">로그인 상태 유지</span>
                       </label>
-                      <a className="text-sm font-semibold text-primary hover:underline" href="#">
-                        비밀번호를 잊으셨나요?
-                      </a>
                     </div>
 
                     <button
-                      className="mt-4 flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-primary px-4 text-base font-bold leading-normal tracking-[0.015em] text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
-                      disabled={isSubmitting}
+                      className="mt-4 flex h-12 w-full items-center justify-center rounded-lg bg-primary px-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
+                      disabled={isSubmitting || Boolean(socialLoadingProvider)}
                       type="submit"
                     >
                       <span>{isSubmitting ? "로그인 중..." : "로그인"}</span>
@@ -392,29 +483,45 @@ export default function AuthPage() {
                   </form>
                 ) : (
                   <form className="space-y-4" noValidate onSubmit={handleSignup}>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold leading-normal text-slate-900 dark:text-slate-100" htmlFor="signup-name">
-                        이름
-                      </label>
-                      <input
-                        autoComplete="name"
-                        className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base font-normal text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                        id="signup-name"
-                        onChange={(event) => setSignupForm((current) => ({ ...current, name: event.target.value }))}
-                        placeholder="이름을 입력하세요"
-                        type="text"
-                        value={signupForm.name}
-                      />
-                      <FieldError>{errors.signupName}</FieldError>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="signup-name">
+                          이름
+                        </label>
+                        <input
+                          autoComplete="name"
+                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          id="signup-name"
+                          onChange={(event) => setSignupForm((current) => ({ ...current, name: event.target.value }))}
+                          placeholder="이름 입력"
+                          type="text"
+                          value={signupForm.name}
+                        />
+                        <FieldError>{errors.signupName}</FieldError>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="signup-nickname">
+                          닉네임
+                        </label>
+                        <input
+                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          id="signup-nickname"
+                          onChange={(event) => setSignupForm((current) => ({ ...current, nickname: event.target.value }))}
+                          placeholder="닉네임 입력"
+                          type="text"
+                          value={signupForm.nickname}
+                        />
+                        <FieldError>{errors.signupNickname}</FieldError>
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold leading-normal text-slate-900 dark:text-slate-100" htmlFor="signup-email">
+                      <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="signup-email">
                         이메일
                       </label>
                       <input
                         autoComplete="email"
-                        className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base font-normal text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="form-input h-12 w-full rounded-lg border-slate-200 px-4 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         id="signup-email"
                         onChange={(event) => setSignupForm((current) => ({ ...current, email: event.target.value }))}
                         placeholder="이메일 주소를 입력하세요"
@@ -425,13 +532,13 @@ export default function AuthPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold leading-normal text-slate-900 dark:text-slate-100" htmlFor="signup-password">
+                      <label className="text-sm font-semibold text-slate-900 dark:text-slate-100" htmlFor="signup-password">
                         비밀번호
                       </label>
                       <div className="relative flex w-full items-center">
                         <input
                           autoComplete="new-password"
-                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 pr-12 text-base font-normal text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          className="form-input h-12 w-full rounded-lg border-slate-200 px-4 pr-12 text-base text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                           id="signup-password"
                           onChange={(event) => setSignupForm((current) => ({ ...current, password: event.target.value }))}
                           placeholder="비밀번호를 입력하세요"
@@ -452,8 +559,8 @@ export default function AuthPage() {
                     </div>
 
                     <button
-                      className="mt-4 flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-primary px-4 text-base font-bold leading-normal tracking-[0.015em] text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
-                      disabled={isSubmitting}
+                      className="mt-4 flex h-12 w-full items-center justify-center rounded-lg bg-primary px-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-60"
+                      disabled={isSubmitting || Boolean(socialLoadingProvider)}
                       type="submit"
                     >
                       <span>{isSubmitting ? "회원가입 중..." : "회원가입"}</span>
@@ -464,25 +571,29 @@ export default function AuthPage() {
                 <div className="relative flex items-center gap-4 py-8">
                   <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
                   <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    또는 다음으로 계속하기
+                    또는 소셜 계정으로 계속하기
                   </span>
                   <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pb-4">
                   <button
-                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#FEE500] text-sm font-bold text-[#191919] transition-all hover:brightness-95"
+                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#FEE500] text-sm font-bold text-[#191919] transition-all hover:brightness-95 disabled:opacity-60"
+                    disabled={Boolean(socialLoadingProvider)}
+                    onClick={() => void handleSocialLogin("kakao")}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[20px]">chat</span>
-                    카카오
+                    {socialLoadingProvider === "kakao" ? "연동 중..." : "카카오"}
                   </button>
                   <button
-                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#03C75A] text-sm font-bold text-white transition-all hover:brightness-95"
+                    className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#03C75A] text-sm font-bold text-white transition-all hover:brightness-95 disabled:opacity-60"
+                    disabled={Boolean(socialLoadingProvider)}
+                    onClick={() => void handleSocialLogin("naver")}
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[20px]">circle</span>
-                    네이버
+                    {socialLoadingProvider === "naver" ? "연동 중..." : "네이버"}
                   </button>
                 </div>
               </div>
@@ -501,22 +612,16 @@ export default function AuthPage() {
               </div>
             </div>
           </main>
-
-          <footer className="p-8 text-center">
-            <p className="text-xs text-slate-400 dark:text-slate-600">
-              © 2023 Easy-Tax. All rights reserved.
-              <span className="mx-2">|</span>
-              <a className="transition-colors hover:text-primary" href="#">
-                개인정보 처리방침
-              </a>
-              <span className="mx-2">|</span>
-              <a className="transition-colors hover:text-primary" href="#">
-                이용 약관
-              </a>
-            </p>
-          </footer>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background-light text-slate-500">인증 화면을 준비하는 중입니다...</div>}>
+      <AuthPageContent />
+    </Suspense>
   );
 }

@@ -246,13 +246,21 @@ export default function BasicInfoPage() {
                   void saveForm(true);
                 }}
               >
+                {locked ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                    1단계가 확정되어 현재 기본정보 입력은 잠겨 있습니다. 수정하려면 부양가족 화면에서 `1단계 확정 풀기`를 먼저 눌러 주세요.
+                  </div>
+                ) : null}
+
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
+                  <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                     <label className="block text-sm font-medium text-slate-700" htmlFor="full_name">
                       이름
                     </label>
                     <input
-                      className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                      className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                        locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                      }`}
                       disabled={locked}
                       id="full_name"
                       onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
@@ -260,12 +268,14 @@ export default function BasicInfoPage() {
                       value={form.fullName}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                     <label className="block text-sm font-medium text-slate-700" htmlFor="ssn">
                       주민등록번호(SSN)
                     </label>
                     <input
-                      className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                      className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                        locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                      }`}
                       disabled={locked}
                       id="ssn"
                       onChange={(event) => setForm((current) => ({ ...current, ssn: event.target.value }))}
@@ -274,12 +284,14 @@ export default function BasicInfoPage() {
                       value={form.ssn}
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
+                  <div className={`space-y-2 rounded-xl transition-all md:col-span-2 ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                     <label className="block text-sm font-medium text-slate-700" htmlFor="address">
                       주소
                     </label>
                     <input
-                      className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                      className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                        locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                      }`}
                       disabled={locked}
                       id="address"
                       onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
@@ -287,12 +299,14 @@ export default function BasicInfoPage() {
                       value={form.address}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                     <label className="block text-sm font-medium text-slate-700" htmlFor="city">
                       도시
                     </label>
                     <input
-                      className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                      className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                        locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                      }`}
                       disabled={locked}
                       id="city"
                       onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
@@ -301,12 +315,14 @@ export default function BasicInfoPage() {
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                    <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                       <label className="block text-sm font-medium text-slate-700" htmlFor="state">
                         주 / 지역
                       </label>
                       <select
-                        className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                        className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                          locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                        }`}
                         disabled={locked}
                         id="state"
                         onChange={(event) => setForm((current) => ({ ...current, state: event.target.value }))}
@@ -318,12 +334,14 @@ export default function BasicInfoPage() {
                         <option value="New York">New York</option>
                       </select>
                     </div>
-                    <div className="space-y-2">
+                    <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                       <label className="block text-sm font-medium text-slate-700" htmlFor="zip">
                         우편번호
                       </label>
                       <input
-                        className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                        className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                          locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                        }`}
                         disabled={locked}
                         id="zip"
                         onChange={(event) => setForm((current) => ({ ...current, zip: event.target.value }))}
@@ -353,7 +371,11 @@ export default function BasicInfoPage() {
                     ].map((option) => (
                       <label
                         key={option.value}
-                        className="relative flex cursor-pointer rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary"
+                        className={`relative flex rounded-xl border p-4 shadow-sm transition-all ${
+                          locked
+                            ? "cursor-not-allowed border-slate-200 bg-slate-100"
+                            : "cursor-pointer border-slate-200 bg-white has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary"
+                        }`}
                       >
                         <input
                           checked={form.reportingType === option.value}
@@ -365,8 +387,8 @@ export default function BasicInfoPage() {
                           value={option.value}
                         />
                         <div>
-                          <span className="block text-sm font-bold text-slate-900">{option.title}</span>
-                          <span className="mt-1 block text-xs text-slate-500">{option.description}</span>
+                          <span className={`block text-sm font-bold ${locked ? "text-slate-400" : "text-slate-900"}`}>{option.title}</span>
+                          <span className={`mt-1 block text-xs ${locked ? "text-slate-400" : "text-slate-500"}`}>{option.description}</span>
                         </div>
                       </label>
                     ))}
@@ -375,12 +397,14 @@ export default function BasicInfoPage() {
 
                 <hr className="border-slate-200" />
 
-                <div className="space-y-2">
+                <div className={`space-y-2 rounded-xl transition-all ${locked ? "border border-slate-200 bg-slate-100/80 p-3" : ""}`}>
                   <label className="block text-sm font-medium text-slate-700" htmlFor="notes">
                     메모
                   </label>
                   <textarea
-                    className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm"
+                    className={`block w-full rounded-lg border px-4 py-2.5 outline-none transition-all sm:text-sm ${
+                      locked ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-300 focus:border-primary focus:ring-primary"
+                    }`}
                     disabled={locked}
                     id="notes"
                     onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}

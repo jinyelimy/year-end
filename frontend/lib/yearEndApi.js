@@ -144,6 +144,11 @@ export function hasDependentsConfirmed(session) {
   return basicInfo.dependentsConfirmed === true;
 }
 
+export function hasIncomeConfirmed(session) {
+  const basicInfo = parseBasicInfo(session);
+  return basicInfo.incomeConfirmed === true;
+}
+
 export function isProfileSectionComplete(session) {
   return hasBasicInfo(session) && hasDependentsConfirmed(session);
 }
@@ -166,10 +171,14 @@ export function resolveNextStep(session) {
   }
 
   if (!hasDependentsConfirmed(session)) {
-    return { href: "/dependents", label: "부양정보 확정하기" };
+    return { href: "/dependents", label: "부양가족 확정하기" };
   }
 
-  return { href: "/income", label: "소득 확인으로 이동하기" };
+  if (!hasIncomeConfirmed(session)) {
+    return { href: "/income", label: "소득 확인으로 이동하기" };
+  }
+
+  return { href: "/import-data", label: "간소화 자료 확인하기" };
 }
 
 export function resolveProgress(session) {
@@ -177,6 +186,7 @@ export function resolveProgress(session) {
   if (session.sessionStatus === "REVIEWED") return 100;
   if (session.sessionStatus === "SUBMITTED") return 90;
   if (session.sessionStatus === "CALCULATED") return 75;
+  if (hasIncomeConfirmed(session)) return 65;
   if (isProfileSectionComplete(session)) return 55;
   if (hasBasicInfo(session)) return 35;
   return 20;
@@ -185,7 +195,11 @@ export function resolveProgress(session) {
 export function getSessionStatusLabel(session) {
   if (!session) return "세션 없음";
   const labels = {
-    DRAFT: isProfileSectionComplete(session) ? "1단계 완료" : "1단계 진행 중",
+    DRAFT: hasIncomeConfirmed(session)
+      ? "2단계 완료"
+      : isProfileSectionComplete(session)
+        ? "1단계 완료"
+        : "1단계 진행 중",
     CALCULATED: "계산 완료",
     SUBMITTED: "제출 완료",
     REVIEWED: "검토 완료",
@@ -302,6 +316,23 @@ export async function listDocumentChecklists(sessionId) {
 export async function submitTaxSession(sessionId) {
   return request(`/api/v1/tax-sessions/${sessionId}/submit`, {
     method: "POST"
+  });
+}
+
+export async function getSocialAuthorizeUrl(provider, redirectUri, state) {
+  const query = new URLSearchParams({ redirectUri });
+  if (state) {
+    query.set("state", state);
+  }
+  return request(`/api/v1/auth/oauth/${provider}/authorize-url?${query.toString()}`, {}, { auth: false });
+}
+
+export async function exchangeSocialCode(provider, payload) {
+  return request(`/api/v1/auth/oauth/${provider}/exchange`, {
+    method: "POST",
+    body: payload
+  }, {
+    auth: false
   });
 }
 
