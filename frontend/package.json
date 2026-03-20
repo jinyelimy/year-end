@@ -1,0 +1,23 @@
+{
+  "name": "year-end-frontend",
+  "private": true,
+  "scripts": {
+    "predev": "node ./scripts/sync-legacy-static.mjs",
+    "dev": "next dev",
+    "prebuild": "node ./scripts/sync-legacy-static.mjs",
+    "build": "next build",
+    "prestart": "node ./scripts/sync-legacy-static.mjs",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "16.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.11",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.17"
+  }
+}
