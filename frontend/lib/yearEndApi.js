@@ -299,6 +299,12 @@ export async function listDocumentChecklists(sessionId) {
   return request(`/api/v1/tax-sessions/${sessionId}/document-checklists`);
 }
 
+export async function submitTaxSession(sessionId) {
+  return request(`/api/v1/tax-sessions/${sessionId}/submit`, {
+    method: "POST"
+  });
+}
+
 export async function ensureCurrentSession() {
   const storedSessionId = getCurrentSessionId();
 
