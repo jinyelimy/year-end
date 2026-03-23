@@ -327,7 +327,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="relative mb-8 overflow-hidden rounded-[32px] bg-[#5b8ee6] px-6 py-6 text-white shadow-xl shadow-[0_20px_45px_-18px_rgba(91,142,230,0.7)] md:min-h-[340px] md:px-8 md:py-8">
+      <section className="relative mb-8 overflow-hidden rounded-[32px] bg-[#5b8ee6] px-6 py-6 text-white shadow-xl shadow-[0_20px_45px_-18px_rgba(91,142,230,0.7)] md:px-8 md:py-8">
           <div className="relative z-10 flex h-full flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
             <div className="flex max-w-xl flex-1 flex-col justify-between">
               <p className="text-sm font-medium text-blue-100 opacity-90">{session?.taxYear}년 기준 예상환급액</p>

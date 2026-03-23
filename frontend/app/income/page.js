@@ -21,11 +21,17 @@ import {
 import {
   calculateFinancialSummary,
   formatCurrency,
-  getIncomeTypeLabel,
-  INCOME_TYPE_OPTIONS
+  getIncomeTypeLabel
 } from "@/lib/yearEndView";
 
-const INITIAL_FORM = {
+const INITIAL_PRIMARY_FORM = {
+  payerName: "",
+  totalSalary: "0",
+  nonTaxableAmount: "0",
+  withheldTaxAmount: "0"
+};
+
+const INITIAL_DETAIL_FORM = {
   incomeType: "SALARY",
   payerName: "",
   grossAmount: "0",
@@ -33,6 +39,168 @@ const INITIAL_FORM = {
   withheldTaxAmount: "0",
   nonTaxableAmount: "0"
 };
+
+const DETAIL_TYPE_OPTIONS = [
+  { value: "SALARY", label: "종전 근무지" },
+  { value: "OTHER_INCOME", label: "기타소득" }
+];
+
+function parseIncomeAttributes(item) {
+  if (!item?.attributesJsonb) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(item.attributesJsonb);
+  } catch {
+    return {};
+  }
+}
+
+function getIncomeEntryKind(item) {
+  const attributes = parseIncomeAttributes(item);
+
+  if (attributes.entryKind) {
+    return attributes.entryKind;
+  }
+
+  if (item?.incomeType === "OTHER_INCOME") {
+    return "OTHER_INCOME";
+  }
+
+  if (item?.incomeType === "BONUS") {
+    return "BONUS_ADJUSTMENT";
+  }
+
+  if (item?.incomeType === "SALARY") {
+    return "LEGACY_SALARY";
+  }
+
+  return "UNKNOWN";
+}
+
+function getPrimaryIncomeItem(items) {
+  const primaryItem = items.find((item) => getIncomeEntryKind(item) === "PRIMARY_SALARY");
+  if (primaryItem) {
+    return primaryItem;
+  }
+
+  return items.find(
+    (item) => item.incomeType === "SALARY" && getIncomeEntryKind(item) === "LEGACY_SALARY"
+  ) || null;
+}
+
+function getExceptionItemLabel(item) {
+  const entryKind = getIncomeEntryKind(item);
+
+  if (entryKind === "PREVIOUS_WORKPLACE") {
+    return "종전 근무지";
+  }
+
+  if (entryKind === "OTHER_INCOME") {
+    return "기타소득";
+  }
+
+  if (entryKind === "BONUS_ADJUSTMENT") {
+    return "예외 상여";
+  }
+
+  return getIncomeTypeLabel(item?.incomeType);
+}
+
+function toNumber(value) {
+  const parsed = Number(value || 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sanitizeMoneyInput(value) {
+  const digits = String(value ?? "").replace(/[^\d]/g, "");
+  return digits.replace(/^0+(?=\d)/, "");
+}
+
+function formatMoneyInput(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  return new Intl.NumberFormat("ko-KR").format(toNumber(value));
+}
+
+function buildPrimaryForm(salaryItem) {
+  if (!salaryItem) {
+    return INITIAL_PRIMARY_FORM;
+  }
+
+  return {
+    payerName: salaryItem.payerName || "",
+    totalSalary: String(salaryItem.grossAmount ?? 0),
+    nonTaxableAmount: String(salaryItem.nonTaxableAmount ?? 0),
+    withheldTaxAmount: String(salaryItem.withheldTaxAmount ?? 0)
+  };
+}
+
+function buildDetailForm(item) {
+  if (!item) {
+    return INITIAL_DETAIL_FORM;
+  }
+
+  const entryKind = getIncomeEntryKind(item);
+  const detailIncomeType = entryKind === "PREVIOUS_WORKPLACE"
+    ? "SALARY"
+    : entryKind === "BONUS_ADJUSTMENT"
+      ? "BONUS"
+      : item.incomeType || "SALARY";
+
+  return {
+    incomeType: detailIncomeType,
+    payerName: item.payerName || "",
+    grossAmount: String(item.grossAmount ?? 0),
+    taxableAmount: String(item.taxableAmount ?? 0),
+    withheldTaxAmount: String(item.withheldTaxAmount ?? 0),
+    nonTaxableAmount: String(item.nonTaxableAmount ?? 0)
+  };
+}
+
+function calculateTaxableSalary(totalSalary, nonTaxableAmount) {
+  return Math.max(toNumber(totalSalary) - toNumber(nonTaxableAmount), 0);
+}
+
+function validatePrimaryForm(form) {
+  const totalSalary = toNumber(form.totalSalary);
+  const nonTaxableAmount = toNumber(form.nonTaxableAmount);
+  const withheldTaxAmount = toNumber(form.withheldTaxAmount);
+
+  if (totalSalary < 0 || nonTaxableAmount < 0 || withheldTaxAmount < 0) {
+    return "금액은 0원 이상이어야 합니다.";
+  }
+
+  if (nonTaxableAmount > totalSalary) {
+    return "비과세 금액은 총급여를 초과할 수 없습니다.";
+  }
+
+  return null;
+}
+
+function validateDetailForm(form) {
+  const grossAmount = toNumber(form.grossAmount);
+  const taxableAmount = toNumber(form.taxableAmount);
+  const withheldTaxAmount = toNumber(form.withheldTaxAmount);
+  const nonTaxableAmount = toNumber(form.nonTaxableAmount);
+
+  if (!form.payerName.trim()) {
+    return "상세 소득은 지급처명을 입력해야 합니다.";
+  }
+
+  if ([grossAmount, taxableAmount, withheldTaxAmount, nonTaxableAmount].some((value) => value < 0)) {
+    return "금액은 0원 이상이어야 합니다.";
+  }
+
+  if (taxableAmount + nonTaxableAmount > grossAmount) {
+    return "과세 금액과 비과세 금액의 합은 총액을 넘을 수 없습니다.";
+  }
+
+  return null;
+}
 
 function MessageBanner({ message }) {
   if (!message) {
@@ -82,7 +250,7 @@ function Sidebar({ user, session, isConfirmed }) {
       <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
         <h3 className="text-sm font-bold text-primary">2단계 안내</h3>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          1단계가 확정된 뒤에만 진입할 수 있습니다. 소득 내역을 저장하고 `2단계 확정`을 눌러야 다음 단계가 열립니다.
+          대부분의 근로소득자는 총급여, 비과세, 기납부세액만 입력하면 됩니다. 종전 근무지나 기타소득처럼 예외적인 경우에만 아래 추가 입력을 사용하세요.
         </p>
         <p className="mt-3 text-xs text-slate-500">세션 연도: {session?.taxYear}년 귀속</p>
       </div>
@@ -98,10 +266,35 @@ export default function IncomePage() {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [incomeItems, setIncomeItems] = useState([]);
-  const [selectedItemId, setSelectedItemId] = useState(null);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [primaryForm, setPrimaryForm] = useState(INITIAL_PRIMARY_FORM);
+  const [detailForm, setDetailForm] = useState(INITIAL_DETAIL_FORM);
+  const [selectedDetailId, setSelectedDetailId] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  function updatePrimaryMoneyField(field) {
+    return (event) => {
+      const nextValue = sanitizeMoneyInput(event.target.value);
+      setPrimaryForm((current) => ({ ...current, [field]: nextValue }));
+    };
+  }
+
+  function updateDetailMoneyField(field) {
+    return (event) => {
+      const nextValue = sanitizeMoneyInput(event.target.value);
+      setDetailForm((current) => ({ ...current, [field]: nextValue }));
+    };
+  }
+
+  const primaryIncomeItem = getPrimaryIncomeItem(incomeItems);
+  const additionalItems = incomeItems.filter((item) => item.id !== primaryIncomeItem?.id);
+  const summary = calculateFinancialSummary(incomeItems, []);
   const isConfirmed = hasIncomeConfirmed(session);
+  const taxableSalary = calculateTaxableSalary(primaryForm.totalSalary, primaryForm.nonTaxableAmount);
+  const isPreviousWorkplace = detailForm.incomeType === "SALARY";
+  const detailPayerLabel = isPreviousWorkplace ? "종전 근무지명" : "소득 발생처";
+  const detailGrossLabel = isPreviousWorkplace ? "종전 근무지 총급여" : "기타소득 총액";
+  const detailTaxableLabel = isPreviousWorkplace ? "과세 대상 급여" : "과세 대상 기타소득";
+  const detailWithheldLabel = isPreviousWorkplace ? "종전 근무지 기납부세액" : "원천징수세액";
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -131,9 +324,14 @@ export default function IncomePage() {
         setUser(context.user);
         setSession(context.currentSession);
         setIncomeItems(items);
-        if (items.length > 0) {
-          selectItem(items[0]);
+        setPrimaryForm(buildPrimaryForm(getPrimaryIncomeItem(items)));
+
+        const firstAdditional = items.find((item) => item.id !== getPrimaryIncomeItem(items)?.id);
+        if (firstAdditional) {
+          setSelectedDetailId(firstAdditional.id);
+          setDetailForm(buildDetailForm(firstAdditional));
         }
+
         setIsLoading(false);
       } catch {
         if (!active) {
@@ -152,36 +350,37 @@ export default function IncomePage() {
     };
   }, [router]);
 
-  function resetForm() {
-    setSelectedItemId(null);
-    setForm(INITIAL_FORM);
+  function openNewDetailForm() {
+    setSelectedDetailId(null);
+    setDetailForm(INITIAL_DETAIL_FORM);
+    setIsDetailOpen(true);
   }
 
-  function selectItem(item) {
-    setSelectedItemId(item.id);
-    setForm({
-      incomeType: item.incomeType || "SALARY",
-      payerName: item.payerName || "",
-      grossAmount: String(item.grossAmount ?? 0),
-      taxableAmount: String(item.taxableAmount ?? 0),
-      withheldTaxAmount: String(item.withheldTaxAmount ?? 0),
-      nonTaxableAmount: String(item.nonTaxableAmount ?? 0)
-    });
+  function selectDetailItem(item) {
+    setSelectedDetailId(item.id);
+    setDetailForm(buildDetailForm(item));
+    setIsDetailOpen(true);
   }
 
-  async function reloadItems(nextSelectedId = selectedItemId) {
+  async function refreshIncomeItems(nextSelectedDetailId = selectedDetailId) {
     const items = await listIncomeItems(session.id);
     setIncomeItems(items);
+    const nextPrimaryIncomeItem = getPrimaryIncomeItem(items);
+    setPrimaryForm(buildPrimaryForm(nextPrimaryIncomeItem));
 
-    const targetId = nextSelectedId || items[0]?.id;
-    if (!targetId) {
-      resetForm();
-      return;
-    }
+    const selectedAdditional = items.find(
+      (item) => item.id === nextSelectedDetailId && item.id !== nextPrimaryIncomeItem?.id
+    );
+    const fallbackAdditional = items.find((item) => item.id !== nextPrimaryIncomeItem?.id);
+    const nextAdditional = selectedAdditional || fallbackAdditional;
 
-    const selected = items.find((item) => item.id === targetId);
-    if (selected) {
-      selectItem(selected);
+    if (nextAdditional) {
+      setSelectedDetailId(nextAdditional.id);
+      setDetailForm(buildDetailForm(nextAdditional));
+    } else {
+      setSelectedDetailId(null);
+      setDetailForm(INITIAL_DETAIL_FORM);
+      setIsDetailOpen(false);
     }
   }
 
@@ -201,9 +400,15 @@ export default function IncomePage() {
     return updatedSession;
   }
 
-  async function handleSubmit(event) {
+  async function handlePrimarySave(event) {
     event.preventDefault();
     if (!session?.id || isConfirmed) {
+      return;
+    }
+
+    const validationError = validatePrimaryForm(primaryForm);
+    if (validationError) {
+      setMessage({ type: "error", text: validationError });
       return;
     }
 
@@ -212,37 +417,43 @@ export default function IncomePage() {
 
     try {
       const payload = {
-        incomeType: form.incomeType,
-        payerName: form.payerName.trim(),
-        grossAmount: Number(form.grossAmount || 0),
-        taxableAmount: Number(form.taxableAmount || 0),
-        withheldTaxAmount: Number(form.withheldTaxAmount || 0),
-        nonTaxableAmount: Number(form.nonTaxableAmount || 0),
-        attributesJsonb: JSON.stringify({})
+        incomeType: "SALARY",
+        payerName: primaryForm.payerName.trim() || "현 근무지",
+        grossAmount: toNumber(primaryForm.totalSalary),
+        taxableAmount: taxableSalary,
+        withheldTaxAmount: toNumber(primaryForm.withheldTaxAmount),
+        nonTaxableAmount: toNumber(primaryForm.nonTaxableAmount),
+        attributesJsonb: JSON.stringify({
+          entryKind: "PRIMARY_SALARY",
+          compensationScope: "SALARY_AND_BONUS"
+        })
       };
 
-      if (selectedItemId) {
-        await updateIncomeItem(session.id, selectedItemId, payload);
-        setMessage({ type: "success", text: "소득 항목을 수정했습니다." });
+      if (primaryIncomeItem) {
+        await updateIncomeItem(session.id, primaryIncomeItem.id, payload);
       } else {
         await createIncomeItem(session.id, payload);
-        setMessage({ type: "success", text: "소득 항목을 추가했습니다." });
       }
 
       await syncIncomeConfirmation(false);
-      await reloadItems(selectedItemId);
-      if (!selectedItemId) {
-        resetForm();
-      }
+      await refreshIncomeItems();
+      setMessage({ type: "success", text: "기본 소득 정보를 저장했습니다." });
     } catch (error) {
-      setMessage({ type: "error", text: error.message || "소득 항목 저장에 실패했습니다." });
+      setMessage({ type: "error", text: error.message || "기본 소득 저장에 실패했습니다." });
     } finally {
       setIsSaving(false);
     }
   }
 
-  async function handleDelete() {
-    if (!session?.id || !selectedItemId || isConfirmed) {
+  async function handleDetailSave(event) {
+    event.preventDefault();
+    if (!session?.id || isConfirmed) {
+      return;
+    }
+
+    const validationError = validateDetailForm(detailForm);
+    if (validationError) {
+      setMessage({ type: "error", text: validationError });
       return;
     }
 
@@ -250,12 +461,56 @@ export default function IncomePage() {
     setMessage(null);
 
     try {
-      await deleteIncomeItem(session.id, selectedItemId);
+      const entryKind = detailForm.incomeType === "SALARY"
+        ? "PREVIOUS_WORKPLACE"
+        : detailForm.incomeType === "BONUS"
+          ? "BONUS_ADJUSTMENT"
+          : "OTHER_INCOME";
+
+      const payload = {
+        incomeType: detailForm.incomeType,
+        payerName: detailForm.payerName.trim(),
+        grossAmount: toNumber(detailForm.grossAmount),
+        taxableAmount: toNumber(detailForm.taxableAmount),
+        withheldTaxAmount: toNumber(detailForm.withheldTaxAmount),
+        nonTaxableAmount: toNumber(detailForm.nonTaxableAmount),
+        attributesJsonb: JSON.stringify({ entryKind })
+      };
+
+      if (selectedDetailId) {
+        await updateIncomeItem(session.id, selectedDetailId, payload);
+        await refreshIncomeItems(selectedDetailId);
+        setMessage({ type: "success", text: "상세 소득 항목을 수정했습니다." });
+      } else {
+        await createIncomeItem(session.id, payload);
+        await refreshIncomeItems();
+        openNewDetailForm();
+        setMessage({ type: "success", text: "상세 소득 항목을 추가했습니다." });
+      }
+
       await syncIncomeConfirmation(false);
-      setMessage({ type: "success", text: "소득 항목을 삭제했습니다." });
-      await reloadItems(null);
     } catch (error) {
-      setMessage({ type: "error", text: error.message || "소득 항목 삭제에 실패했습니다." });
+      setMessage({ type: "error", text: error.message || "상세 소득 저장에 실패했습니다." });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDetailDelete() {
+    if (!session?.id || !selectedDetailId || isConfirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage(null);
+
+    try {
+      await deleteIncomeItem(session.id, selectedDetailId);
+      await syncIncomeConfirmation(false);
+      await refreshIncomeItems(null);
+      setMessage({ type: "success", text: "상세 소득 항목을 삭제했습니다." });
+    } catch (error) {
+      setMessage({ type: "error", text: error.message || "상세 소득 삭제에 실패했습니다." });
     } finally {
       setIsSaving(false);
     }
@@ -297,8 +552,6 @@ export default function IncomePage() {
     );
   }
 
-  const summary = calculateFinancialSummary(incomeItems, []);
-
   return (
     <div className="min-h-screen bg-background-light font-display text-slate-900">
       <header className="border-b border-slate-200 bg-white">
@@ -320,26 +573,11 @@ export default function IncomePage() {
 
           <section className="lg:col-span-9">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-              <div className="mb-8 flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">소득 명세 확인</h2>
-                  <p className="mt-2 text-sm text-slate-500">
-                    2단계 확정 전에는 소득 항목을 추가/수정할 수 있고, 확정 후에는 읽기 전용으로 잠깁니다.
-                  </p>
-                </div>
-                <button
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
-                    selectedItemId && !isConfirmed
-                      ? "border-red-200 bg-red-50 text-red-500 hover:border-red-300 hover:bg-red-100"
-                      : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                  }`}
-                  disabled={!selectedItemId || isConfirmed || isSaving}
-                  onClick={handleDelete}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-lg">delete</span>
-                  삭제
-                </button>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-900">소득 확인</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  기본 입력은 총급여 기준으로 단순화했고, 종전 근무지나 기타소득처럼 예외적인 경우만 아래의 추가 입력을 사용하도록 정리했습니다.
+                </p>
               </div>
 
               {isConfirmed ? (
@@ -348,112 +586,329 @@ export default function IncomePage() {
                 </div>
               ) : null}
 
-              <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">총 지급액</p>
-                  <p className="mt-3 text-2xl font-black text-slate-900">{formatCurrency(summary.totalGrossIncome)}</p>
+                  <p className="mt-3 whitespace-nowrap text-[1.15rem] font-black leading-none tracking-tight text-slate-900 md:text-[1.25rem] xl:text-[1.4rem]">{formatCurrency(summary.totalGrossIncome)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">과세 소득</p>
-                  <p className="mt-3 text-2xl font-black text-primary">{formatCurrency(summary.totalTaxableIncome)}</p>
+                  <p className="mt-3 whitespace-nowrap text-[1.15rem] font-black leading-none tracking-tight text-primary md:text-[1.25rem] xl:text-[1.4rem]">{formatCurrency(summary.totalTaxableIncome)}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">비과세 소득</p>
+                  <p className="mt-3 whitespace-nowrap text-[1.15rem] font-black leading-none tracking-tight text-slate-900 md:text-[1.25rem] xl:text-[1.4rem]">{formatCurrency(summary.totalNonTaxableIncome)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">기납부세액</p>
-                  <p className="mt-3 text-2xl font-black text-slate-900">{formatCurrency(summary.totalWithheldTax)}</p>
+                  <p className="mt-3 whitespace-nowrap text-[1.15rem] font-black leading-none tracking-tight text-slate-900 md:text-[1.25rem] xl:text-[1.4rem]">{formatCurrency(summary.totalWithheldTax)}</p>
                 </div>
               </div>
 
               <MessageBanner message={message} />
 
-              <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.35fr_0.9fr]">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <div className="flex items-center justify-between border-b border-slate-200 p-6">
-                    <h3 className="text-lg font-bold">등록된 소득 내역</h3>
-                    <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium tracking-wide text-slate-500">총 {incomeItems.length}건</span>
+              <div className="space-y-8">
+                <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-6">
+                  <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="w-full">
+                      <h3 className="text-lg font-bold text-slate-900">기본 입력</h3>
+                      <div className="mt-2 text-sm leading-5 text-slate-500">
+                        <p>일반적인 근로소득자는 이 영역만 입력해도 됩니다.</p>
+                        <p>총급여에는 보통 급여와 상여가 함께 포함되며, 과세 대상 급여는 비과세 금액을 반영해 자동 계산됩니다.</p>
+                      </div>
+                    </div>
+                    <span className="min-w-[92px] self-start whitespace-nowrap rounded-full bg-white px-3 py-1 text-center text-xs font-semibold text-slate-500 shadow-sm">
+                      총급여 중심
+                    </span>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                      <thead>
-                        <tr className="bg-slate-50/50 text-xs font-semibold uppercase text-slate-500">
-                          <th className="px-6 py-4">구분</th>
-                          <th className="px-6 py-4">지급처</th>
-                          <th className="px-6 py-4 text-right">총액</th>
-                          <th className="px-6 py-4 text-right">기납부세액</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {incomeItems.length === 0 ? (
-                          <tr>
-                            <td className="px-6 py-8 text-sm text-slate-500" colSpan="4">아직 등록된 소득 항목이 없습니다.</td>
-                          </tr>
+
+                  <form className="grid grid-cols-1 gap-5 md:grid-cols-2" onSubmit={handlePrimarySave}>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="block text-sm font-semibold text-slate-700" htmlFor="payerName">현 근무지</label>
+                      <input
+                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                          isConfirmed
+                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                        }`}
+                        disabled={isConfirmed}
+                        id="payerName"
+                        onChange={(event) => setPrimaryForm((current) => ({ ...current, payerName: event.target.value }))}
+                        placeholder="비워두면 '현 근무지'로 저장됩니다."
+                        type="text"
+                        value={primaryForm.payerName}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700" htmlFor="totalSalary">총급여 (급여·상여 포함)</label>
+                      <input
+                        className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
+                          isConfirmed
+                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                        }`}
+                        disabled={isConfirmed}
+                        id="totalSalary"
+                        inputMode="numeric"
+                        onChange={updatePrimaryMoneyField("totalSalary")}
+                        type="text"
+                        value={formatMoneyInput(primaryForm.totalSalary)}
+                      />
+                    </div>
+
+                    <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs leading-6 text-sky-700 md:col-span-2">
+                      회사에서 받은 급여와 상여는 보통 이 총급여에 함께 포함합니다. 이미 총급여에 반영된 상여는 아래 예외 입력에서 다시 넣지 않습니다.
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700" htmlFor="nonTaxableAmount">비과세 금액</label>
+                      <input
+                        className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
+                          isConfirmed
+                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                        }`}
+                        disabled={isConfirmed}
+                        id="nonTaxableAmount"
+                        inputMode="numeric"
+                        onChange={updatePrimaryMoneyField("nonTaxableAmount")}
+                        type="text"
+                        value={formatMoneyInput(primaryForm.nonTaxableAmount)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700" htmlFor="taxableSalary">자동 계산된 과세 대상 급여</label>
+                      <input
+                        className="h-12 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-right font-mono font-bold text-slate-500"
+                        disabled
+                        id="taxableSalary"
+                        type="text"
+                        value={new Intl.NumberFormat("ko-KR").format(taxableSalary)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-slate-700" htmlFor="withheldTaxAmount">총 기납부세액</label>
+                      <input
+                        className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
+                          isConfirmed
+                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                        }`}
+                        disabled={isConfirmed}
+                        id="withheldTaxAmount"
+                        inputMode="numeric"
+                        onChange={updatePrimaryMoneyField("withheldTaxAmount")}
+                        type="text"
+                        value={formatMoneyInput(primaryForm.withheldTaxAmount)}
+                      />
+                    </div>
+
+                    {!isConfirmed ? (
+                      <div className="flex justify-end md:col-span-2">
+                        <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
+                          {isSaving ? "저장 중..." : "기본 입력 저장"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </form>
+                </section>
+
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">예외 입력</h3>
+                      <div className="mt-2 text-sm leading-5 text-slate-500">
+                        <p>종전 근무지나 기타소득처럼 기본 입력만으로 처리하기 어려운 경우에만 사용하세요.</p>
+                        <p>대부분의 근로소득자는 이 영역을 비워두어도 됩니다.</p>
+                      </div>
+                    </div>
+                    {!isConfirmed ? (
+                      <button
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                        onClick={openNewDetailForm}
+                        type="button"
+                      >
+                        예외 항목 추가
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="text-sm font-semibold text-slate-900">종전 근무지가 있나요?</p>
+                      <p className="mt-1 text-xs leading-6 text-slate-500">
+                        올해 중간에 이직했다면, 종전 근무지에서 받은 총급여와 기납부세액을 예외 입력으로 추가하세요.
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="text-sm font-semibold text-slate-900">기타소득이 있나요?</p>
+                      <p className="mt-1 text-xs leading-6 text-slate-500">
+                        강연료, 원고료, 사례금처럼 근로소득 외 별도 소득이 있을 때만 추가하세요. 비과세소득과는 다른 개념입니다.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1.05fr]">
+                    <div className="overflow-hidden rounded-xl border border-slate-200">
+                      <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                        <h4 className="font-semibold text-slate-900">등록된 예외 항목</h4>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {additionalItems.length === 0 ? (
+                          <div className="px-5 py-8 text-sm text-slate-500">
+                            등록된 예외 항목이 없습니다. 일반적인 근로소득자는 기본 입력만으로 충분합니다.
+                          </div>
                         ) : (
-                          incomeItems.map((item) => (
-                            <tr key={item.id} className={`cursor-pointer transition-colors hover:bg-slate-50/80 ${item.id === selectedItemId ? "bg-primary/5" : ""}`} onClick={() => selectItem(item)}>
-                              <td className="px-6 py-5 font-semibold text-slate-900">{getIncomeTypeLabel(item.incomeType)}</td>
-                              <td className="px-6 py-5 text-sm text-slate-500">{item.payerName || "-"}</td>
-                              <td className="px-6 py-5 text-right font-mono text-lg font-bold text-slate-900">{new Intl.NumberFormat("ko-KR").format(item.grossAmount || 0)}</td>
-                              <td className="px-6 py-5 text-right font-semibold text-primary">{formatCurrency(item.withheldTaxAmount)}</td>
-                            </tr>
+                          additionalItems.map((item) => (
+                            <button
+                              key={item.id}
+                              className={`flex w-full items-center justify-between px-5 py-4 text-left transition ${
+                                item.id === selectedDetailId
+                                  ? "bg-sky-50 shadow-[inset_4px_0_0_0_rgb(125,211,252),inset_0_0_0_1px_rgba(125,211,252,0.45)]"
+                                  : "hover:bg-slate-50"
+                              }`}
+                              onClick={() => selectDetailItem(item)}
+                              type="button"
+                            >
+                              <div>
+                                <p className="font-semibold text-slate-900">{getExceptionItemLabel(item)}</p>
+                                <p className="mt-1 text-sm text-slate-500">{item.payerName || "-"}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-mono text-sm font-bold text-slate-900">{formatCurrency(item.grossAmount)}</p>
+                                <p className="mt-1 text-xs text-slate-400">기납부세액 {formatCurrency(item.withheldTaxAmount)}</p>
+                              </div>
+                            </button>
                           ))
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-                  <h3 className="mb-6 flex items-center gap-2 text-lg font-bold">
-                    <span className="material-symbols-outlined text-primary">edit_note</span>
-                    {selectedItemId ? "소득 항목 수정" : "소득 항목 추가"}
-                  </h3>
-
-                  <form className="space-y-5" onSubmit={handleSubmit}>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="income-type">소득 구분</label>
-                      <select className={`h-12 w-full rounded-lg border px-4 text-sm ${isConfirmed ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-200 bg-slate-50 focus:border-primary focus:ring-primary"}`} disabled={isConfirmed} id="income-type" onChange={(event) => setForm((current) => ({ ...current, incomeType: event.target.value }))} value={form.incomeType}>
-                        {INCOME_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="payer-name">지급처</label>
-                      <input className={`h-12 w-full rounded-lg border px-4 text-sm ${isConfirmed ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-200 bg-white focus:border-primary focus:ring-primary"}`} disabled={isConfirmed} id="payer-name" onChange={(event) => setForm((current) => ({ ...current, payerName: event.target.value }))} type="text" value={form.payerName} />
-                    </div>
-
-                    {[
-                      { key: "grossAmount", label: "총 지급액" },
-                      { key: "taxableAmount", label: "과세 대상 금액" },
-                      { key: "withheldTaxAmount", label: "기납부세액" },
-                      { key: "nonTaxableAmount", label: "비과세 금액" }
-                    ].map((field) => (
-                      <div key={field.key} className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-700" htmlFor={field.key}>{field.label}</label>
-                        <div className="relative">
-                          <input className={`h-12 w-full rounded-lg border px-4 pr-10 text-right font-mono font-bold ${isConfirmed ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-200 bg-white focus:border-primary focus:ring-primary"}`} disabled={isConfirmed} id={field.key} min="0" onChange={(event) => setForm((current) => ({ ...current, [field.key]: event.target.value }))} step="1" type="number" value={form[field.key]} />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">원</span>
-                        </div>
                       </div>
-                    ))}
-
-                    <div className="flex justify-end gap-3 pt-4">
-                      {!isConfirmed ? (
-                        <>
-                          <button className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50" onClick={resetForm} type="button">초기화</button>
-                          <button className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
-                            {isSaving ? "저장 중..." : selectedItemId ? "수정 저장" : "항목 추가"}
-                          </button>
-                        </>
-                      ) : null}
                     </div>
-                  </form>
-                </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                      <div className="mb-5 flex items-center justify-between gap-3">
+                        <h4 className="font-semibold text-slate-900">
+                          {selectedDetailId ? "예외 항목 수정" : "예외 항목 추가"}
+                        </h4>
+                        {selectedDetailId && !isConfirmed ? (
+                          <button
+                            className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                            onClick={handleDetailDelete}
+                            type="button"
+                          >
+                            삭제
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {isDetailOpen ? (
+                        <form className="space-y-4" onSubmit={handleDetailSave}>
+                          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs leading-6 text-slate-500">
+                            {isPreviousWorkplace
+                              ? "이직 이력이 있다면 종전 근무지의 총급여와 기납부세액을 추가하세요."
+                              : "강연료, 원고료, 사례금처럼 근로소득 외 별도 소득만 입력하세요."}
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-slate-700" htmlFor="detail-incomeType">예외 구분</label>
+                            <select
+                              className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                                isConfirmed
+                                  ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                  : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                              }`}
+                              disabled={isConfirmed}
+                              id="detail-incomeType"
+                              onChange={(event) => setDetailForm((current) => ({ ...current, incomeType: event.target.value }))}
+                              value={detailForm.incomeType}
+                            >
+                              {DETAIL_TYPE_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-slate-700" htmlFor="detail-payerName">{detailPayerLabel}</label>
+                            <input
+                              className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                                isConfirmed
+                                  ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                  : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                              }`}
+                              disabled={isConfirmed}
+                              id="detail-payerName"
+                              onChange={(event) => setDetailForm((current) => ({ ...current, payerName: event.target.value }))}
+                              type="text"
+                              value={detailForm.payerName}
+                            />
+                          </div>
+
+                          {[
+                            { key: "grossAmount", label: detailGrossLabel },
+                            { key: "taxableAmount", label: detailTaxableLabel },
+                            { key: "nonTaxableAmount", label: "비과세 금액" },
+                            { key: "withheldTaxAmount", label: detailWithheldLabel }
+                          ].map((field) => (
+                            <div key={field.key} className="space-y-2">
+                              <label className="block text-sm font-semibold text-slate-700" htmlFor={`detail-${field.key}`}>{field.label}</label>
+                              <input
+                                className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
+                                  isConfirmed
+                                    ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                    : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                                }`}
+                                disabled={isConfirmed}
+                                id={`detail-${field.key}`}
+                                inputMode="numeric"
+                                onChange={updateDetailMoneyField(field.key)}
+                                type="text"
+                                value={formatMoneyInput(detailForm[field.key])}
+                              />
+                            </div>
+                          ))}
+
+                          {!isConfirmed ? (
+                            <div className="flex justify-end gap-3 pt-2">
+                              <button
+                                className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50"
+                                onClick={() => setIsDetailOpen(false)}
+                                type="button"
+                              >
+                                닫기
+                              </button>
+                              <button className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
+                                {isSaving ? "저장 중..." : selectedDetailId ? "상세 수정 저장" : "상세 항목 추가"}
+                              </button>
+                            </div>
+                          ) : null}
+                        </form>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-6 text-sm text-slate-500">
+                          필요할 때만 상세 소득을 펼쳐 입력할 수 있습니다.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
               </div>
 
               <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-                <button className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900" onClick={() => startTransition(() => router.push("/"))} type="button">
+                <button
+                  className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                  onClick={() => startTransition(() => router.push("/"))}
+                  type="button"
+                >
                   대시보드
                 </button>
-                <button className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition-all ${isConfirmed ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"}`} disabled={isSaving} onClick={handleConfirmStep} type="button">
+                <button
+                  className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition-all ${isConfirmed ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"}`}
+                  disabled={isSaving}
+                  onClick={handleConfirmStep}
+                  type="button"
+                >
                   {isConfirmed ? "2단계 확정 풀기" : "2단계 확정"}
                 </button>
               </div>
