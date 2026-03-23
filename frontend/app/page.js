@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   clearAuth,
   getAccessToken,
+  hasDeductionsConfirmed,
   hasDependentsConfirmed,
   hasIncomeConfirmed,
   initializeAuthenticatedContext,
@@ -24,16 +25,49 @@ import {
 } from "@/lib/yearEndView";
 
 const STAGES = [
-  { index: 1, title: "기본정보 및 부양가족", description: "기본정보 저장과 부양가족 설정을 마무리하고 1단계를 확정합니다.", href: "/dependents" },
-  { index: 2, title: "소득 확인", description: "소득 내역을 확인하고 2단계를 확정하면 다음 단계가 열립니다.", href: "/income" },
-  { index: 3, title: "간소화 자료 불러오기", description: "현재까지 등록된 데이터를 기준으로 필요한 자료 상태를 확인합니다.", href: "/import-data" },
-  { index: 4, title: "공제 항목 입력", description: "공제 항목과 증빙 상태를 확인하며 금액을 반영합니다.", href: "/deductions" },
-  { index: 5, title: "증빙 서류 관리", description: "제출 전 필요한 서류와 검토 상태를 점검합니다.", href: "/evidence-docs" },
-  { index: 6, title: "결과 확인 및 제출", description: "최종 계산 결과를 확인하고 제출을 마무리합니다.", href: "/results" }
+  {
+    index: 1,
+    title: "기본정보 · 부양가족",
+    description: "기본정보와 부양가족을 입력한 뒤 1단계를 확정합니다.",
+    href: "/dependents"
+  },
+  {
+    index: 2,
+    title: "소득 확인",
+    description: "총급여와 예외 소득을 확인하고 2단계를 확정합니다.",
+    href: "/income"
+  },
+  {
+    index: 3,
+    title: "간소화자료 · 공제입력",
+    description: "간소화 자료를 검토하고 공제 항목을 입력한 뒤 3단계를 확정합니다.",
+    href: "/import-data"
+  },
+  {
+    index: 4,
+    title: "증빙 서류 관리",
+    description: "필요한 증빙 서류와 검토 상태를 확인합니다.",
+    href: "/evidence-docs"
+  },
+  {
+    index: 5,
+    title: "결과 제출",
+    description: "결과를 확인하고 제출까지 한 단계에서 마무리합니다.",
+    href: "/results"
+  }
+];
+
+const REFUND_CELEBRATION_PIECES = [
+  { left: "10%", top: "14%", delay: "0s", duration: "4.8s", color: "#fef08a", size: 10 },
+  { left: "22%", top: "8%", delay: "0.5s", duration: "5.1s", color: "#bfdbfe", size: 14 },
+  { left: "34%", top: "16%", delay: "0.2s", duration: "4.6s", color: "#86efac", size: 8 },
+  { left: "68%", top: "12%", delay: "0.8s", duration: "5.2s", color: "#fde68a", size: 12 },
+  { left: "80%", top: "18%", delay: "0.4s", duration: "4.9s", color: "#f9a8d4", size: 9 },
+  { left: "90%", top: "10%", delay: "1s", duration: "5.4s", color: "#93c5fd", size: 11 }
 ];
 
 function getAvatarUrl(user) {
-  const seed = encodeURIComponent(user?.name || user?.email || "easy-tax");
+  const seed = encodeURIComponent(user?.name || user?.email || "ligg-tax");
   return `https://api.dicebear.com/9.x/adventurer/png?seed=${seed}&backgroundColor=dbeafe,c7d2fe,fde68a`;
 }
 
@@ -41,9 +75,54 @@ function getDisplayName(user) {
   return `${user?.name || "사용자"}님`;
 }
 
-function StageCard({ stage, locked, complete, active }) {
+function RefundCelebrationOverlay() {
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[32px]">
+        {REFUND_CELEBRATION_PIECES.map((piece, index) => (
+          <span
+            key={`${piece.left}-${piece.top}-${index}`}
+            className="absolute rounded-full opacity-80"
+            style={{
+              left: piece.left,
+              top: piece.top,
+              width: `${piece.size}px`,
+              height: `${piece.size}px`,
+              backgroundColor: piece.color,
+              animation: `dashboard-refund-confetti ${piece.duration} ease-in-out ${piece.delay} infinite`
+            }}
+          />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-x-12 top-0 h-32 bg-gradient-to-b from-white/20 via-emerald-100/10 to-transparent blur-2xl" />
+      <style jsx>{`
+        @keyframes dashboard-refund-confetti {
+          0% {
+            transform: translate3d(0, -10px, 0) scale(0.85) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.95;
+          }
+          50% {
+            transform: translate3d(0, 38px, 0) scale(1) rotate(140deg);
+            opacity: 0.85;
+          }
+          100% {
+            transform: translate3d(0, 92px, 0) scale(0.9) rotate(240deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function StageCard({ stage, state }) {
+  const { complete, active, locked } = state;
+
   const className = complete
-    ? "border-slate-200 bg-white shadow-soft"
+    ? "border-slate-200 bg-white shadow-sm"
     : active
       ? "border-primary bg-[#f0f8ff] shadow-lg"
       : "border-slate-100 bg-slate-50/80";
@@ -59,16 +138,24 @@ function StageCard({ stage, locked, complete, active }) {
       <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold ${numberClass}`}>
         {stage.index}
       </div>
+
       <div className="min-w-0 flex-1">
         <h4 className={`text-lg font-bold ${locked ? "text-slate-400" : "text-slate-900"}`}>{stage.title}</h4>
         <p className={`mt-1 text-sm ${locked ? "text-slate-400" : "text-slate-500"}`}>{stage.description}</p>
       </div>
-      {complete ? <span className="material-symbols-outlined shrink-0 text-[24px] text-green-500">check_circle</span> : null}
-      {locked ? <span className="material-symbols-outlined shrink-0 text-[22px] text-slate-300">lock</span> : null}
+
+      {complete ? (
+        <span className="material-symbols-outlined shrink-0 text-[24px] text-green-500">check_circle</span>
+      ) : null}
+      {locked ? (
+        <span className="material-symbols-outlined shrink-0 text-[22px] text-slate-300">lock</span>
+      ) : null}
       {!locked ? (
-        <span className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
-          complete ? "border border-primary bg-white text-primary" : "bg-primary text-white"
-        }`}>
+        <span
+          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
+            complete ? "border border-primary bg-white text-primary" : "bg-primary text-white"
+          }`}
+        >
           {complete ? "확인하기" : "진행하기"}
         </span>
       ) : null}
@@ -90,9 +177,11 @@ function SummaryCard({ title, description, amount, tone = "blue", href, enabled 
       : "bg-blue-50 text-primary";
 
   const inner = (
-    <div className={`group flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all ${
-      enabled ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-not-allowed opacity-50"
-    }`}>
+    <div
+      className={`group flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all ${
+        enabled ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-not-allowed opacity-50"
+      }`}
+    >
       <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${baseClass}`}>
         <span className="material-symbols-outlined">
           {tone === "orange" ? "group" : tone === "green" ? "receipt_long" : "payments"}
@@ -101,9 +190,7 @@ function SummaryCard({ title, description, amount, tone = "blue", href, enabled 
       <h3 className="text-lg font-bold text-slate-900">{title}</h3>
       <p className="mt-1 text-sm text-slate-500">{description}</p>
       <div className="mt-auto pt-5">
-        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-          enabled ? baseClass : "bg-slate-100 text-slate-500"
-        }`}>
+        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${enabled ? baseClass : "bg-slate-100 text-slate-500"}`}>
           {amount}
         </span>
       </div>
@@ -193,26 +280,24 @@ export default function DashboardPage() {
   const progress = resolveProgress(session);
   const nextStep = resolveNextStep(session);
   const financialSummary = calculateFinancialSummary(incomeItems, deductionItems);
+  const isRefundTarget = financialSummary.estimatedRefund < 0;
+  const displayEstimatedRefund = Math.abs(financialSummary.estimatedRefund);
   const statusText = getSessionStatusText(session?.sessionStatus);
+
   const stepOneComplete = hasDependentsConfirmed(session);
   const stepTwoComplete = hasIncomeConfirmed(session);
-  const canOpenIncome = stepOneComplete;
-  const canOpenDeductions = stepTwoComplete;
+  const stepThreeComplete = hasDeductionsConfirmed(session);
+  const documentsComplete = documentChecklists.some(
+    (item) => item.submittedYn || item.reviewStatus === "APPROVED"
+  );
+  const submittedComplete = ["SUBMITTED", "REVIEWED", "REJECTED"].includes(session?.sessionStatus);
+
   const stageState = {
     1: { complete: stepOneComplete, active: !stepOneComplete, locked: false },
     2: { complete: stepTwoComplete, active: stepOneComplete && !stepTwoComplete, locked: !stepOneComplete },
-    3: { complete: documentChecklists.length > 0, active: stepTwoComplete && documentChecklists.length === 0, locked: !stepTwoComplete },
-    4: { complete: deductionItems.length > 0, active: stepTwoComplete && deductionItems.length === 0, locked: !stepTwoComplete },
-    5: {
-      complete: documentChecklists.some((item) => item.submittedYn || item.reviewStatus === "APPROVED"),
-      active: stepTwoComplete && documentChecklists.length > 0,
-      locked: !stepTwoComplete
-    },
-    6: {
-      complete: session?.sessionStatus === "REVIEWED",
-      active: ["CALCULATED", "SUBMITTED", "REVIEWED", "REJECTED"].includes(session?.sessionStatus) || stepTwoComplete,
-      locked: !stepTwoComplete
-    }
+    3: { complete: stepThreeComplete, active: stepTwoComplete && !stepThreeComplete, locked: !stepTwoComplete },
+    4: { complete: documentsComplete, active: stepThreeComplete && !documentsComplete, locked: !stepThreeComplete },
+    5: { complete: submittedComplete, active: documentsComplete, locked: !documentsComplete }
   };
 
   return (
@@ -232,7 +317,7 @@ export default function DashboardPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
               <span className="material-symbols-outlined text-[20px]">calculate</span>
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900">Easy-Tax</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">Ligg-Tax</span>
           </Link>
 
           <div className="flex items-center gap-4">
@@ -258,7 +343,7 @@ export default function DashboardPage() {
                   <section className="flex flex-col items-center border-b border-gray-50 px-6 pb-5 pt-7 text-center">
                     <img alt="프로필 아바타" className="mb-3 h-20 w-20 rounded-full border-4 border-white object-cover shadow-sm" src={avatarUrl} />
                     <h2 className="text-xl font-bold text-gray-800">{displayName}</h2>
-                    <p className="mt-1 text-sm font-medium text-primary">연말정산 서비스 사용자</p>
+                    <p className="mt-1 text-sm font-medium text-primary">연말정산 진행 중</p>
                   </section>
 
                   <section className="space-y-3 px-6 py-5">
@@ -327,19 +412,36 @@ export default function DashboardPage() {
           </div>
         </section>
 
-      <section className="relative mb-8 overflow-hidden rounded-[32px] bg-[#5b8ee6] px-6 py-6 text-white shadow-xl shadow-[0_20px_45px_-18px_rgba(91,142,230,0.7)] md:px-8 md:py-8">
+        <section
+          className={`relative mb-8 overflow-hidden rounded-[32px] px-6 py-6 text-white shadow-xl md:px-8 md:py-8 ${
+            isRefundTarget
+              ? "bg-[linear-gradient(135deg,#1570ef_0%,#22c55e_100%)] shadow-[0_20px_45px_-18px_rgba(34,197,94,0.45)]"
+              : "bg-[#5b8ee6] shadow-[0_20px_45px_-18px_rgba(91,142,230,0.7)]"
+          }`}
+        >
+          {isRefundTarget ? <RefundCelebrationOverlay /> : null}
+
           <div className="relative z-10 flex h-full flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
             <div className="flex max-w-xl flex-1 flex-col justify-between">
-              <p className="text-sm font-medium text-blue-100 opacity-90">{session?.taxYear}년 기준 예상환급액</p>
+              <p className="text-sm font-medium text-blue-100 opacity-90">{session?.taxYear}년 기준 예상 환급금</p>
               <div className="mt-3 flex items-baseline gap-2">
                 <h2 className="text-5xl font-extrabold tracking-tight lg:text-[3.2rem]">
-                  {new Intl.NumberFormat("ko-KR").format(financialSummary.estimatedRefund)}
+                  {new Intl.NumberFormat("ko-KR").format(displayEstimatedRefund)}
                 </h2>
                 <span className="text-xl font-bold">원</span>
               </div>
+
+              {isRefundTarget ? (
+                <div className="mt-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/14 px-4 py-2 text-sm font-bold text-white">
+                  <span className="material-symbols-outlined text-[18px]">celebration</span>
+                  환급 대상입니다
+                </div>
+              ) : null}
+
               <p className="mt-5 whitespace-pre-line text-[15px] leading-relaxed text-blue-50">
-                {"지금까지 입력된 데이터를 바탕으로 산출 된 금액입니다.\n공제항목을 모두 채우면 더 받을 수 있어요!"}
+                {"지금까지 입력한 소득과 공제 데이터를 기준으로 계산한 예상 결과입니다.\n다음 단계 버튼을 누르면 현재 필요한 화면으로 바로 이동합니다."}
               </p>
+
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link className="rounded-xl bg-white px-6 py-2.5 text-sm font-bold text-primary shadow-sm transition-all hover:bg-blue-50" href={nextStep.href}>
                   {nextStep.label}
@@ -379,42 +481,36 @@ export default function DashboardPage() {
             description="기본정보와 부양가족 입력을 마무리하고 1단계를 확정할 수 있습니다."
             enabled
             href="/dependents"
-            title="기본정보 및 부양가족"
+            title="기본정보 · 부양가족"
             tone="orange"
           />
           <SummaryCard
-            amount={canOpenIncome ? (stepTwoComplete ? "완료 상태" : "진행 중") : "잠김"}
+            amount={stepTwoComplete ? "완료 상태" : stepOneComplete ? "진행 중" : "잠김"}
             description="1단계 완료 후 소득 내역을 확인하고 2단계를 확정할 수 있습니다."
-            enabled={canOpenIncome}
+            enabled={stepOneComplete}
             href="/income"
-            title="소득확인"
+            title="소득 확인"
             tone="blue"
           />
           <SummaryCard
-            amount={canOpenDeductions ? "진행 가능" : "잠김"}
-            description="2단계를 확정해야 공제 항목 화면으로 이동할 수 있습니다."
-            enabled={canOpenDeductions}
-            href="/deductions"
-            title="공제항목"
+            amount={stepThreeComplete ? "완료 상태" : stepTwoComplete ? "진행 중" : "잠김"}
+            description="간소화 자료 확인과 공제 항목 입력을 묶어서 3단계로 확정합니다."
+            enabled={stepTwoComplete}
+            href="/import-data"
+            title="간소화자료 · 공제입력"
             tone="green"
           />
         </section>
 
         <section className="mb-12">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-900">정산단계별 리스트</h3>
+            <h3 className="text-xl font-bold text-slate-900">정산 단계별 리스트</h3>
             <span className="text-sm text-slate-500">현재 과정의 {progress}%가 완료되었습니다.</span>
           </div>
 
           <div className="space-y-4">
             {STAGES.map((stage) => (
-              <StageCard
-                key={stage.index}
-                active={stageState[stage.index].active}
-                complete={stageState[stage.index].complete}
-                locked={stageState[stage.index].locked}
-                stage={stage}
-              />
+              <StageCard key={stage.index} stage={stage} state={stageState[stage.index]} />
             ))}
           </div>
         </section>

@@ -326,7 +326,7 @@ export default function DependentsPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <span className="material-symbols-outlined">family_history</span>
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900">Easy-Tax</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">Ligg-Tax</span>
           </Link>
         </div>
       </header>

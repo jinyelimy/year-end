@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState, startTransition } from "react";
@@ -134,7 +134,7 @@ export default function SubmitStatusPage() {
               <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-white">
                 <span className="material-symbols-outlined">verified</span>
               </div>
-              <h2 className="text-lg font-bold tracking-tight">Easy-Tax</h2>
+              <h2 className="text-lg font-bold tracking-tight">Ligg-Tax</h2>
             </div>
             <div className="hidden items-center gap-3 border-l border-slate-200 pl-4 md:flex">
               <div className="flex flex-col items-end">
@@ -286,7 +286,7 @@ export default function SubmitStatusPage() {
           </main>
 
           <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-            Review Status Portal · Easy-Tax
+            Review Status Portal · Ligg-Tax
           </footer>
         </div>
       </div>

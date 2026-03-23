@@ -367,7 +367,7 @@ function AuthPageContent() {
                 </svg>
               </div>
               <h2 className="text-xl font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-white">
-                Easy-Tax
+                Ligg-Tax
               </h2>
             </div>
             <button
@@ -600,7 +600,7 @@ function AuthPageContent() {
 
               <div className="border-t border-slate-200 bg-slate-50 p-6 text-center dark:border-slate-800 dark:bg-slate-800/50">
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Easy-Tax가 처음이신가요?{" "}
+                  Ligg-Tax가 처음이신가요?{" "}
                   <button
                     className="font-bold text-primary hover:underline"
                     onClick={() => resetFeedback("signup")}

@@ -8,7 +8,7 @@ export function TopBar({ right }) {
       <div className="container topbar-inner">
         <Link className="brand" href="/">
           <span className="brand-mark">ET</span>
-          <span>Easy-Tax Next</span>
+          <span>Ligg-Tax Next</span>
         </Link>
         {right}
       </div>

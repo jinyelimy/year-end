@@ -127,6 +127,7 @@ export async function request(path, options = {}, config = {}) {
 
 export function parseBasicInfo(session) {
   if (!session?.basicInfoJsonb) return {};
+
   try {
     return JSON.parse(session.basicInfoJsonb);
   } catch {
@@ -147,6 +148,11 @@ export function hasDependentsConfirmed(session) {
 export function hasIncomeConfirmed(session) {
   const basicInfo = parseBasicInfo(session);
   return basicInfo.incomeConfirmed === true;
+}
+
+export function hasDeductionsConfirmed(session) {
+  const basicInfo = parseBasicInfo(session);
+  return basicInfo.deductionsConfirmed === true;
 }
 
 export function isProfileSectionComplete(session) {
@@ -171,14 +177,18 @@ export function resolveNextStep(session) {
   }
 
   if (!hasDependentsConfirmed(session)) {
-    return { href: "/dependents", label: "부양가족 확정하기" };
+    return { href: "/dependents", label: "1단계 마무리하기" };
   }
 
   if (!hasIncomeConfirmed(session)) {
-    return { href: "/income", label: "소득 확인으로 이동하기" };
+    return { href: "/income", label: "2단계 진행하기" };
   }
 
-  return { href: "/import-data", label: "간소화 자료 확인하기" };
+  if (!hasDeductionsConfirmed(session)) {
+    return { href: "/import-data", label: "3단계 진행하기" };
+  }
+
+  return { href: "/evidence-docs", label: "증빙 서류 점검하기" };
 }
 
 export function resolveProgress(session) {
@@ -186,6 +196,7 @@ export function resolveProgress(session) {
   if (session.sessionStatus === "REVIEWED") return 100;
   if (session.sessionStatus === "SUBMITTED") return 90;
   if (session.sessionStatus === "CALCULATED") return 75;
+  if (hasDeductionsConfirmed(session)) return 75;
   if (hasIncomeConfirmed(session)) return 65;
   if (isProfileSectionComplete(session)) return 55;
   if (hasBasicInfo(session)) return 35;
@@ -194,17 +205,21 @@ export function resolveProgress(session) {
 
 export function getSessionStatusLabel(session) {
   if (!session) return "세션 없음";
+
+  if (session.sessionStatus === "DRAFT") {
+    if (hasDeductionsConfirmed(session)) return "3단계 완료";
+    if (hasIncomeConfirmed(session)) return "2단계 완료";
+    if (isProfileSectionComplete(session)) return "1단계 완료";
+    return "1단계 진행 중";
+  }
+
   const labels = {
-    DRAFT: hasIncomeConfirmed(session)
-      ? "2단계 완료"
-      : isProfileSectionComplete(session)
-        ? "1단계 완료"
-        : "1단계 진행 중",
     CALCULATED: "계산 완료",
     SUBMITTED: "제출 완료",
     REVIEWED: "검토 완료",
     REJECTED: "보완 필요"
   };
+
   return labels[session.sessionStatus] || session.sessionStatus;
 }
 
@@ -324,16 +339,23 @@ export async function getSocialAuthorizeUrl(provider, redirectUri, state) {
   if (state) {
     query.set("state", state);
   }
-  return request(`/api/v1/auth/oauth/${provider}/authorize-url?${query.toString()}`, {}, { auth: false });
+
+  return request(
+    `/api/v1/auth/oauth/${provider}/authorize-url?${query.toString()}`,
+    {},
+    { auth: false }
+  );
 }
 
 export async function exchangeSocialCode(provider, payload) {
-  return request(`/api/v1/auth/oauth/${provider}/exchange`, {
-    method: "POST",
-    body: payload
-  }, {
-    auth: false
-  });
+  return request(
+    `/api/v1/auth/oauth/${provider}/exchange`,
+    {
+      method: "POST",
+      body: payload
+    },
+    { auth: false }
+  );
 }
 
 export async function ensureCurrentSession() {

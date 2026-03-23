@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Easy-Tax",
+  title: "Ligg-Tax",
   description: "Year-end settlement frontend migrated to Next.js without visual redesign"
 };
 

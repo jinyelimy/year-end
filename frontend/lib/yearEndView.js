@@ -3,7 +3,7 @@
 export const INCOME_TYPE_OPTIONS = [
   { value: "SALARY", label: "급여" },
   { value: "BONUS", label: "상여" },
-  { value: "OTHER_INCOME", label: "기타 소득" }
+  { value: "OTHER_INCOME", label: "기타소득" }
 ];
 
 export const DEDUCTION_TYPE_OPTIONS = [
@@ -29,7 +29,7 @@ const DOCUMENT_TYPE_LABELS = {
 
 const REVIEW_STATUS_LABELS = {
   PENDING: "검토 대기",
-  APPROVED: "승인됨",
+  APPROVED: "확인됨",
   REJECTED: "보완 필요"
 };
 
