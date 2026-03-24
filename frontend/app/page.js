@@ -11,6 +11,8 @@ import {
   hasDependentsConfirmed,
   hasIncomeConfirmed,
   initializeAuthenticatedContext,
+  isDocumentsStageComplete,
+  isSubmissionComplete,
   listDeductionItems,
   listDocumentChecklists,
   listIncomeItems,
@@ -277,8 +279,10 @@ export default function DashboardPage() {
 
   const avatarUrl = getAvatarUrl(user);
   const displayName = getDisplayName(user);
-  const progress = resolveProgress(session);
-  const nextStep = resolveNextStep(session);
+  const documentsComplete = isDocumentsStageComplete(documentChecklists);
+  const submittedComplete = isSubmissionComplete(session);
+  const progress = resolveProgress(session, documentChecklists);
+  const nextStep = resolveNextStep(session, documentChecklists);
   const financialSummary = calculateFinancialSummary(incomeItems, deductionItems);
   const isRefundTarget = financialSummary.estimatedRefund < 0;
   const displayEstimatedRefund = Math.abs(financialSummary.estimatedRefund);
@@ -287,17 +291,16 @@ export default function DashboardPage() {
   const stepOneComplete = hasDependentsConfirmed(session);
   const stepTwoComplete = hasIncomeConfirmed(session);
   const stepThreeComplete = hasDeductionsConfirmed(session);
-  const documentsComplete = documentChecklists.some(
-    (item) => item.submittedYn || item.reviewStatus === "APPROVED"
-  );
-  const submittedComplete = ["SUBMITTED", "REVIEWED", "REJECTED"].includes(session?.sessionStatus);
+
+  const stageFourComplete = stepThreeComplete && documentsComplete;
+  const stageFiveComplete = stageFourComplete && submittedComplete;
 
   const stageState = {
     1: { complete: stepOneComplete, active: !stepOneComplete, locked: false },
-    2: { complete: stepTwoComplete, active: stepOneComplete && !stepTwoComplete, locked: !stepOneComplete },
-    3: { complete: stepThreeComplete, active: stepTwoComplete && !stepThreeComplete, locked: !stepTwoComplete },
-    4: { complete: documentsComplete, active: stepThreeComplete && !documentsComplete, locked: !stepThreeComplete },
-    5: { complete: submittedComplete, active: documentsComplete, locked: !documentsComplete }
+    2: { complete: stepOneComplete && stepTwoComplete, active: stepOneComplete && !stepTwoComplete, locked: !stepOneComplete },
+    3: { complete: stepTwoComplete && stepThreeComplete, active: stepTwoComplete && !stepThreeComplete, locked: !stepTwoComplete },
+    4: { complete: stageFourComplete, active: stepThreeComplete && !stageFourComplete, locked: !stepThreeComplete },
+    5: { complete: stageFiveComplete, active: stageFourComplete && !stageFiveComplete, locked: !stageFourComplete }
   };
 
   return (

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -34,6 +35,8 @@ public class DocumentChecklistService {
 
     @Transactional
     public void synchronize(TaxSession session, List<DeductionItem> deductionItems) {
+        pruneObsolete(session.getId(), deductionItems);
+
         for (DeductionItem item : deductionItems) {
             DocumentType documentType = resolveDocumentType(item.getDeductionType());
             if (documentType == null) {
@@ -53,6 +56,22 @@ public class DocumentChecklistService {
                 checklist.setReviewStatus(ReviewStatus.PENDING);
             }
             documentChecklistRepository.save(checklist);
+        }
+    }
+
+    private void pruneObsolete(UUID sessionId, List<DeductionItem> deductionItems) {
+        Set<UUID> activeDeductionIds = deductionItems.stream()
+            .map(DeductionItem::getId)
+            .collect(java.util.stream.Collectors.toSet());
+
+        List<DocumentChecklist> obsolete = documentChecklistRepository.findAllByTaxSessionIdOrderByCreatedAtAsc(sessionId)
+            .stream()
+            .filter(checklist -> checklist.getDeductionItem() != null)
+            .filter(checklist -> !activeDeductionIds.contains(checklist.getDeductionItem().getId()))
+            .toList();
+
+        if (!obsolete.isEmpty()) {
+            documentChecklistRepository.deleteAll(obsolete);
         }
     }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { isDeductionIncludedInCalculation } from "@/lib/deductionImport";
+
 export const INCOME_TYPE_OPTIONS = [
   { value: "SALARY", label: "급여" },
   { value: "BONUS", label: "상여" },
@@ -111,7 +113,10 @@ export function calculateFinancialSummary(incomeItems, deductionItems) {
   const totalTaxableIncome = sumAmounts(incomeItems, "taxableAmount");
   const totalWithheldTax = sumAmounts(incomeItems, "withheldTaxAmount");
   const totalNonTaxableIncome = sumAmounts(incomeItems, "nonTaxableAmount");
-  const totalDeduction = sumAmounts(deductionItems, "amount");
+  const totalDeduction = sumAmounts(
+    (Array.isArray(deductionItems) ? deductionItems : []).filter(isDeductionIncludedInCalculation),
+    "amount"
+  );
   const estimatedTaxBase = Math.max(totalTaxableIncome - totalDeduction, 0);
   const estimatedTax = Math.round(estimatedTaxBase * 0.06);
   const estimatedRefund = totalWithheldTax - estimatedTax;

@@ -20,12 +20,31 @@ import {
   updateDeductionItem
 } from "@/lib/yearEndApi";
 import {
+  buildDeductionAttributes,
+  getConfidenceMeta,
+  getDeductionSource,
+  getImportReviewMeta,
+  getImportReviewReason,
+  getLatestImportSummary,
+  isDeductionIncludedInCalculation,
+  isImportedDeduction,
+  parseDeductionAttributes
+} from "@/lib/deductionImport";
+import {
   DEDUCTION_TYPE_OPTIONS,
   EVIDENCE_STATUS_OPTIONS,
   formatCurrency,
+  formatDate,
   getDeductionTypeLabel,
   getEvidenceStatusLabel
 } from "@/lib/yearEndView";
+
+const FILTER_OPTIONS = [
+  { value: "ALL", label: "전체" },
+  { value: "HOMETAX", label: "홈택스 가져옴" },
+  { value: "MANUAL", label: "직접 입력" },
+  { value: "REVIEW", label: "확인 필요" }
+];
 
 const INITIAL_FORM = {
   deductionType: "MEDICAL_EXPENSE",
@@ -35,36 +54,6 @@ const INITIAL_FORM = {
   sourceName: "",
   evidenceStatus: "PENDING"
 };
-
-function parseDeductionAttributes(item) {
-  if (!item?.attributesJsonb) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(item.attributesJsonb);
-  } catch {
-    return {};
-  }
-}
-
-function getDeductionSource(item) {
-  const attributes = parseDeductionAttributes(item);
-
-  if (attributes.sourceType === "HOMETAX") {
-    return {
-      type: "HOMETAX",
-      label: attributes.sourceLabel || "간소화자료",
-      badgeClass: "bg-sky-100 text-sky-700"
-    };
-  }
-
-  return {
-    type: "MANUAL",
-    label: attributes.sourceLabel || "직접입력",
-    badgeClass: "bg-slate-100 text-slate-600"
-  };
-}
 
 function toNumber(value) {
   const parsed = Number(value || 0);
@@ -114,6 +103,7 @@ export default function DeductionsPage() {
   const [deductionItems, setDeductionItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
+  const [filter, setFilter] = useState("ALL");
 
   const isConfirmed = hasDeductionsConfirmed(session);
 
@@ -235,31 +225,41 @@ export default function DeductionsPage() {
     try {
       const currentItem = deductionItems.find((item) => item.id === selectedItemId);
       const currentAttributes = currentItem ? parseDeductionAttributes(currentItem) : {};
-      const sourceType = currentAttributes.sourceType === "HOMETAX" ? "HOMETAX" : "MANUAL";
-      const sourceLabel = currentAttributes.sourceLabel || (sourceType === "HOMETAX" ? "간소화자료" : "직접입력");
+      const sourceType = currentItem ? getDeductionSource(currentItem).type : "MANUAL";
+      const nextAttributes = buildDeductionAttributes(currentAttributes, sourceType === "HOMETAX"
+        ? {
+            reviewStatus: "APPROVED",
+            importBucket: "AUTO_APPLIED"
+          }
+        : {
+            sourceType: "MANUAL",
+            sourceLabel: "직접 입력",
+            reviewStatus: "APPROVED"
+          });
 
       const payload = {
         deductionType: form.deductionType,
-        dependentId: null,
+        dependentId: currentItem?.dependentId || null,
         subType: form.subType.trim() || null,
         amount: toNumber(form.amount),
         usedAt: form.usedAt || null,
         sourceName: form.sourceName.trim() || null,
         evidenceStatus: form.evidenceStatus,
-        attributesJsonb: JSON.stringify({
-          sourceType,
-          sourceLabel,
-          entryChannel: sourceType === "HOMETAX" ? "IMPORT_SYNC" : "MANUAL_FORM"
-        })
+        attributesJsonb: JSON.stringify(nextAttributes)
       };
 
       if (selectedItemId) {
         await updateDeductionItem(session.id, selectedItemId, payload);
-        setMessage({ type: "success", text: "공제 항목을 수정했습니다." });
+        setMessage({
+          type: "success",
+          text: sourceType === "HOMETAX"
+            ? "가져온 항목을 검토 완료 상태로 저장했습니다."
+            : "공제 항목을 수정했습니다."
+        });
         await reloadItems(selectedItemId);
       } else {
         await createDeductionItem(session.id, payload);
-        setMessage({ type: "success", text: "공제 항목을 추가했습니다." });
+        setMessage({ type: "success", text: "직접 입력 공제를 추가했습니다." });
         await reloadItems(null);
       }
 
@@ -294,8 +294,21 @@ export default function DeductionsPage() {
     }
   }
 
+  const pendingReviewItems = useMemo(
+    () => deductionItems.filter((item) => getImportReviewMeta(item).status === "PENDING"),
+    [deductionItems]
+  );
+
   async function handleConfirmStep() {
     if (!session?.id) {
+      return;
+    }
+
+    if (!isConfirmed && pendingReviewItems.length > 0) {
+      setMessage({
+        type: "error",
+        text: "확인 필요 항목이 남아 있어 3단계를 확정할 수 없습니다. import-data 또는 deductions 화면에서 먼저 검토를 완료해 주세요."
+      });
       return;
     }
 
@@ -322,26 +335,35 @@ export default function DeductionsPage() {
     }
   }
 
-  const groupedCounts = useMemo(
-    () =>
-      DEDUCTION_TYPE_OPTIONS.map((option) => ({
-        ...option,
-        count: deductionItems.filter((item) => item.deductionType === option.value).length,
-        amount: deductionItems
-          .filter((item) => item.deductionType === option.value)
-          .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-      })),
-    [deductionItems]
-  );
+  const filteredItems = useMemo(() => {
+    switch (filter) {
+      case "HOMETAX":
+        return deductionItems.filter(isImportedDeduction);
+      case "MANUAL":
+        return deductionItems.filter((item) => !isImportedDeduction(item));
+      case "REVIEW":
+        return deductionItems.filter((item) => getImportReviewMeta(item).status === "PENDING");
+      default:
+        return deductionItems;
+    }
+  }, [deductionItems, filter]);
 
-  const importedCount = deductionItems.filter((item) => getDeductionSource(item).type === "HOMETAX").length;
+  const selectedItem = deductionItems.find((item) => item.id === selectedItemId) || null;
+  const selectedSource = selectedItem ? getDeductionSource(selectedItem) : null;
+  const selectedReview = selectedItem ? getImportReviewMeta(selectedItem) : null;
+  const selectedConfidence = selectedItem ? getConfidenceMeta(selectedItem) : null;
+  const selectedReviewReason = selectedItem ? getImportReviewReason(selectedItem) : "";
+  const totalDeduction = deductionItems
+    .filter(isDeductionIncludedInCalculation)
+    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const importedCount = deductionItems.filter(isImportedDeduction).length;
   const manualCount = deductionItems.length - importedCount;
-  const totalDeduction = deductionItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const latestImport = getLatestImportSummary(deductionItems);
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background-light text-slate-500">
-        공제 항목을 불러오는 중입니다...
+        공제 항목을 불러오고 있습니다...
       </div>
     );
   }
@@ -355,6 +377,13 @@ export default function DeductionsPage() {
               <span className="material-symbols-outlined">receipt_long</span>
             </div>
             <span className="text-lg font-bold tracking-tight text-slate-900">Ligg-Tax</span>
+          </Link>
+
+          <Link
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            href="/import-data"
+          >
+            import-data로 돌아가기
           </Link>
         </div>
       </header>
@@ -372,295 +401,361 @@ export default function DeductionsPage() {
             />
           </aside>
 
-          <section className="lg:col-span-9">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+          <section className="space-y-6 lg:col-span-9">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">공제 항목 입력</h1>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    간소화 자료에서 넘어온 항목은 출처 배지로 구분하고, 필요한 공제는 직접 추가할 수 있습니다.
-                    3단계가 확정되기 전까지는 계속 수정할 수 있습니다.
+                  <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    3단계 · 공제 입력 원장
+                  </span>
+                  <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">가져온 항목과 직접 입력 항목을 한 원장에서 정리합니다.</h1>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-500">
+                    홈택스에서 가져온 항목은 출처와 검토 상태를 같이 보여주고, 직접 입력 항목은 같은 폼에서 관리합니다.
+                    확인 필요 항목이 남아 있으면 3단계를 확정할 수 없도록 막아 두었습니다.
                   </p>
                 </div>
+
                 <div className="rounded-2xl border border-primary/20 bg-primary/5 px-6 py-4 text-right">
-                  <p className="text-sm font-semibold text-slate-500">총 공제 금액</p>
+                  <p className="text-sm font-semibold text-slate-500">현재 반영 합계</p>
                   <p className="mt-1 text-3xl font-black text-primary">{formatCurrency(totalDeduction)}</p>
                 </div>
               </div>
 
               {isConfirmed ? (
                 <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-                  3단계가 확정되어 현재 입력이 잠겨 있습니다. 수정이 필요하면 아래의 `3단계 확정 되돌리기`
-                  버튼을 눌러 주세요.
+                  3단계가 확정되어 입력과 수정이 잠겨 있습니다. 수정이 필요하면 아래에서 3단계 확정을 먼저 풀어 주세요.
                 </div>
               ) : null}
 
-              <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm leading-6 text-sky-800">
-                현재 화면은 실제로 연동된 5개 공제 항목을 기준으로 동작합니다. 주택자금, 연금계좌,
-                저축 등 확장 카테고리는 다음 범위에서 이어서 추가할 예정입니다.
-              </div>
+              {pendingReviewItems.length > 0 ? (
+                <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+                  아직 확인 필요 항목이 {pendingReviewItems.length}건 남아 있습니다. import-data 또는 현재 화면에서 검토 후 저장해야 3단계 확정이 가능합니다.
+                </div>
+              ) : null}
 
               <MessageBanner message={message} />
 
-              <h2 className="mb-4 text-lg font-bold text-slate-900">현재 지원 카테고리</h2>
-              <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {groupedCounts.map((group) => (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">홈택스 가져옴</p>
+                  <p className="mt-3 text-3xl font-black text-slate-900">{importedCount}건</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">직접 입력</p>
+                  <p className="mt-3 text-3xl font-black text-slate-900">{manualCount}건</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">확인 필요</p>
+                  <p className="mt-3 text-3xl font-black text-slate-900">{pendingReviewItems.length}건</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">최근 가져오기</p>
+                  <p className="mt-3 text-base font-bold text-slate-900">
+                    {latestImport?.fileName || "없음"}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {latestImport?.importedAt ? formatDate(latestImport.importedAt) : "아직 가져온 파일이 없습니다."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">공제 항목 원장</h2>
+                    <p className="mt-1 text-sm text-slate-500">출처와 검토 상태를 기준으로 필요한 항목을 골라 보세요.</p>
+                  </div>
+
                   <button
-                    key={group.value}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 text-left transition hover:border-primary/40"
-                    onClick={() => setForm((current) => ({ ...current, deductionType: group.value }))}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isConfirmed}
+                    onClick={resetForm}
                     type="button"
                   >
-                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <span className="material-symbols-outlined">receipt_long</span>
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900">{group.label}</h3>
-                    <p className="mt-1 text-sm text-slate-500">등록 {group.count}건</p>
-                    <p className="mt-4 text-xl font-black text-primary">{formatCurrency(group.amount)}</p>
+                    새 직접 입력 항목
                   </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-900">등록된 공제 항목</h2>
-                    <button
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                      disabled={isConfirmed}
-                      onClick={resetForm}
-                      type="button"
-                    >
-                      새 항목 추가
-                    </button>
-                  </div>
-
-                  {deductionItems.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500">
-                      아직 공제 항목이 없습니다. 오른쪽 입력 폼에서 첫 항목을 추가해 주세요.
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {deductionItems.map((item) => {
-                        const source = getDeductionSource(item);
-                        const active = item.id === selectedItemId;
-
-                        return (
-                          <button
-                            key={item.id}
-                            className={`flex w-full items-center justify-between rounded-xl px-4 py-4 text-left transition ${
-                              active
-                                ? "bg-sky-50 shadow-[inset_4px_0_0_0_rgb(125,211,252),inset_0_0_0_1px_rgba(125,211,252,0.45)]"
-                                : "border border-slate-200 bg-white hover:border-primary/40"
-                            }`}
-                            onClick={() => selectItem(item)}
-                            type="button"
-                          >
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-semibold text-slate-900">
-                                  {getDeductionTypeLabel(item.deductionType)}
-                                </p>
-                                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${source.badgeClass}`}>
-                                  {source.label}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-sm text-slate-500">
-                                {item.sourceName || "출처 미입력"}
-                                {item.usedAt ? ` · ${item.usedAt}` : ""}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-primary">{formatCurrency(item.amount)}</p>
-                              <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">
-                                {getEvidenceStatusLabel(item.evidenceStatus)}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-6">
-                  <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-900">
-                      {selectedItemId ? "공제 항목 수정" : "공제 항목 추가"}
-                    </h2>
-                    {selectedItemId ? (
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {FILTER_OPTIONS.map((option) => {
+                    const selected = option.value === filter;
+                    return (
                       <button
-                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
-                        disabled={isConfirmed || isSaving}
-                        onClick={handleDelete}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                          selected
+                            ? "bg-primary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                        key={option.value}
+                        onClick={() => setFilter(option.value)}
                         type="button"
                       >
-                        삭제
+                        {option.label}
                       </button>
-                    ) : null}
+                    );
+                  })}
+                </div>
+
+                {filteredItems.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500">
+                    현재 필터에 해당하는 공제 항목이 없습니다.
                   </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredItems.map((item) => {
+                      const source = getDeductionSource(item);
+                      const review = getImportReviewMeta(item);
+                      const active = item.id === selectedItemId;
 
-                  <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="deduction-type">
-                        공제 구분
-                      </label>
-                      <select
-                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="deduction-type"
-                        onChange={(event) => setForm((current) => ({ ...current, deductionType: event.target.value }))}
-                        value={form.deductionType}
-                      >
-                        {DEDUCTION_TYPE_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="sub-type">
-                        세부 구분
-                      </label>
-                      <input
-                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="sub-type"
-                        onChange={(event) => setForm((current) => ({ ...current, subType: event.target.value }))}
-                        type="text"
-                        value={form.subType}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="amount">
-                        금액
-                      </label>
-                      <input
-                        className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="amount"
-                        inputMode="numeric"
-                        onChange={(event) => setForm((current) => ({ ...current, amount: sanitizeMoneyInput(event.target.value) }))}
-                        type="text"
-                        value={formatMoneyInput(form.amount)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="used-at">
-                        사용일
-                      </label>
-                      <input
-                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="used-at"
-                        onChange={(event) => setForm((current) => ({ ...current, usedAt: event.target.value }))}
-                        type="date"
-                        value={form.usedAt}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="source-name">
-                        사용처 / 출처
-                      </label>
-                      <input
-                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="source-name"
-                        onChange={(event) => setForm((current) => ({ ...current, sourceName: event.target.value }))}
-                        type="text"
-                        value={form.sourceName}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="evidence-status">
-                        증빙 상태
-                      </label>
-                      <select
-                        className={`h-12 w-full rounded-lg border px-4 text-sm ${
-                          isConfirmed
-                            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                            : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
-                        }`}
-                        disabled={isConfirmed}
-                        id="evidence-status"
-                        onChange={(event) => setForm((current) => ({ ...current, evidenceStatus: event.target.value }))}
-                        value={form.evidenceStatus}
-                      >
-                        {EVIDENCE_STATUS_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {!isConfirmed ? (
-                      <div className="flex justify-end gap-3 pt-2">
+                      return (
                         <button
-                          className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50"
-                          onClick={resetForm}
+                          className={`flex w-full items-start justify-between rounded-2xl px-4 py-4 text-left transition ${
+                            active
+                              ? "bg-sky-50 shadow-[inset_4px_0_0_0_rgb(125,211,252),inset_0_0_0_1px_rgba(125,211,252,0.45)]"
+                              : "border border-slate-200 bg-white hover:border-primary/40"
+                          }`}
+                          key={item.id}
+                          onClick={() => selectItem(item)}
                           type="button"
                         >
-                          초기화
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-slate-900">{getDeductionTypeLabel(item.deductionType)}</p>
+                              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${source.badgeClass}`}>
+                                {source.label}
+                              </span>
+                              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${review.badgeClass}`}>
+                                {review.label}
+                              </span>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500">
+                              {item.sourceName || "출처 정보 없음"}
+                              {item.usedAt ? ` · ${formatDate(item.usedAt)}` : ""}
+                            </p>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="font-bold text-primary">{formatCurrency(item.amount)}</p>
+                            <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">
+                              {getEvidenceStatusLabel(item.evidenceStatus)}
+                            </span>
+                          </div>
                         </button>
-                        <button
-                          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60"
-                          disabled={isSaving}
-                          type="submit"
-                        >
-                          {isSaving ? "저장 중..." : selectedItemId ? "공제 수정 저장" : "공제 항목 추가"}
-                        </button>
-                      </div>
-                    ) : null}
-                  </form>
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-                <button
-                  className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                  onClick={() => startTransition(() => router.push("/"))}
-                  type="button"
-                >
-                  대시보드
-                </button>
-                <button
-                  className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition ${
-                    isConfirmed ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
-                  }`}
-                  disabled={isSaving}
-                  onClick={handleConfirmStep}
-                  type="button"
-                >
-                  {isConfirmed ? "3단계 확정 되돌리기" : "3단계 확정"}
-                </button>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      {selectedItemId ? "공제 항목 검토/수정" : "직접 입력 추가"}
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {selectedItemId
+                        ? "선택한 항목의 금액, 카테고리, 증빙 상태를 정리합니다."
+                        : "홈택스에 없는 공제를 직접 입력합니다."}
+                    </p>
+                  </div>
+
+                  {selectedItemId ? (
+                    <button
+                      className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                      disabled={isConfirmed || isSaving}
+                      onClick={handleDelete}
+                      type="button"
+                    >
+                      삭제
+                    </button>
+                  ) : null}
+                </div>
+
+                {selectedItem ? (
+                  <div className="mb-5 rounded-2xl border border-white bg-white p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${selectedSource?.badgeClass || "bg-slate-100 text-slate-600"}`}>
+                        {selectedSource?.label || "출처 없음"}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${selectedReview?.badgeClass || "bg-slate-100 text-slate-600"}`}>
+                        {selectedReview?.label || "검토 정보 없음"}
+                      </span>
+                      {selectedConfidence ? (
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${selectedConfidence.badgeClass}`}>
+                          신뢰도 {selectedConfidence.label}
+                        </span>
+                      ) : null}
+                    </div>
+                    {selectedReviewReason ? (
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{selectedReviewReason}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="deduction-type">
+                      공제 구분
+                    </label>
+                    <select
+                      className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="deduction-type"
+                      onChange={(event) => setForm((current) => ({ ...current, deductionType: event.target.value }))}
+                      value={form.deductionType}
+                    >
+                      {DEDUCTION_TYPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="sub-type">
+                      세부 구분
+                    </label>
+                    <input
+                      className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="sub-type"
+                      onChange={(event) => setForm((current) => ({ ...current, subType: event.target.value }))}
+                      type="text"
+                      value={form.subType}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="amount">
+                      금액
+                    </label>
+                    <input
+                      className={`h-12 w-full rounded-lg border px-4 text-right font-mono font-bold ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="amount"
+                      inputMode="numeric"
+                      onChange={(event) => setForm((current) => ({ ...current, amount: sanitizeMoneyInput(event.target.value) }))}
+                      type="text"
+                      value={formatMoneyInput(form.amount)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="used-at">
+                      사용일
+                    </label>
+                    <input
+                      className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="used-at"
+                      onChange={(event) => setForm((current) => ({ ...current, usedAt: event.target.value }))}
+                      type="date"
+                      value={form.usedAt}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="source-name">
+                      사용처 / 출처
+                    </label>
+                    <input
+                      className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="source-name"
+                      onChange={(event) => setForm((current) => ({ ...current, sourceName: event.target.value }))}
+                      type="text"
+                      value={form.sourceName}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700" htmlFor="evidence-status">
+                      증빙 상태
+                    </label>
+                    <select
+                      className={`h-12 w-full rounded-lg border px-4 text-sm ${
+                        isConfirmed
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white focus:border-primary focus:ring-primary"
+                      }`}
+                      disabled={isConfirmed}
+                      id="evidence-status"
+                      onChange={(event) => setForm((current) => ({ ...current, evidenceStatus: event.target.value }))}
+                      value={form.evidenceStatus}
+                    >
+                      {EVIDENCE_STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {!isConfirmed ? (
+                    <div className="flex justify-end gap-3 pt-2">
+                      <button
+                        className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50"
+                        onClick={resetForm}
+                        type="button"
+                      >
+                        초기화
+                      </button>
+                      <button
+                        className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60"
+                        disabled={isSaving}
+                        type="submit"
+                      >
+                        {isSaving ? "저장 중..." : selectedItemId ? "검토 내용 저장" : "직접 입력 공제 추가"}
+                      </button>
+                    </div>
+                  ) : null}
+                </form>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+              <button
+                className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={() => startTransition(() => router.push("/"))}
+                type="button"
+              >
+                대시보드로 이동
+              </button>
+
+              <button
+                className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition ${
+                  isConfirmed ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
+                }`}
+                disabled={isSaving}
+                onClick={handleConfirmStep}
+                type="button"
+              >
+                {isConfirmed ? "3단계 확정 풀기" : "3단계 확정"}
+              </button>
             </div>
           </section>
         </div>

@@ -82,7 +82,8 @@ function getDefaultRuleVersion(taxYear) {
 
 export async function request(path, options = {}, config = {}) {
   const headers = new Headers(options.headers || {});
-  const isJson = options.body && typeof options.body !== "string";
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const isJson = options.body && typeof options.body !== "string" && !isFormData;
 
   if (isJson) {
     headers.set("Content-Type", "application/json");
@@ -155,16 +156,30 @@ export function hasDeductionsConfirmed(session) {
   return basicInfo.deductionsConfirmed === true;
 }
 
+export function isSubmissionComplete(session) {
+  return ["SUBMITTED", "REVIEWED", "REJECTED"].includes(session?.sessionStatus);
+}
+
+export function isDocumentsStageComplete(checklists = []) {
+  if (!Array.isArray(checklists) || checklists.length === 0) {
+    return true;
+  }
+
+  return checklists.every(
+    (item) => item?.requiredYn !== true || item?.submittedYn || item?.reviewStatus === "APPROVED"
+  );
+}
+
 export function isProfileSectionComplete(session) {
   return hasBasicInfo(session) && hasDependentsConfirmed(session);
 }
 
-export function resolveNextStep(session) {
+export function resolveNextStep(session, checklists = []) {
   if (!session) {
     return { href: "/basic-info", label: "기본정보 입력 시작하기" };
   }
 
-  if (["SUBMITTED", "REVIEWED", "REJECTED"].includes(session.sessionStatus)) {
+  if (isSubmissionComplete(session)) {
     return { href: "/submit-status", label: "제출 상태 확인하기" };
   }
 
@@ -188,28 +203,50 @@ export function resolveNextStep(session) {
     return { href: "/import-data", label: "3단계 진행하기" };
   }
 
-  return { href: "/evidence-docs", label: "증빙 서류 점검하기" };
+  if (!isDocumentsStageComplete(checklists)) {
+    return { href: "/evidence-docs", label: "증빙 서류 점검하기" };
+  }
+
+  return { href: "/results", label: "5단계 진행하기" };
 }
 
-export function resolveProgress(session) {
-  if (!session) return 10;
-  if (session.sessionStatus === "REVIEWED") return 100;
-  if (session.sessionStatus === "SUBMITTED") return 90;
-  if (session.sessionStatus === "CALCULATED") return 75;
-  if (hasDeductionsConfirmed(session)) return 75;
-  if (hasIncomeConfirmed(session)) return 65;
-  if (isProfileSectionComplete(session)) return 55;
-  if (hasBasicInfo(session)) return 35;
-  return 20;
+export function getCompletedStageCount(session, checklists = []) {
+  if (!session) return 0;
+
+  let completedStageCount = 0;
+
+  if (!hasDependentsConfirmed(session)) return completedStageCount;
+  completedStageCount += 1;
+
+  if (!hasIncomeConfirmed(session)) return completedStageCount;
+  completedStageCount += 1;
+
+  if (!hasDeductionsConfirmed(session)) return completedStageCount;
+  completedStageCount += 1;
+
+  if (!isDocumentsStageComplete(checklists)) return completedStageCount;
+  completedStageCount += 1;
+
+  if (isSubmissionComplete(session)) {
+    completedStageCount += 1;
+  }
+
+  return completedStageCount;
 }
 
-export function getSessionStatusLabel(session) {
+export function resolveProgress(session, checklists = []) {
+  return getCompletedStageCount(session, checklists) * 20;
+}
+
+export function getSessionStatusLabel(session, checklists = []) {
   if (!session) return "세션 없음";
 
   if (session.sessionStatus === "DRAFT") {
-    if (hasDeductionsConfirmed(session)) return "3단계 완료";
-    if (hasIncomeConfirmed(session)) return "2단계 완료";
-    if (isProfileSectionComplete(session)) return "1단계 완료";
+    const completedStageCount = getCompletedStageCount(session, checklists);
+    if (completedStageCount >= 4) return "4단계 완료";
+    if (completedStageCount >= 3) return "3단계 완료";
+    if (completedStageCount >= 2) return "2단계 완료";
+    if (completedStageCount >= 1) return "1단계 완료";
     return "1단계 진행 중";
   }
 
@@ -321,6 +358,16 @@ export async function updateDeductionItem(sessionId, deductionItemId, payload) {
 export async function deleteDeductionItem(sessionId, deductionItemId) {
   return request(`/api/v1/tax-sessions/${sessionId}/deduction-items/${deductionItemId}`, {
     method: "DELETE"
+  });
+}
+
+export async function importHometaxPdf(sessionId, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request(`/api/v1/tax-sessions/${sessionId}/deduction-items/imports/hometax`, {
+    method: "POST",
+    body: formData
   });
 }
 

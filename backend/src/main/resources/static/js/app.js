@@ -3,12 +3,31 @@
     accessToken: "accessToken",
     refreshToken: "refreshToken",
     expiresInSeconds: "expiresInSeconds",
+    accessTokenExpiresAt: "accessTokenExpiresAt",
     userProfile: "userProfile",
     currentSessionId: "currentSessionId",
     currentSession: "currentSession"
   };
 
+  function isAccessTokenExpired() {
+    const expiresAt = localStorage.getItem(STORAGE_KEYS.accessTokenExpiresAt);
+    if (!expiresAt) {
+      return false;
+    }
+
+    const expiresAtTime = Number(expiresAt);
+    if (!Number.isFinite(expiresAtTime)) {
+      return false;
+    }
+
+    return Date.now() >= expiresAtTime;
+  }
+
   function getAccessToken() {
+    if (isAccessTokenExpired()) {
+      clearAuth();
+      return null;
+    }
     return localStorage.getItem(STORAGE_KEYS.accessToken);
   }
 
@@ -16,6 +35,10 @@
     localStorage.setItem(STORAGE_KEYS.accessToken, data.accessToken);
     localStorage.setItem(STORAGE_KEYS.refreshToken, data.refreshToken);
     localStorage.setItem(STORAGE_KEYS.expiresInSeconds, String(data.expiresInSeconds));
+    localStorage.setItem(
+      STORAGE_KEYS.accessTokenExpiresAt,
+      String(Date.now() + (Number(data.expiresInSeconds) || 0) * 1000)
+    );
   }
 
   function clearAuth() {
@@ -324,6 +347,7 @@
     deleteDependent,
     persistAuthTokens,
     clearAuth,
+    getAccessToken,
     saveUserProfile,
     getStoredUserProfile,
     saveCurrentSession,
