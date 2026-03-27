@@ -13,7 +13,7 @@ export const DEDUCTION_TYPE_OPTIONS = [
   { value: "EDUCATION_EXPENSE", label: "교육비" },
   { value: "INSURANCE", label: "보험료" },
   { value: "DONATION", label: "기부금" },
-  { value: "CREDIT_CARD", label: "신용카드" }
+  { value: "CREDIT_CARD", label: "카드사용액" }
 ];
 
 export const EVIDENCE_STATUS_OPTIONS = [

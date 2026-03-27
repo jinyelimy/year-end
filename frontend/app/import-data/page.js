@@ -15,6 +15,9 @@ import {
   initializeAuthenticatedContext,
   listDeductionItems,
   listDocumentChecklists,
+  parseBasicInfo,
+  saveCurrentSession,
+  updateBasicInfo,
   updateDeductionItem
 } from "@/lib/yearEndApi";
 import {
@@ -101,7 +104,7 @@ function SuggestionCard({ hint }) {
       </div>
       <h3 className="mt-4 text-base font-bold text-slate-900">{hint.title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-500">{hint.description}</p>
-      <span className="mt-auto pt-5 text-sm font-semibold text-primary">deductions 화면에서 확인하기</span>
+      <span className="mt-auto pt-5 text-sm font-semibold text-primary">공제항목 화면에서 확인하기</span>
     </Link>
   );
 }
@@ -112,6 +115,7 @@ export default function ImportDataPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [message, setMessage] = useState(null);
@@ -122,6 +126,23 @@ export default function ImportDataPage() {
   const [checklists, setChecklists] = useState([]);
 
   const isConfirmed = hasDeductionsConfirmed(session);
+
+  async function syncDeductionsConfirmation(confirmed) {
+    const basicInfo = parseBasicInfo(session);
+    const updatedSession = await updateBasicInfo(session.id, {
+      basicInfoJsonb: JSON.stringify({
+        ...basicInfo,
+        dependentsConfirmed: basicInfo.dependentsConfirmed === true,
+        incomeConfirmed: basicInfo.incomeConfirmed === true,
+        deductionsConfirmed: confirmed
+      }),
+      memo: session?.memo || ""
+    });
+
+    setSession(updatedSession);
+    saveCurrentSession(updatedSession);
+    return updatedSession;
+  }
 
   async function loadSnapshot() {
     const context = await initializeAuthenticatedContext();
@@ -204,7 +225,7 @@ export default function ImportDataPage() {
     try {
       setImportStatus({
         label: "파싱 중",
-        description: `${file.name} 기준으로 1차 홈택스 스냅샷을 생성하고 있습니다.`
+        description: `${file.name} 자료를 불러와 항목을 정리하고 있습니다.`
       });
 
       const result = await importHometaxPdf(session.id, file);
@@ -321,6 +342,42 @@ export default function ImportDataPage() {
     (item) => item.reviewStatus === "APPROVED" || item.submittedYn
   ).length;
 
+  async function handleConfirmStep() {
+    if (!session?.id) {
+      return;
+    }
+
+    if (!isConfirmed && needsReviewItems.length > 0) {
+      setMessage({
+        type: "error",
+        text: "아직 확인 필요 항목이 남아 있습니다. 검토 후 저장해야 3단계 확정이 가능합니다."
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage(null);
+
+    try {
+      if (isConfirmed) {
+        await syncDeductionsConfirmation(false);
+        setMessage({ type: "success", text: "3단계 확정을 해제했습니다. 다시 수정할 수 있습니다." });
+      } else {
+        await syncDeductionsConfirmation(true);
+        setMessage({ type: "success", text: "3단계 확정을 완료했습니다. 대시보드로 이동합니다." });
+        window.setTimeout(() => {
+          startTransition(() => {
+            router.replace("/");
+          });
+        }, 250);
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: error.message || "3단계 확정 처리에 실패했습니다." });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background-light text-slate-500">
@@ -346,7 +403,7 @@ export default function ImportDataPage() {
       />
 
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1520px] items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link className="flex items-center gap-3 text-primary" href="/">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <span className="material-symbols-outlined">cloud_sync</span>
@@ -364,7 +421,7 @@ export default function ImportDataPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1520px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <aside className="lg:col-span-3">
             <StageThreeSidebar
@@ -385,34 +442,22 @@ export default function ImportDataPage() {
                     3단계 · 간소화 자료 가져오기
                   </span>
                   <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">
-                    홈택스 자료를 가져오고,
+                    홈텍스 자료를 업로드하면,
                     <br className="hidden md:block" />
-                    공제 입력으로 자연스럽게 이어지게 만듭니다.
+                    공제입력으로 자동으로 연계해줍니다.
                   </h1>
-                  <p className="mt-4 text-sm leading-7 text-slate-500">
-                    이번 1차 구현에서는 웹에서 PDF를 선택하면 홈택스 가져오기 흐름과 검토 화면이 바로 이어지도록 먼저 연결했습니다.
-                    실제 PDF 상세 파싱 규칙은 다음 단계에서 붙일 예정이고, 지금은 가져오기 허브와 검토 가능한 자동화 UX를 우선 구현했습니다.
-                  </p>
                 </div>
-
-                <Link
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90"
-                  href="/deductions"
-                >
-                  공제 입력 화면으로 이동
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </Link>
               </div>
 
               {isConfirmed ? (
                 <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-                  3단계가 확정된 상태라 가져오기와 검토 액션이 잠겨 있습니다. 수정이 필요하면 deductions 화면에서 먼저 3단계 확정을 풀어 주세요.
+                  3단계가 확정된 상태라 가져오기와 검토 액션이 잠겨 있습니다. 수정이 필요하면 공제항목 화면에서 먼저 3단계 확정을 풀어 주세요.
                 </div>
               ) : null}
 
               <MessageBanner message={message} />
 
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
                 <div
                   className={`rounded-3xl border-2 border-dashed p-6 transition ${
                     dragActive ? "border-primary bg-primary/5" : "border-slate-200 bg-slate-50/60"
@@ -442,8 +487,7 @@ export default function ImportDataPage() {
                   </div>
                   <h2 className="mt-5 text-xl font-bold text-slate-900">가져오기 허브</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-500">
-                    홈택스 또는 손택스에서 받은 PDF를 여기로 바로 가져옵니다. 웹에서는 PDF 선택과 드래그 앤 드롭을 우선 지원하고,
-                    다운로드 폴더 연결은 다음 단계 범위로 남겨둡니다.
+                    홈택스 또는 손택스에서 받은 PDF를 선택하거나 여기로 끌어와 바로 가져올 수 있습니다.
                   </p>
 
                   <div className="mt-6 flex flex-wrap gap-3">
@@ -458,7 +502,7 @@ export default function ImportDataPage() {
                     </button>
                     <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
                       <span className="material-symbols-outlined text-[18px] text-slate-400">desktop_windows</span>
-                      Chrome/Edge 폴더 연결은 다음 구현 범위
+                      PDF를 드래그해도 바로 가져옵니다
                     </div>
                   </div>
 
@@ -519,7 +563,7 @@ export default function ImportDataPage() {
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">자동 반영됨</p>
                 <p className="mt-3 text-3xl font-black text-slate-900">{autoAppliedItems.length}건</p>
-                <p className="mt-2 text-sm text-slate-500">바로 deductions 합계에 반영되는 항목입니다.</p>
+                <p className="mt-2 text-sm text-slate-500">바로 공제 합계에 반영되는 항목입니다.</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">확인 필요</p>
@@ -556,7 +600,7 @@ export default function ImportDataPage() {
                         className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         href="/deductions"
                       >
-                        deductions 화면에서 수정
+                        공제항목 화면에서 수정
                       </Link>
                     </ImportItemCard>
                   ))
@@ -576,7 +620,7 @@ export default function ImportDataPage() {
 
                 {needsReviewItems.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm text-slate-500">
-                    현재 확인이 필요한 항목은 없습니다. 이제 deductions 화면에서 최종 공제 원장을 정리하면 됩니다.
+                    현재 확인이 필요한 항목은 없습니다. 이제 공제항목 화면에서 최종 공제 내역을 정리하면 됩니다.
                   </div>
                 ) : (
                   needsReviewItems.map((item) => (
@@ -593,7 +637,7 @@ export default function ImportDataPage() {
                         className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         href="/deductions"
                       >
-                        deductions 화면에서 수정
+                        공제항목 화면에서 수정
                       </Link>
                       <button
                         className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
@@ -660,6 +704,37 @@ export default function ImportDataPage() {
                   ))}
                 </div>
               )}
+            </div>
+
+            <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-6 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <button
+                className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={() => startTransition(() => router.push("/"))}
+                type="button"
+              >
+                대시보드
+              </button>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isImporting || isMutating || isSaving}
+                  onClick={() => startTransition(() => router.push("/deductions"))}
+                  type="button"
+                >
+                  다음 단계
+                </button>
+                <button
+                  className={`rounded-xl px-6 py-2.5 text-sm font-semibold text-white transition ${
+                    isConfirmed ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
+                  }`}
+                  disabled={isSaving}
+                  onClick={() => void handleConfirmStep()}
+                  type="button"
+                >
+                  {isSaving ? "처리 중..." : isConfirmed ? "3단계 확정 풀기" : "3단계 확정"}
+                </button>
+              </div>
             </div>
           </section>
         </div>
