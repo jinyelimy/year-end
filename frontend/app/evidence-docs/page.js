@@ -13,8 +13,9 @@ import {
 import {
   formatDate,
   getDocumentTypeLabel,
-  getReviewStatusLabel,
-  getStatusBadgeClass
+  getChecklistRequirementMeta,
+  getChecklistReviewMeta,
+  getChecklistSubmissionMeta
 } from "@/lib/yearEndView";
 
 export default function EvidenceDocsPage() {
@@ -72,6 +73,7 @@ export default function EvidenceDocsPage() {
   }
 
   const reviewedCount = checklists.filter((item) => item.reviewStatus === "APPROVED").length;
+  const submittedCount = checklists.filter((item) => item.submittedYn).length;
   const progress = checklists.length === 0 ? 0 : Math.round((reviewedCount / checklists.length) * 100);
 
   return (
@@ -97,19 +99,34 @@ export default function EvidenceDocsPage() {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-end justify-between">
                     <div className="flex flex-col gap-1">
-                      <p className="text-lg font-semibold text-slate-900">전체 준비율</p>
-                      <p className="text-sm text-slate-500">{session?.taxYear}년 세션에 필요한 서류를 점검하세요.</p>
+                      <p className="text-lg font-semibold text-slate-900">증빙 검토 진행률</p>
+                      <p className="text-sm text-slate-500">
+                        {session?.taxYear}년 세션 체크리스트 기준으로 검토 완료 상태를 보여줍니다.
+                      </p>
                     </div>
                     <p className="text-2xl font-bold text-primary">{progress}%</p>
                   </div>
                   <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm text-slate-400">info</span>
-                    <p className="text-sm font-medium text-slate-500">
-                      {checklists.length}개 중 {reviewedCount}개 서류가 승인되었습니다.
-                    </p>
+                  <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">필수/선택</p>
+                      <p className="mt-1 text-sm text-slate-600">서류가 필요한지 여부입니다.</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">제출 여부</p>
+                      <p className="mt-1 text-sm text-slate-600">자료가 등록되었는지, 연동되었는지를 뜻합니다.</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">검토 상태</p>
+                      <p className="mt-1 text-sm text-slate-600">이 화면에서는 공제항목이 아니라 증빙 체크리스트 상태를 보여줍니다.</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-500">
+                    <span>{checklists.length}개 체크리스트</span>
+                    <span>{submittedCount}개 제출됨</span>
+                    <span>{reviewedCount}개 확인 완료</span>
                   </div>
                 </div>
               </div>
@@ -122,52 +139,66 @@ export default function EvidenceDocsPage() {
                       현재 필요한 체크리스트가 없습니다. 공제 항목 입력 뒤 다시 확인해 주세요.
                     </div>
                   ) : (
-                    checklists.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`flex flex-col gap-4 rounded-xl border p-4 md:flex-row md:items-center ${
+                    checklists.map((item) => {
+                      const requirementMeta = getChecklistRequirementMeta(item.requiredYn);
+                      const submissionMeta = getChecklistSubmissionMeta(item.submittedYn);
+                      const reviewMeta = getChecklistReviewMeta(item.reviewStatus);
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex flex-col gap-4 rounded-xl border p-4 md:flex-row md:items-center ${
                           item.reviewStatus === "REJECTED"
                             ? "border-red-200 bg-red-50/30"
                             : "border-slate-200 bg-slate-50/50"
-                        }`}
-                      >
-                        <div className="flex flex-1 items-center gap-4">
-                          <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-                            item.reviewStatus === "APPROVED"
-                              ? "bg-green-100 text-green-600"
-                              : item.reviewStatus === "REJECTED"
-                                ? "bg-red-100 text-red-600"
-                                : "bg-amber-100 text-amber-600"
-                          }`}>
-                            <span className="material-symbols-outlined">
-                              {item.reviewStatus === "APPROVED"
-                                ? "check_circle"
+                          }`}
+                        >
+                          <div className="flex flex-1 items-center gap-4">
+                            <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
+                              item.reviewStatus === "APPROVED"
+                                ? "bg-green-100 text-green-600"
                                 : item.reviewStatus === "REJECTED"
-                                  ? "error"
-                                  : "schedule"}
-                            </span>
+                                  ? "bg-red-100 text-red-600"
+                                  : "bg-amber-100 text-amber-600"
+                            }`}>
+                              <span className="material-symbols-outlined">
+                                {item.reviewStatus === "APPROVED"
+                                  ? "check_circle"
+                                  : item.reviewStatus === "REJECTED"
+                                    ? "error"
+                                    : "schedule"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <p className="text-base font-semibold text-slate-900">{getDocumentTypeLabel(item.documentType)}</p>
+                              <p className="text-sm text-slate-500">
+                                증빙 체크리스트 항목입니다.
+                                {item.comment ? ` · ${item.comment}` : ""}
+                              </p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${requirementMeta.badgeClass}`}>
+                                  {requirementMeta.label}
+                                </span>
+                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${submissionMeta.badgeClass}`}>
+                                  {submissionMeta.label}
+                                </span>
+                                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${reviewMeta.badgeClass}`}>
+                                  검토 상태 · {reviewMeta.label}
+                                </span>
+                              </div>
+                              <p className="mt-3 text-xs text-slate-400">
+                                증빙 검토일 {item.reviewedAt ? formatDate(item.reviewedAt) : "-"}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex flex-col">
-                            <p className="text-base font-semibold text-slate-900">{getDocumentTypeLabel(item.documentType)}</p>
-                            <p className="text-sm text-slate-500">
-                              {item.requiredYn ? "필수 서류" : "선택 서류"}
-                              {item.comment ? ` · ${item.comment}` : ""}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              검토일 {item.reviewedAt ? formatDate(item.reviewedAt) : "-"}
-                            </p>
+                          <div className="flex items-center justify-between gap-3 md:justify-end">
+                            <button className="flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50" type="button">
+                              보기
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between gap-3 md:justify-end">
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(item.reviewStatus)}`}>
-                            {getReviewStatusLabel(item.reviewStatus)}
-                          </span>
-                          <button className="flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50" type="button">
-                            보기
-                          </button>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

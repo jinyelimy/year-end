@@ -84,6 +84,25 @@ export function getReviewStatusLabel(status) {
   return REVIEW_STATUS_LABELS[status] || status || "-";
 }
 
+export function getChecklistRequirementMeta(requiredYn) {
+  return requiredYn
+    ? { label: "필수 서류", badgeClass: "bg-rose-100 text-rose-700" }
+    : { label: "선택 서류", badgeClass: "bg-slate-100 text-slate-600" };
+}
+
+export function getChecklistSubmissionMeta(submittedYn) {
+  return submittedYn
+    ? { label: "자료 제출됨", badgeClass: "bg-sky-100 text-sky-700" }
+    : { label: "자료 미제출", badgeClass: "bg-slate-100 text-slate-600" };
+}
+
+export function getChecklistReviewMeta(status) {
+  return {
+    label: getReviewStatusLabel(status),
+    badgeClass: getStatusBadgeClass(status)
+  };
+}
+
 export function getSessionStatusText(status) {
   return SESSION_STATUS_LABELS[status] || status || "-";
 }

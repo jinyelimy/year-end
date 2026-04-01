@@ -3,6 +3,8 @@ package com.example.yearend.deduction.application;
 import com.example.yearend.common.exception.BusinessException;
 import com.example.yearend.common.exception.ErrorCode;
 import com.example.yearend.deduction.api.DeductionItemDtos;
+import com.example.yearend.deduction.application.HometaxParsingDtos.ParsedDeductionCandidate;
+import com.example.yearend.deduction.application.HometaxParsingDtos.ParsedHometaxDocument;
 import com.example.yearend.deduction.domain.DeductionItem;
 import com.example.yearend.deduction.domain.EvidenceStatus;
 import com.example.yearend.deduction.infrastructure.DeductionItemRepository;
@@ -11,7 +13,6 @@ import com.example.yearend.taxsession.application.DependentService;
 import com.example.yearend.taxsession.application.TaxSessionService;
 import com.example.yearend.taxsession.domain.Dependent;
 import com.example.yearend.taxsession.domain.TaxSession;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,13 +32,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DeductionItemService {
 
-    private static final TypeReference<Map<String, Object>> ATTRIBUTES_TYPE = new TypeReference<>() {
-    };
-
     private final TaxSessionService taxSessionService;
     private final DependentService dependentService;
     private final DeductionItemRepository deductionItemRepository;
     private final DocumentChecklistService documentChecklistService;
+    private final HometaxPdfImportParser hometaxPdfImportParser;
+    private final DeductionItemReviewPolicy deductionItemReviewPolicy;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -103,59 +102,10 @@ public class DeductionItemService {
 
         UUID importBatchId = UUID.randomUUID();
         OffsetDateTime importedAt = OffsetDateTime.now();
-        List<ImportedDeductionTemplate> templates = List.of(
-            new ImportedDeductionTemplate(
-                com.example.yearend.deduction.domain.DeductionType.MEDICAL_EXPENSE,
-                "병원비",
-                480_000L,
-                LocalDate.of(session.getTaxYear(), 1, 15),
-                "서울종합병원",
-                EvidenceStatus.SUBMITTED,
-                "AUTO_APPLIED",
-                "APPROVED",
-                "HIGH",
-                "표준 의료비 항목으로 바로 매핑됨"
-            ),
-            new ImportedDeductionTemplate(
-                com.example.yearend.deduction.domain.DeductionType.INSURANCE,
-                "보장성 보험료",
-                1_120_000L,
-                LocalDate.of(session.getTaxYear(), 2, 10),
-                "한빛생명",
-                EvidenceStatus.SUBMITTED,
-                "AUTO_APPLIED",
-                "APPROVED",
-                "HIGH",
-                "보험료 항목이 명확해 자동 반영 가능"
-            ),
-            new ImportedDeductionTemplate(
-                com.example.yearend.deduction.domain.DeductionType.EDUCATION_EXPENSE,
-                "자녀 교육비",
-                2_400_000L,
-                LocalDate.of(session.getTaxYear(), 3, 4),
-                "미래학원",
-                EvidenceStatus.PENDING,
-                "NEEDS_REVIEW",
-                "PENDING",
-                "MEDIUM",
-                "부양가족 연결과 교육기관 구분 확인 필요"
-            ),
-            new ImportedDeductionTemplate(
-                com.example.yearend.deduction.domain.DeductionType.DONATION,
-                "기부금",
-                150_000L,
-                LocalDate.of(session.getTaxYear(), 12, 22),
-                "따뜻한재단",
-                EvidenceStatus.PENDING,
-                "NEEDS_REVIEW",
-                "PENDING",
-                "MEDIUM",
-                "지정기부금 여부와 증빙 상태 확인 필요"
-            )
-        );
+        ParsedHometaxDocument parsedDocument = hometaxPdfImportParser.parse(session, file, fileName, importedAt);
 
-        List<DeductionItem> createdItems = templates.stream()
-            .map(template -> createImportedItem(session, importBatchId, fileName, importedAt, template))
+        List<DeductionItem> createdItems = parsedDocument.candidates().stream()
+            .map(candidate -> createImportedItem(session, importBatchId, parsedDocument, candidate))
             .toList();
 
         synchronizeDocuments(session);
@@ -164,10 +114,10 @@ public class DeductionItemService {
             .map(this::toResponse)
             .toList();
 
-        int autoAppliedCount = (int) templates.stream()
-            .filter(template -> "AUTO_APPLIED".equals(template.importBucket()))
+        int autoAppliedCount = (int) parsedDocument.candidates().stream()
+            .filter(ParsedDeductionCandidate::isAutoApplied)
             .count();
-        int needsReviewCount = templates.size() - autoAppliedCount;
+        int needsReviewCount = parsedDocument.candidates().size() - autoAppliedCount;
 
         return new DeductionItemDtos.HometaxImportResponse(
             importBatchId,
@@ -186,36 +136,56 @@ public class DeductionItemService {
         return deductionItemRepository.findAllByTaxSessionIdAndDeletedAtIsNull(sessionId);
     }
 
+    @Transactional(readOnly = true)
+    public List<DeductionItem> getCalculationEligibleEntities(String email, UUID sessionId) {
+        return getEntities(email, sessionId).stream()
+            .filter(deductionItemReviewPolicy::isIncludedInCalculation)
+            .toList();
+    }
+
     private DeductionItem createImportedItem(
         TaxSession session,
         UUID importBatchId,
-        String fileName,
-        OffsetDateTime importedAt,
-        ImportedDeductionTemplate template
+        ParsedHometaxDocument parsedDocument,
+        ParsedDeductionCandidate candidate
     ) {
         DeductionItem item = new DeductionItem();
         item.setTaxSession(session);
-        item.setDeductionType(template.deductionType());
+        item.setDeductionType(candidate.deductionType());
         item.setDependent(null);
-        item.setSubType(template.subType());
-        item.setAmount(template.amount());
-        item.setUsedAt(template.usedAt());
-        item.setSourceName(template.sourceName());
-        item.setEvidenceStatus(template.evidenceStatus());
-        item.setAttributesJsonb(writeAttributes(Map.of(
-            "sourceType", "HOMETAX",
-            "sourceLabel", "홈택스 PDF",
-            "entryChannel", "IMPORT_SYNC",
-            "importBatchId", importBatchId.toString(),
-            "importFileName", fileName,
-            "importedAt", importedAt.toString(),
-            "importBucket", template.importBucket(),
-            "reviewStatus", template.reviewStatus(),
-            "confidenceLevel", template.confidenceLevel(),
-            "reviewReason", template.reviewReason()
-        )));
+        item.setSubType(candidate.subType());
+        item.setAmount(candidate.amount());
+        item.setUsedAt(candidate.usedAt());
+        item.setSourceName(candidate.sourceName());
+        item.setEvidenceStatus(candidate.evidenceStatus());
+        item.setAttributesJsonb(writeAttributes(buildImportedAttributes(importBatchId, parsedDocument, candidate)));
         deductionItemRepository.save(item);
         return item;
+    }
+
+    private Map<String, Object> buildImportedAttributes(
+        UUID importBatchId,
+        ParsedHometaxDocument parsedDocument,
+        ParsedDeductionCandidate candidate
+    ) {
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("sourceType", "HOMETAX");
+        attributes.put("sourceLabel", "Hometax PDF");
+        attributes.put("entryChannel", "IMPORT_SYNC");
+        attributes.put("importBatchId", importBatchId.toString());
+        attributes.put("importFileName", parsedDocument.fileName());
+        attributes.put("importedAt", parsedDocument.parsedAt().toString());
+        attributes.put("importBucket", candidate.reviewDecision().importBucket());
+        attributes.put("reviewStatus", candidate.reviewDecision().reviewStatus());
+        attributes.put("confidenceLevel", candidate.reviewDecision().confidenceLevel());
+        attributes.put("reviewReason", candidate.reviewDecision().reviewReason());
+        attributes.put("parserType", parsedDocument.parserType());
+        attributes.put("textLayerDetected", parsedDocument.textLayerDetected());
+        attributes.put("parsingWarnings", parsedDocument.warnings());
+        attributes.put("pageNumber", candidate.pageNumber());
+        attributes.put("rawSectionTitle", candidate.rawSectionTitle());
+        attributes.put("rawLineText", candidate.rawLineText());
+        return attributes;
     }
 
     private void clearImportedItems(UUID sessionId) {
@@ -225,7 +195,7 @@ public class DeductionItemService {
     }
 
     private boolean isImportedItem(DeductionItem item) {
-        return "HOMETAX".equals(readAttributes(item).get("sourceType"));
+        return deductionItemReviewPolicy.isImported(item);
     }
 
     private void synchronizeDocuments(TaxSession session) {
@@ -236,26 +206,7 @@ public class DeductionItemService {
     }
 
     private boolean isIncludedInDocuments(DeductionItem item) {
-        Map<String, Object> attributes = readAttributes(item);
-        Object sourceType = attributes.get("sourceType");
-        Object reviewStatus = attributes.get("reviewStatus");
-
-        if (!"HOMETAX".equals(sourceType)) {
-            return true;
-        }
-
-        return !"PENDING".equals(reviewStatus) && !"EXCLUDED".equals(reviewStatus);
-    }
-
-    private Map<String, Object> readAttributes(DeductionItem item) {
-        try {
-            return objectMapper.readValue(
-                Objects.requireNonNullElse(item.getAttributesJsonb(), "{}"),
-                ATTRIBUTES_TYPE
-            );
-        } catch (IOException exception) {
-            return Map.of();
-        }
+        return deductionItemReviewPolicy.isIncludedInDocumentChecklist(item);
     }
 
     private String writeAttributes(Map<String, Object> attributes) {
@@ -296,19 +247,5 @@ public class DeductionItemService {
             item.getEvidenceStatus(),
             item.getAttributesJsonb()
         );
-    }
-
-    private record ImportedDeductionTemplate(
-        com.example.yearend.deduction.domain.DeductionType deductionType,
-        String subType,
-        Long amount,
-        LocalDate usedAt,
-        String sourceName,
-        EvidenceStatus evidenceStatus,
-        String importBucket,
-        String reviewStatus,
-        String confidenceLevel,
-        String reviewReason
-    ) {
     }
 }

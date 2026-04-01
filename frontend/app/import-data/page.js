@@ -455,7 +455,11 @@ export default function ImportDataPage() {
                 </div>
               ) : null}
 
-              <MessageBanner message={message} />
+              {message ? (
+                <div className="mb-6">
+                  <MessageBanner message={message} />
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
                 <div

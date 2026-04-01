@@ -10,6 +10,7 @@ import com.example.yearend.common.exception.BusinessException;
 import com.example.yearend.common.exception.ErrorCode;
 import com.example.yearend.deduction.application.DeductionEngine;
 import com.example.yearend.deduction.application.DeductionItemService;
+import com.example.yearend.deduction.application.DeductionItemReviewPolicy;
 import com.example.yearend.deduction.domain.DeductionDecision;
 import com.example.yearend.deduction.domain.DeductionItem;
 import com.example.yearend.deduction.domain.TaxContext;
@@ -38,6 +39,7 @@ public class SimulationService {
     private final IncomeItemService incomeItemService;
     private final DependentService dependentService;
     private final DeductionItemService deductionItemService;
+    private final DeductionItemReviewPolicy deductionItemReviewPolicy;
     private final DeductionEngine deductionEngine;
     private final TaxCalculationService taxCalculationService;
     private final CalculationResultRepository calculationResultRepository;
@@ -47,7 +49,7 @@ public class SimulationService {
     @Transactional
     public SimulationDtos.SimulationRunResponse run(String email, UUID sessionId) {
         TaxSession session = taxSessionService.getOwnedSession(email, sessionId);
-        List<DeductionItem> deductionItems = deductionItemService.getEntities(email, sessionId);
+        List<DeductionItem> deductionItems = deductionItemService.getCalculationEligibleEntities(email, sessionId);
 
         TaxContext context = buildContext(email, sessionId);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
@@ -73,7 +75,10 @@ public class SimulationService {
         calculationResultRepository.save(result);
 
         taxSessionService.updateStatus(session, SessionStatus.CALCULATED);
-        documentChecklistService.synchronize(session, deductionItems);
+        documentChecklistService.synchronize(
+            session,
+            deductionItems.stream().filter(deductionItemReviewPolicy::isIncludedInDocumentChecklist).toList()
+        );
 
         return new SimulationDtos.SimulationRunResponse(
             sessionId,
@@ -101,7 +106,10 @@ public class SimulationService {
     @Transactional(readOnly = true)
     public List<SimulationDtos.RejectionReasonResponse> getRejections(String email, UUID sessionId) {
         TaxContext context = buildContext(email, sessionId);
-        List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItemService.getEntities(email, sessionId));
+        List<DeductionDecision> decisions = deductionEngine.evaluate(
+            context,
+            deductionItemService.getCalculationEligibleEntities(email, sessionId)
+        );
         return decisions.stream()
             .filter(decision -> !decision.eligible())
             .map(decision -> new SimulationDtos.RejectionReasonResponse(
