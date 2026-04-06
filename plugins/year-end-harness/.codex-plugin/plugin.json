@@ -1,0 +1,40 @@
+{
+  "name": "year-end-harness",
+  "version": "0.1.0",
+  "description": "Codex plugin for the year-end tax A2A harness, agent contracts, and verification workflow.",
+  "author": {
+    "name": "yelim",
+    "url": "https://github.com/revfactory/harness"
+  },
+  "homepage": "https://github.com/revfactory/harness",
+  "repository": "https://github.com/revfactory/harness",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "harness",
+    "year-end",
+    "tax",
+    "a2a"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Year-End Harness",
+    "shortDescription": "Codex-first harness for year-end tax parsing and calculation workflows.",
+    "longDescription": "Provides the Codex plugin entrypoint, specialist agent briefs, contracts, templates, scenario fixtures, and validation skills for orchestrating the year-end tax engineering workflow in this repository.",
+    "developerName": "yelim",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/revfactory/harness",
+    "defaultPrompt": [
+      "Design the year-end tax harness for this repository.",
+      "Generate the tax law pack for family deduction rules.",
+      "Run the 3-loop verification plan for deduction mapping.",
+      "Validate backend and frontend changes for this repository."
+    ],
+    "brandColor": "#0F766E",
+    "screenshots": []
+  }
+}

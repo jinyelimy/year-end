@@ -1,0 +1,21 @@
+{
+  "scenarioId": "S02-dual-income-couple",
+  "expectedRecords": [
+    {
+      "person": "납세자",
+      "mappingConfidence": "high",
+      "claimability": "taxpayer_claimable",
+      "evidenceStatus": "ready"
+    },
+    {
+      "person": "배우자",
+      "mappingConfidence": "high",
+      "claimability": "needs_review",
+      "evidenceStatus": "needs_review"
+    }
+  ],
+  "notes": [
+    "배우자 항목은 소유자와 청구자 판단이 분리되어야 한다.",
+    "세법 팩 미확정 상태에서는 자동 합산 대신 review 경로를 유지한다."
+  ]
+}

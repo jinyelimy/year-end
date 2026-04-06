@@ -1,0 +1,21 @@
+{
+  "asOfDate": "2026-04-06",
+  "defaultTaxYear": 2025,
+  "defaultFilingYear": 2026,
+  "lawContext": "2025 income / 2026 filing",
+  "artifactRoot": ".local/harness",
+  "allowedOfficialSources": [
+    "NTS",
+    "Korea Law Information Center",
+    "MOEF"
+  ],
+  "unsupportedDeductionTypes": [
+    "DONATION",
+    "CREDIT_CARD"
+  ],
+  "validationCommandsWindows": {
+    "parser": "plugins\\year-end-harness\\scripts\\run-parser-tests.cmd",
+    "backend": "plugins\\year-end-harness\\scripts\\run-backend-tests.cmd",
+    "frontend": "plugins\\year-end-harness\\scripts\\run-frontend-build.cmd"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "scenarioId": "S03-child-dependent",
+  "expectedRecords": [
+    {
+      "person": "자녀",
+      "mappingConfidence": "high",
+      "claimability": "taxpayer_claimable",
+      "evidenceStatus": "ready"
+    },
+    {
+      "person": "자녀-증빙누락",
+      "mappingConfidence": "high",
+      "claimability": "taxpayer_claimable",
+      "evidenceStatus": "missing"
+    }
+  ],
+  "notes": [
+    "증빙 누락은 계산 대상 제외와 별도로 warning으로 표기한다.",
+    "항목별 합산 규칙은 자녀라고 해서 공통 처리하지 않는다."
+  ]
+}

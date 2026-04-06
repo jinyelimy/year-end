@@ -1,0 +1,21 @@
+{
+  "scenarioId": "S04-same-name-collision",
+  "expectedRecords": [
+    {
+      "person": "동명이인-A",
+      "mappingConfidence": "low",
+      "claimability": "needs_review",
+      "evidenceStatus": "needs_review"
+    },
+    {
+      "person": "동명이인-B",
+      "mappingConfidence": "low",
+      "claimability": "needs_review",
+      "evidenceStatus": "needs_review"
+    }
+  ],
+  "notes": [
+    "동명이인 충돌은 잘못된 자동 합산보다 review 경로가 우선이다.",
+    "이 시나리오에서 자동 합산이 일어나면 blocking defect다."
+  ]
+}
