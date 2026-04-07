@@ -2,9 +2,11 @@
 
 ## Context
 
-- As-of date:
-- Changed scope:
-- Trigger:
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Changed scope: <changed-scope>
+- Trigger: <trigger>
 
 ## Changed Areas
 
@@ -12,7 +14,7 @@
 
 | Command | Working Directory | Exit Code | Notes |
 |---|---|---|---|
-|  |  |  |  |
+| <command> | <working-directory> | <exit-code> | <notes> |
 
 ## Results
 
@@ -24,9 +26,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Validation completed.
-ARTIFACTS: .local/harness/<date>/validation-report.md
-NEXT     : Continue to the next harness phase.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate the report before the next harness phase.
+ARTIFACTS: .local/harness/<date>/<run-id>/validation-report.md
+NEXT     : Fill the report, validate the artifact, then run the phase gate.
 ======================
 ```

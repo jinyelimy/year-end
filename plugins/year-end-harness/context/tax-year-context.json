@@ -4,6 +4,9 @@
   "defaultFilingYear": 2026,
   "lawContext": "2025 income / 2026 filing",
   "artifactRoot": ".local/harness",
+  "artifactPathPattern": ".local/harness/<date>/<run-id>",
+  "artifactDateFolderFormat": "YYYY-MM-DD",
+  "runIdFormat": "YYYYMMDD-HHmmss-<worktag>",
   "allowedOfficialSources": [
     "NTS",
     "Korea Law Information Center",

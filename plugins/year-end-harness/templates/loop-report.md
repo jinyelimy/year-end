@@ -2,9 +2,11 @@
 
 ## Context
 
-- Loop number:
-- As-of date:
-- Target law context:
+- Loop number: <loop-number>
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Target law context: <law-context>
 
 ## Inputs
 
@@ -20,6 +22,10 @@
 
 ## Defects Found
 
+| ID | Severity | State | Summary | Owner |
+|---|---|---|---|---|
+| <id> | <severity> | <state> | <summary> | <owner> |
+
 ## Requested Fix
 
 ## Re-validation Result
@@ -30,9 +36,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Loop report recorded.
-ARTIFACTS: .local/harness/<date>/loop-<n>-sdet-report.md
-NEXT     : Continue to the next loop or final QA.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate the loop report before advancing.
+ARTIFACTS: .local/harness/<date>/<run-id>/loop-<n>-sdet-report.md
+NEXT     : Fill the report, validate the artifact, then continue to the next loop or final QA.
 ======================
 ```

@@ -10,14 +10,14 @@ Agent D의 3회 루프 이후 최종 End-to-End 검증을 수행하고 승인 �
 - Agent B 아키텍처 팩
 - Agent C 구현 결과
 - Agent D loop reports 3개
-- `.local/harness/<date>/validation-report.md`
+- `.local/harness/<date>/<run-id>/validation-report.md`
 - `docs/samples/scenarios/README.md`
 - `plugins/year-end-harness/contracts/final-verification-contract.md`
 - `plugins/year-end-harness/templates/final-verification.md`
 
 ## Outputs
 
-- `.local/harness/<date>/agent-e-final-verification.md`
+- `.local/harness/<date>/<run-id>/agent-e-final-verification.md`
 
 ## Rules
 

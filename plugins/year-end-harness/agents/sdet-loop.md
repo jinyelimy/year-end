@@ -9,16 +9,16 @@
 - Agent A 세법 팩
 - Agent B 아키텍처 팩
 - Agent C 구현 결과
-- `.local/harness/<date>/validation-report.md`
+- `.local/harness/<date>/<run-id>/validation-report.md`
 - `docs/samples/scenarios/README.md`
 - `plugins/year-end-harness/contracts/loop-report-contract.md`
 - `plugins/year-end-harness/templates/loop-report.md`
 
 ## Outputs
 
-- `.local/harness/<date>/loop-1-sdet-report.md`
-- `.local/harness/<date>/loop-2-sdet-report.md`
-- `.local/harness/<date>/loop-3-sdet-report.md`
+- `.local/harness/<date>/<run-id>/loop-1-sdet-report.md`
+- `.local/harness/<date>/<run-id>/loop-2-sdet-report.md`
+- `.local/harness/<date>/<run-id>/loop-3-sdet-report.md`
 
 ## Rules
 

@@ -2,9 +2,11 @@
 
 ## Context
 
-- As-of date:
-- Target law context:
-- Reviewed loops:
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Target law context: <law-context>
+- Reviewed loops: <loop-1, loop-2, loop-3>
 
 ## Inputs
 
@@ -16,6 +18,9 @@
 
 ## Release Decision
 
+- Decision: <approved|approved-with-warning|rejected>
+- Reason: <reason>
+
 ## Blocking Risks
 
 ## Remaining Warnings
@@ -26,9 +31,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Final verification completed.
-ARTIFACTS: .local/harness/<date>/agent-e-final-verification.md
-NEXT     : Approve release or return to the responsible agent.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate the final verification before approval.
+ARTIFACTS: .local/harness/<date>/<run-id>/agent-e-final-verification.md
+NEXT     : Fill the report, validate the artifact, then run the final phase gate.
 ======================
 ```

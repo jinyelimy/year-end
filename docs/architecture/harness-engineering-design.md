@@ -83,10 +83,10 @@
 
 ## 5. 산출물 계약
 
-모든 에이전트는 `.local/harness/` 아래에 날짜별 폴더를 만들어 중간 산출물을 남긴다.
+모든 에이전트는 `.local/harness/` 아래에 `날짜/run-id` 폴더를 만들어 중간 산출물을 남긴다. 같은 날짜에 여러 번 실행해도 기존 run을 덮어쓰지 않도록 `run-id`를 매번 새로 발급한다.
 
 ```text
-.local/harness/2026-04-06/
+.local/harness/2026-04-06/20260406-154500-family-mapping/
   agent-a-tax-pack.md
   agent-b-architecture-pack.md
   agent-c-implementation-notes.md
@@ -168,6 +168,7 @@ NEXT     : <다음 권고 액션>
   - `plugins\year-end-harness\scripts\run-frontend-build.cmd`
 - backend 검증은 같은 `build/` 디렉터리를 공유하므로 병렬 실행하지 않는다.
 - 결과는 `validation-report-contract.md`와 `validation-report.md` 템플릿으로 남긴다.
+- phase gate는 `plugins\year-end-harness\scripts\run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase validation`으로 확인한다.
 
 ### Phase 4. Agent D 3 Loops
 
@@ -178,12 +179,14 @@ NEXT     : <다음 권고 액션>
 - Loop 3: 경계값과 증빙 누락, 동일 이름/동년생 충돌
 
 각 루프는 `테스트 -> 결함 보고 -> Agent C 수정 -> 재검증`을 완료해야 한다.
+- Loop 3 종료 뒤에는 `plugins\year-end-harness\scripts\run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase loops`로 3회 루프 존재와 계약 충족 여부를 확인한다.
 
 ### Phase 5. Agent E Final Verification
 
 - `qa-verifier`와 `verification-loop` 스킬을 사용한다.
 - 다인가족 더미 PDF 또는 scenario fixture를 사용해 최종 납부/환급 계산과 증빙 판정을 검증한다.
 - `final-verification-contract.md`와 `final-verification.md` 템플릿으로 결과를 남긴다.
+- 최종 승인 전에는 `plugins\year-end-harness\scripts\run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase final`을 통과해야 한다.
 
 ## 8. 게이트와 중단 조건
 
@@ -192,6 +195,7 @@ NEXT     : <다음 권고 액션>
 - `DONATION`, `CREDIT_CARD`처럼 미지원 정책이 남아 있으면 시뮬레이션 포함 여부를 명시적으로 차단하거나 경고해야 한다.
 - 공식 소스가 충돌하거나 10% 이상 불확실성이 남으면 Agent A 단계로 되돌린다.
 - validation report 없이 QA 단계로 넘어가지 않는다.
+- 후행 phase 산출물이 선행 phase 산출물 없이 존재하면 `run-harness-gate`가 실패해야 한다.
 
 ## 9. 저장소 반영 구조
 

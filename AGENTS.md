@@ -34,9 +34,11 @@
 | 파서 테스트만 | `plugins\year-end-harness\scripts\run-parser-tests.cmd` |
 | 전체 백엔드 회귀 | `plugins\year-end-harness\scripts\run-backend-tests.cmd` |
 | 프론트 빌드 | `plugins\year-end-harness\scripts\run-frontend-build.cmd` |
+| 하네스 phase gate | `plugins\year-end-harness\scripts\run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase <phase>` |
 
 - backend 검증은 같은 `backend/build/` 디렉터리를 공유하므로 병렬 실행하지 않는다.
 - PowerShell 환경에서는 `npm.ps1` 대신 `npm.cmd`를 사용한다.
+- 하네스 산출물은 `.local/harness/<date>/<run-id>/`에 두고, 같은 날짜에 재실행할 때도 새 `run-id`를 만든다.
 
 ---
 
@@ -53,7 +55,7 @@ NEXT     : <다음 권고 액션>
 ======================
 ```
 
-- **success** → Reviewer Agent 호출 권고
+- **success** → `qa-verifier` 또는 다음 phase gate 호출 권고
 - **warning** → 현재 도메인 외 문제, 별도 확인 후 진행 가능
 - **error** → 중단, root cause hint 확인 후 안전한 재시도
 

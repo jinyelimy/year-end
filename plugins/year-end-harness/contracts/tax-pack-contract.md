@@ -38,7 +38,7 @@ Agent A 세법 팩의 필수 구조와 메타데이터를 고정한다.
 
 ## Output File
 
-- `.local/harness/<date>/agent-a-tax-pack.md`
+- `.local/harness/<date>/<run-id>/agent-a-tax-pack.md`
 
 ## Result Block
 

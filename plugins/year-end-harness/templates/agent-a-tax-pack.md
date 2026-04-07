@@ -2,9 +2,11 @@
 
 ## Context
 
-- As-of date:
-- Target law context:
-- Requested scope:
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Target law context: <law-context>
+- Requested scope: <requested-scope>
 
 ## Inputs
 
@@ -17,7 +19,7 @@
 
 | Source | URL | Published At | Effective At | Checked At | Notes |
 |---|---|---|---|---|---|
-|  |  |  |  |  |  |
+| <source> | <url> | <published-at> | <effective-at> | <checked-at> | <notes> |
 
 ## Confirmed Rules
 
@@ -41,9 +43,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Agent A tax pack drafted.
-ARTIFACTS: .local/harness/<date>/agent-a-tax-pack.md
-NEXT     : Hand off to Agent B for architecture design.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate the tax pack before handoff.
+ARTIFACTS: .local/harness/<date>/<run-id>/agent-a-tax-pack.md
+NEXT     : Fill the report, run artifact validation, then hand off to Agent B.
 ======================
 ```

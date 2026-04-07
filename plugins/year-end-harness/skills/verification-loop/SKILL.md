@@ -22,13 +22,15 @@ description: 3회 SDET 루프와 최종 QA 검증을 운영할 때 사용한다.
 
 ## Output
 
-- `.local/harness/<date>/loop-1-sdet-report.md`
-- `.local/harness/<date>/loop-2-sdet-report.md`
-- `.local/harness/<date>/loop-3-sdet-report.md`
-- `.local/harness/<date>/agent-e-final-verification.md`
+- `.local/harness/<date>/<run-id>/loop-1-sdet-report.md`
+- `.local/harness/<date>/<run-id>/loop-2-sdet-report.md`
+- `.local/harness/<date>/<run-id>/loop-3-sdet-report.md`
+- `.local/harness/<date>/<run-id>/agent-e-final-verification.md`
 
 ## Rules
 
 - 각 루프는 결함이 없더라도 반드시 보고서를 남긴다.
 - 결함은 수정 요청과 재검증 결과까지 한 세트로 닫는다.
 - 미해결 blocking defect가 있으면 최종 승인을 내리지 않는다.
+- Loop 3 종료 뒤에는 `run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase loops`를 통과시킨다.
+- 최종 승인 직전에는 `run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase final`을 통과시킨다.

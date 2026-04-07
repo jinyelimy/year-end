@@ -40,6 +40,7 @@ description: 연말정산 A2A 하네스를 설계, 실행, 개선할 때 사용�
 
 - `skills/repo-validation/`을 사용해 parser tests, backend regression, frontend build 중 필요한 조합을 선택한다.
 - backend 검증은 병렬 실행하지 않는다.
+- validation report 작성 뒤 `run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase validation`을 통과시킨다.
 
 ### Phase 4. Agent D x 3
 
@@ -51,6 +52,7 @@ description: 연말정산 A2A 하네스를 설계, 실행, 개선할 때 사용�
 
 - `plugins/year-end-harness/agents/qa-verifier.md` 기준으로 `qa-verifier`가 최종 승인 또는 반려를 결정한다.
 - 3회 루프 미완료, 미해결 blocking defect, 미확정 세법이 있으면 반려한다.
+- 승인 또는 반려를 확정하기 전 `run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase final`을 통과시킨다.
 
 ## Execution Mode
 
@@ -60,6 +62,7 @@ description: 연말정산 A2A 하네스를 설계, 실행, 개선할 때 사용�
 
 ## Output Discipline
 
-- 중간 산출물은 `.local/harness/<date>/`에 둔다.
+- 중간 산출물은 `.local/harness/<date>/<run-id>/`에 둔다.
+- 같은 날짜에 다시 실행해도 새 `run-id`를 발급해 기존 run을 덮어쓰지 않는다.
 - 최종 요약은 저장소 문서와 변경 파일 경로를 함께 남긴다.
 - 모든 단계는 `=== HARNESS RESULT ===` 블록으로 끝낸다.

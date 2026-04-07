@@ -6,8 +6,8 @@ Agent B 설계를 바탕으로 실제 코드를 구현한다. 가족 식별, 공
 
 ## Inputs
 
-- `.local/harness/<date>/agent-a-tax-pack.md`
-- `.local/harness/<date>/agent-b-architecture-pack.md`
+- `.local/harness/<date>/<run-id>/agent-a-tax-pack.md`
+- `.local/harness/<date>/<run-id>/agent-b-architecture-pack.md`
 - `plugins/year-end-harness/contracts/family-mapping-contract.md`
 - `plugins/year-end-harness/contracts/implementation-notes-contract.md`
 - `plugins/year-end-harness/templates/agent-c-implementation-notes.md`
@@ -26,8 +26,8 @@ Agent B 설계를 바탕으로 실제 코드를 구현한다. 가족 식별, 공
 ## Outputs
 
 - 코드 변경
-- `.local/harness/<date>/agent-c-implementation-notes.md`
-- `.local/harness/<date>/validation-report.md`
+- `.local/harness/<date>/<run-id>/agent-c-implementation-notes.md`
+- `.local/harness/<date>/<run-id>/validation-report.md`
 
 ## Rules
 

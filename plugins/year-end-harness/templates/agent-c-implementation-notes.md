@@ -2,9 +2,11 @@
 
 ## Context
 
-- As-of date:
-- Target law context:
-- Scope:
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Target law context: <law-context>
+- Scope: <scope>
 
 ## Inputs
 
@@ -24,9 +26,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Agent C implementation completed.
-ARTIFACTS: .local/harness/<date>/agent-c-implementation-notes.md
-NEXT     : Run repository validation and move to loop testing.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate implementation notes before loop testing.
+ARTIFACTS: .local/harness/<date>/<run-id>/agent-c-implementation-notes.md
+NEXT     : Fill the report, run repository validation, then move to loop testing.
 ======================
 ```

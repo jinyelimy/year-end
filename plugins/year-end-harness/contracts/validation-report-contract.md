@@ -23,4 +23,4 @@
 
 ## Output File
 
-- `.local/harness/<date>/validation-report.md`
+- `.local/harness/<date>/<run-id>/validation-report.md`

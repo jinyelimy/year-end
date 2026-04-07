@@ -20,7 +20,7 @@
 - `skills/verification-loop/`: Agent D/E용 3-loop 검증 스킬
 - `contracts/`: 산출물 단일 계약 소스
 - `templates/`: 에이전트별 산출물 템플릿
-- `scripts/`: Windows 친화 검증 스크립트와 아티팩트 검사기
+- `scripts/`: Windows 친화 검증 스크립트, phase gate, 아티팩트 검사기
 
 ## Routing
 
@@ -33,7 +33,9 @@
 ## Operating Principle
 
 - 규칙 우선순위는 `AGENTS.md`가 가장 높다.
-- 플러그인은 Codex 진입점을 제공하고, 실제 산출물은 `.local/harness/<date>/`에 남긴다.
+- 플러그인은 Codex 진입점을 제공하고, 실제 산출물은 `.local/harness/<date>/<run-id>/`에 남긴다.
+- 같은 날짜에 재실행할 때도 새 `run-id`를 발급해 기존 run을 덮어쓰지 않는다.
 - 공식 세법 값은 반드시 국세청, 국가법령정보센터, 기획재정부 자료로 검증한다.
 - backend 검증은 같은 `build/` 디렉터리를 공유하므로 병렬 실행하지 않는다.
 - Windows 환경에서는 `gradlew.bat`, `npm.cmd`를 사용한다.
+- 계약 검증은 `validate-artifacts.py`, phase 순서 검증은 `run-harness-gate.cmd`를 사용한다.

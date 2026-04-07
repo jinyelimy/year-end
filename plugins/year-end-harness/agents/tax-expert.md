@@ -18,7 +18,7 @@
 
 ## Outputs
 
-- `.local/harness/<date>/agent-a-tax-pack.md`
+- `.local/harness/<date>/<run-id>/agent-a-tax-pack.md`
 
 ## Rules
 

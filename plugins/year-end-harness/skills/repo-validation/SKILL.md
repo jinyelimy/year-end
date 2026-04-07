@@ -23,4 +23,5 @@ description: 연말정산 저장소에서 코드 변경 이후 어떤 검증 명
 
 ## Output
 
-- `.local/harness/<date>/validation-report.md`
+- `.local/harness/<date>/<run-id>/validation-report.md`
+- validation 완료 후 `run-harness-gate.cmd --run-dir .local\harness\<date>\<run-id> --through-phase validation`

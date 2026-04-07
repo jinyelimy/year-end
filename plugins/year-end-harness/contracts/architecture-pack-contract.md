@@ -35,4 +35,4 @@ Agent B 아키텍처 팩의 필수 구조와 가족 매핑/계산 흐름의 최�
 
 ## Output File
 
-- `.local/harness/<date>/agent-b-architecture-pack.md`
+- `.local/harness/<date>/<run-id>/agent-b-architecture-pack.md`

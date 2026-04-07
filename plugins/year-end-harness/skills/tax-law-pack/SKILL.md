@@ -15,7 +15,7 @@ description: 연말정산 세법 팩을 작성할 때 사용한다. 2025 귀속 
 
 ## Output
 
-- `.local/harness/<date>/agent-a-tax-pack.md`
+- `.local/harness/<date>/<run-id>/agent-a-tax-pack.md`
 
 ## Rules
 

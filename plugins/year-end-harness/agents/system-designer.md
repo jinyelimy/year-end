@@ -6,7 +6,7 @@ Agent A의 세법 팩을 입력으로 받아 PDF 파싱, 가족 매핑, 공제 �
 
 ## Inputs
 
-- `.local/harness/<date>/agent-a-tax-pack.md`
+- `.local/harness/<date>/<run-id>/agent-a-tax-pack.md`
 - `docs/analysis/project-analysis.md`
 - `plugins/year-end-harness/contracts/architecture-pack-contract.md`
 - `plugins/year-end-harness/contracts/family-mapping-contract.md`
@@ -15,7 +15,7 @@ Agent A의 세법 팩을 입력으로 받아 PDF 파싱, 가족 매핑, 공제 �
 
 ## Outputs
 
-- `.local/harness/<date>/agent-b-architecture-pack.md`
+- `.local/harness/<date>/<run-id>/agent-b-architecture-pack.md`
 
 ## Rules
 

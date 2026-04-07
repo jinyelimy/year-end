@@ -2,9 +2,11 @@
 
 ## Context
 
-- As-of date:
-- Target law context:
-- Scope:
+- As-of date: <date>
+- Run id: <run-id>
+- Run directory: .local/harness/<date>/<run-id>
+- Target law context: <law-context>
+- Scope: <scope>
 
 ## Inputs
 
@@ -34,9 +36,9 @@
 
 ```text
 === HARNESS RESULT ===
-STATUS   : success
-SUMMARY  : Agent B architecture pack drafted.
-ARTIFACTS: .local/harness/<date>/agent-b-architecture-pack.md
-NEXT     : Hand off to Agent C for implementation.
+STATUS   : warning
+SUMMARY  : Replace template placeholders and validate the architecture pack before handoff.
+ARTIFACTS: .local/harness/<date>/<run-id>/agent-b-architecture-pack.md
+NEXT     : Fill the report, run artifact validation, then hand off to Agent C.
 ======================
 ```
