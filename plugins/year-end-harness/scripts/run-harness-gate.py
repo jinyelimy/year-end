@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import pathlib
 import re
 import sys
@@ -17,23 +18,35 @@ VALIDATOR_SPEC.loader.exec_module(artifact_validator)
 
 
 ARTIFACT_SPECS = [
-    ("agent-a", "agent-a-tax-pack.md", "tax-pack"),
-    ("agent-b", "agent-b-architecture-pack.md", "architecture-pack"),
-    ("agent-c", "agent-c-implementation-notes.md", "implementation-notes"),
-    ("validation", "validation-report.md", "validation-report"),
-    ("loop-1", "loop-1-sdet-report.md", "loop-report"),
-    ("loop-2", "loop-2-sdet-report.md", "loop-report"),
-    ("loop-3", "loop-3-sdet-report.md", "loop-report"),
-    ("final", "agent-e-final-verification.md", "final-verification"),
+    {"stage": "agent-a", "file_name": "agent-a-tax-pack.md", "kind": "tax-pack"},
+    {"stage": "agent-a", "file_name": "source-manifest.json", "kind": "source-manifest"},
+    {"stage": "agent-a", "file_name": "normalized-rule-pack.json", "kind": "normalized-rule-pack"},
+    {"stage": "agent-a", "file_name": "diff-from-previous.md", "kind": "rule-diff"},
+    {"stage": "agent-b", "file_name": "agent-b-architecture-pack.md", "kind": "architecture-pack"},
+    {"stage": "agent-c", "file_name": "agent-c-implementation-notes.md", "kind": "implementation-notes"},
+    {"stage": "validation", "file_name": "validation-report.md", "kind": "validation-report"},
+    {"stage": "loops", "file_name": "loop-1-sdet-report.md", "kind": "loop-report"},
+    {"stage": "loops", "file_name": "loop-2-sdet-report.md", "kind": "loop-report"},
+    {"stage": "loops", "file_name": "loop-3-sdet-report.md", "kind": "loop-report"},
+    {"stage": "final", "file_name": "agent-e-final-verification.md", "kind": "final-verification"},
 ]
 
-PHASE_REQUIREMENTS = {
-    "agent-a": 1,
-    "agent-b": 2,
-    "agent-c": 3,
-    "validation": 4,
-    "loops": 7,
-    "final": 8,
+STAGE_ORDER = ["agent-a", "agent-b", "agent-c", "validation", "loops", "final"]
+STAGE_RANK = {stage: index for index, stage in enumerate(STAGE_ORDER)}
+PHASE_ALIASES = {
+    "agent-a": "agent-a",
+    "phase-1": "agent-a",
+    "phase-1.5": "agent-a",
+    "agent-b": "agent-b",
+    "phase-2": "agent-b",
+    "agent-c": "agent-c",
+    "phase-3": "agent-c",
+    "validation": "validation",
+    "phase-3.5": "validation",
+    "loops": "loops",
+    "phase-4": "loops",
+    "final": "final",
+    "phase-5": "final",
 }
 
 DATE_DIR_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -57,6 +70,15 @@ def load_status(path: pathlib.Path) -> str | None:
         if match:
             return match.group(1)
     return None
+
+
+def load_rule_pack_status(path: pathlib.Path) -> str | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    status = payload.get("status")
+    return status if isinstance(status, str) else None
 
 
 def extract_defect_rows(path: pathlib.Path) -> list[dict[str, str]]:
@@ -115,12 +137,14 @@ def main() -> int:
     parser.add_argument("--run-dir", required=True, help="Path to .local/harness/<date>/<run-id>")
     parser.add_argument(
         "--through-phase",
-        choices=sorted(PHASE_REQUIREMENTS),
+        choices=sorted(PHASE_ALIASES),
         default="final",
-        help="Validate prerequisites and artifact contracts through this phase.",
+        help="Validate prerequisites and artifact contracts through a stage or phase alias.",
     )
     args = parser.parse_args()
 
+    target_stage = PHASE_ALIASES[args.through_phase]
+    target_rank = STAGE_RANK[target_stage]
     run_dir = pathlib.Path(args.run_dir)
     errors: list[str] = []
 
@@ -134,37 +158,61 @@ def main() -> int:
         )
         return 1
 
-    artifact_paths = [(phase, run_dir / file_name, kind) for phase, file_name, kind in ARTIFACT_SPECS]
-    required_count = PHASE_REQUIREMENTS[args.through_phase]
+    artifact_paths = [{**spec, "path": run_dir / spec["file_name"]} for spec in ARTIFACT_SPECS]
+    required_stages = {stage for stage, rank in STAGE_RANK.items() if rank <= target_rank}
 
-    for index, (phase, artifact_path, _kind) in enumerate(artifact_paths):
-        if artifact_path.exists():
-            for previous_phase, previous_path, _ in artifact_paths[:index]:
-                if not previous_path.exists():
-                    errors.append(f"{artifact_path.name} exists before prerequisite artifact {previous_phase} is present")
-
-    for phase, artifact_path, kind in artifact_paths[:required_count]:
-        if not artifact_path.exists():
-            errors.append(f"Missing required artifact for phase {phase}: {artifact_path.name}")
+    for spec in artifact_paths:
+        if not spec["path"].exists():
             continue
-        result = artifact_validator.validate_artifact(kind, artifact_path)
-        errors.extend(f"{artifact_path.name}: {message}" for message in result.errors)
+        current_rank = STAGE_RANK[spec["stage"]]
+        for prior_spec in artifact_paths:
+            if STAGE_RANK[prior_spec["stage"]] >= current_rank:
+                continue
+            if not prior_spec["path"].exists():
+                errors.append(
+                    f"{spec['file_name']} exists before prerequisite stage artifact {prior_spec['file_name']} is present"
+                )
 
-        status = load_status(artifact_path)
-        if status == "error":
-            errors.append(f"{artifact_path.name}: HARNESS RESULT status is error")
+    for spec in artifact_paths:
+        if spec["stage"] not in required_stages:
+            continue
+        if not spec["path"].exists():
+            errors.append(f"Missing required artifact for stage {spec['stage']}: {spec['file_name']}")
+            continue
 
-    if args.through_phase in {"loops", "final"}:
+        result = artifact_validator.validate_artifact(spec["kind"], spec["path"])
+        errors.extend(f"{spec['file_name']}: {message}" for message in result.errors)
+
+        if spec["kind"] not in {"source-manifest", "normalized-rule-pack"}:
+            status = load_status(spec["path"])
+            if status == "error":
+                errors.append(f"{spec['file_name']}: HARNESS RESULT status is error")
+
+    normalized_rule_pack_path = run_dir / "normalized-rule-pack.json"
+    if normalized_rule_pack_path.exists():
+        rule_pack_status = load_rule_pack_status(normalized_rule_pack_path)
+        if target_stage == "agent-a":
+            if rule_pack_status not in {"READY_FOR_REVIEW", "BLOCKED", "PUBLISHED"}:
+                errors.append(
+                    "normalized-rule-pack.json must end Agent A with status READY_FOR_REVIEW, BLOCKED, or PUBLISHED"
+                )
+        else:
+            if rule_pack_status not in {"READY_FOR_REVIEW", "PUBLISHED"}:
+                errors.append(
+                    "Later phases require normalized-rule-pack.json status READY_FOR_REVIEW or PUBLISHED"
+                )
+
+    if target_stage in {"loops", "final"}:
         open_high_defects: list[str] = []
         accepted_risks: list[str] = []
-        for _phase, artifact_path, _kind in artifact_paths[4:7]:
-            if not artifact_path.exists():
+        for spec in artifact_paths:
+            if spec["stage"] != "loops" or not spec["path"].exists():
                 continue
-            for row in extract_defect_rows(artifact_path):
+            for row in extract_defect_rows(spec["path"]):
                 severity = row.get("Severity", "").strip()
                 state = row.get("State", "").strip()
                 summary = row.get("Summary", "").strip()
-                defect_label = f"{artifact_path.name}::{row.get('ID', '').strip() or 'unknown'}"
+                defect_label = f"{spec['file_name']}::{row.get('ID', '').strip() or 'unknown'}"
                 if severity in {"blocking", "major"} and state == "open":
                     open_high_defects.append(f"{defect_label} ({summary})")
                 if state == "accepted-risk":
@@ -173,8 +221,8 @@ def main() -> int:
         if open_high_defects:
             errors.append("Open blocking/major defects remain: " + ", ".join(open_high_defects))
 
-        if args.through_phase == "final":
-            final_path = artifact_paths[7][1]
+        if target_stage == "final":
+            final_path = run_dir / "agent-e-final-verification.md"
             if final_path.exists():
                 decision = extract_final_decision(final_path)
                 if decision == "approved" and accepted_risks:
@@ -194,7 +242,7 @@ def main() -> int:
 
     print_result(
         "success",
-        f"Phase gate passed through {args.through_phase}.",
+        f"Phase gate passed through {args.through_phase} ({target_stage}).",
         str(run_dir),
         "Proceed to the next harness phase.",
     )

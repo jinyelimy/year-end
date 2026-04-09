@@ -66,6 +66,20 @@ class DeductionItemReviewPolicyTest {
         assertThat(policy.isIncludedInDocumentChecklist(item)).isFalse();
     }
 
+    @Test
+    @DisplayName("excludes imported items that are stored for review only until policy support exists")
+    void excludesPolicyUnsupportedImportedItems() {
+        DeductionItem item = deductionItem(
+            DeductionType.CREDIT_CARD,
+            """
+                {"sourceType":"HOMETAX","reviewStatus":"APPROVED","calculationSupported":false}
+                """
+        );
+
+        assertThat(policy.isIncludedInCalculation(item)).isFalse();
+        assertThat(policy.isIncludedInDocumentChecklist(item)).isFalse();
+    }
+
     private DeductionItem deductionItem(DeductionType deductionType, String attributesJsonb) {
         DeductionItem item = new DeductionItem();
         item.setDeductionType(deductionType);

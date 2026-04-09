@@ -10,58 +10,40 @@ import com.example.yearend.deduction.domain.EvidenceStatus;
 import com.example.yearend.taxsession.domain.TaxSession;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.MatchResult;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
 public class HometaxPdfImportParser {
 
-    private static final Pattern AMOUNT_PATTERN = Pattern.compile(
-        "(?<!\\d)(\\d{1,3}(?:[,.]\\d{3})+|\\d{5,})(?:\\s*원)?(?!\\d)"
-    );
-    private static final Pattern DATE_PATTERN = Pattern.compile(
-        "(?<!\\d)(20\\d{2})\\s*[./-]\\s*(\\d{1,2})\\s*[./-]\\s*(\\d{1,2})(?!\\d)"
-    );
-    private static final Pattern RESIDENT_ID_PATTERN = Pattern.compile("\\b\\d{6}-\\d{7}\\b");
-    private static final Pattern PAGE_NUMBER_PATTERN = Pattern.compile("^-[0-9]+-$");
-    private static final Pattern MONTH_LINE_PATTERN = Pattern.compile("(^|\\s)\\d{1,2}월($|\\s)");
-    private static final Pattern CIRCLED_NUMBER_PATTERN = Pattern.compile("[①②③④⑤⑥⑦⑧⑨⑩]");
+    private static final String PARSER_TYPE = "PDFBOX_PHASE1_SECTION_PARSER";
+    private static final String OCR_PARSER_TYPE = "PDFBOX_PHASE1_SECTION_PARSER_OCR";
 
-    private static final List<CandidateRule> CANDIDATE_RULES = List.of(
-        new CandidateRule(
-            DeductionType.MEDICAL_EXPENSE,
-            "의료비",
-            List.of("의료비", "의료", "병원", "medical expense")
-        ),
-        new CandidateRule(
-            DeductionType.INSURANCE,
-            "보험료",
-            List.of("건강보험료", "보험료", "보험", "insurance", "premium")
-        ),
-        new CandidateRule(
-            DeductionType.EDUCATION_EXPENSE,
-            "교육비",
-            List.of("교육비", "수업료", "학원", "학교", "education", "tuition")
-        ),
-        new CandidateRule(
-            DeductionType.DONATION,
-            "기부금",
-            List.of("기부금", "기부", "donation")
-        )
-    );
+    private static final Pattern AMOUNT_PATTERN = Pattern.compile("(?<!\\d)(\\d{1,3}(?:,\\d{3})+|\\d{5,})(?!\\d)");
+    private static final Pattern BRACKET_TITLE_PATTERN = Pattern.compile("\\[(.+?)]");
+    private static final Pattern RESIDENT_ID_PATTERN = Pattern.compile("(\\d{6}-(?:\\d{7}|\\*{7}))");
+    private static final Pattern PAGE_NUMBER_PATTERN = Pattern.compile("^-[0-9]+-$");
 
     public ParsedHometaxDocument parse(
         TaxSession session,
@@ -69,39 +51,51 @@ public class HometaxPdfImportParser {
         String fileName,
         OffsetDateTime parsedAt
     ) {
-        byte[] pdfBytes;
-        try {
-            pdfBytes = file.getBytes();
-        } catch (IOException exception) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Failed to read the uploaded PDF file.");
-        }
-
+        byte[] pdfBytes = readUploadedBytes(file);
         List<String> warnings = new ArrayList<>();
-        List<ExtractedPageText> pages = extractPages(pdfBytes, warnings);
-        boolean textLayerDetected = pages.stream().anyMatch(page -> !page.lines().isEmpty());
 
+        List<ExtractedPageText> textLayerPages = extractPages(pdfBytes, warnings);
+        boolean textLayerDetected = textLayerPages.stream().anyMatch(this::hasText);
+
+        List<ExtractedPageText> effectivePages = textLayerPages;
+        boolean ocrFallbackUsed = false;
         if (!textLayerDetected) {
-            warnings.add("텍스트 레이어를 찾지 못했습니다. 스캔 PDF라면 OCR 연결이 추가로 필요합니다.");
+            warnings.add("No text layer was detected in the uploaded PDF. Attempting OCR fallback.");
+            List<ExtractedPageText> ocrPages = extractPagesWithOcr(pdfBytes, warnings);
+            if (ocrPages.stream().anyMatch(this::hasText)) {
+                effectivePages = ocrPages;
+                ocrFallbackUsed = true;
+            } else {
+                warnings.add("OCR fallback did not return usable text. Manual review is required.");
+            }
         }
 
-        List<ParsedDeductionCandidate> candidates = textLayerDetected
-            ? selectTopCandidates(session, pages, warnings)
+        List<ParsedDeductionCandidate> candidates = (textLayerDetected || ocrFallbackUsed)
+            ? parseCandidates(effectivePages, warnings)
             : List.of();
 
-        if (!candidates.isEmpty()) {
-            warnings.add("현재 4/1 PoC에서는 점수가 가장 높은 공제 후보 1건만 가져옵니다.");
-        } else if (textLayerDetected) {
-            warnings.add("텍스트 추출에는 성공했지만 현재 1차 규칙으로는 공제 후보를 찾지 못했습니다.");
+        if (candidates.isEmpty()) {
+            warnings.add("No phase 1 deduction candidates were extracted from the document.");
+        } else {
+            warnings.add("Extracted " + candidates.size() + " phase 1 deduction candidates from the document.");
         }
 
         return new ParsedHometaxDocument(
             fileName,
             parsedAt,
-            "PDFBOX_TEXT_LAYER_POC",
+            ocrFallbackUsed ? OCR_PARSER_TYPE : PARSER_TYPE,
             textLayerDetected,
             warnings,
             candidates
         );
+    }
+
+    private byte[] readUploadedBytes(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (IOException exception) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Failed to read the uploaded PDF file.");
+        }
     }
 
     private List<ExtractedPageText> extractPages(byte[] pdfBytes, List<String> warnings) {
@@ -115,353 +109,666 @@ public class HometaxPdfImportParser {
                 int pageNumber = pageIndex + 1;
                 stripper.setStartPage(pageNumber);
                 stripper.setEndPage(pageNumber);
-                String text = normalizeWhitespace(stripper.getText(document));
+                String text = normalizeDocumentText(stripper.getText(document));
                 pages.add(new ExtractedPageText(pageNumber, text, splitLines(text)));
             }
             return pages;
         } catch (IOException exception) {
-            warnings.add("PDF 파싱 중 오류가 발생했습니다: " + exception.getClass().getSimpleName());
+            warnings.add("PDF parsing failed with " + exception.getClass().getSimpleName() + ".");
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Failed to extract text from the uploaded PDF.");
         }
     }
 
-    private List<ParsedDeductionCandidate> selectTopCandidates(
-        TaxSession session,
-        List<ExtractedPageText> pages,
-        List<String> warnings
-    ) {
-        List<ScoredCandidate> matches = collectCandidates(session, pages);
-        if (matches.isEmpty()) {
+    private List<ExtractedPageText> extractPagesWithOcr(byte[] pdfBytes, List<String> warnings) {
+        if (!isTesseractAvailable()) {
+            warnings.add("OCR fallback is unavailable because the 'tesseract' command could not be found.");
             return List.of();
         }
 
-        ScoredCandidate topMatch = matches.stream()
-            .max(Comparator
-                .comparingInt(ScoredCandidate::score)
-                .thenComparingLong(candidate -> candidate.parsedCandidate().amount())
-                .thenComparingInt(candidate -> -candidate.parsedCandidate().pageNumber()))
-            .orElseThrow();
+        try (PDDocument document = Loader.loadPDF(pdfBytes)) {
+            PDFRenderer renderer = new PDFRenderer(document);
+            List<ExtractedPageText> pages = new ArrayList<>();
 
-        if (topMatch.excludedResidentIdLine()) {
-            warnings.add("주민등록번호처럼 보이는 숫자 라인은 후보에서 제외했습니다.");
+            for (int pageIndex = 0; pageIndex < document.getNumberOfPages(); pageIndex++) {
+                int pageNumber = pageIndex + 1;
+                BufferedImage image = renderer.renderImageWithDPI(pageIndex, 300);
+                String text = runTesseract(image, pageNumber, warnings);
+                String normalizedText = normalizeDocumentText(text);
+                pages.add(new ExtractedPageText(pageNumber, normalizedText, splitLines(normalizedText)));
+            }
+
+            long extractedPageCount = pages.stream().filter(this::hasText).count();
+            if (extractedPageCount > 0) {
+                warnings.add("OCR fallback extracted text from " + extractedPageCount + " page(s).");
+            }
+            return pages;
+        } catch (IOException exception) {
+            warnings.add("OCR fallback failed with " + exception.getClass().getSimpleName() + ".");
+            return List.of();
         }
-
-        return List.of(topMatch.parsedCandidate());
     }
 
-    private List<ScoredCandidate> collectCandidates(TaxSession session, List<ExtractedPageText> pages) {
-        List<ScoredCandidate> matches = new ArrayList<>();
+    private boolean isTesseractAvailable() {
+        Process process = null;
+        try {
+            process = new ProcessBuilder(resolveTesseractCommand(), "--version")
+                .redirectErrorStream(true)
+                .start();
+            process.getInputStream().readAllBytes();
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return false;
+            }
+            return process.exitValue() == 0;
+        } catch (IOException exception) {
+            return false;
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return false;
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
+        }
+    }
+
+    private String runTesseract(BufferedImage image, int pageNumber, List<String> warnings) {
+        Path imagePath = null;
+        Process process = null;
+
+        try {
+            imagePath = Files.createTempFile("hometax-ocr-page-" + pageNumber + "-", ".png");
+            ImageIO.write(image, "png", imagePath.toFile());
+
+            process = new ProcessBuilder(
+                resolveTesseractCommand(),
+                imagePath.toString(),
+                "stdout",
+                "-l",
+                "kor+eng",
+                "--psm",
+                "6"
+            )
+                .redirectErrorStream(true)
+                .start();
+
+            byte[] output = process.getInputStream().readAllBytes();
+            if (!process.waitFor(90, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                warnings.add("OCR timed out on page " + pageNumber + ".");
+                return "";
+            }
+            if (process.exitValue() != 0) {
+                warnings.add("OCR exited with code " + process.exitValue() + " on page " + pageNumber + ".");
+                return "";
+            }
+            return new String(output, StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            warnings.add("OCR failed on page " + pageNumber + " with " + exception.getClass().getSimpleName() + ".");
+            return "";
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            warnings.add("OCR was interrupted on page " + pageNumber + ".");
+            return "";
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
+            if (imagePath != null) {
+                try {
+                    Files.deleteIfExists(imagePath);
+                } catch (IOException ignored) {
+                    // Ignore best-effort cleanup failure.
+                }
+            }
+        }
+    }
+
+    private String resolveTesseractCommand() {
+        String configured = System.getenv("TESSERACT_PATH");
+        return StringUtils.hasText(configured) ? configured.trim() : "tesseract";
+    }
+
+    private boolean hasText(ExtractedPageText page) {
+        return page != null && !page.lines().isEmpty();
+    }
+
+    private List<ParsedDeductionCandidate> parseCandidates(List<ExtractedPageText> pages, List<String> warnings) {
+        List<ParsedDeductionCandidate> candidates = new ArrayList<>();
 
         for (ExtractedPageText page : pages) {
-            CandidateRule currentSectionRule = null;
-            String currentSectionTitle = null;
+            parsePage(page, warnings).ifPresent(candidates::add);
+        }
 
-            for (String line : page.lines()) {
-                CandidateRule explicitRule = detectRule(line).orElse(null);
-                if (explicitRule != null) {
-                    currentSectionRule = explicitRule;
-                    if (isMeaningfulSectionTitle(line)) {
-                        currentSectionTitle = line;
-                    }
-                }
+        candidates.sort(Comparator.comparingInt(candidate -> Optional.ofNullable(candidate.pageNumber()).orElse(0)));
+        return candidates;
+    }
 
-                CandidateRule activeRule = explicitRule != null ? explicitRule : currentSectionRule;
-                if (activeRule == null) {
-                    continue;
-                }
+    private Optional<ParsedDeductionCandidate> parsePage(ExtractedPageText page, List<String> warnings) {
+        String sectionLabel = extractSectionLabel(page.lines()).orElse(null);
+        if (!StringUtils.hasText(sectionLabel)) {
+            return Optional.empty();
+        }
 
-                Optional<ScoredCandidate> candidate = buildCandidate(
-                    session,
-                    page.pageNumber(),
-                    currentSectionTitle != null ? currentSectionTitle : activeRule.subType(),
-                    line,
-                    activeRule
-                );
-                candidate.ifPresent(matches::add);
+        SectionDescriptor section = classifySection(sectionLabel);
+        if (section == null) {
+            return Optional.empty();
+        }
+
+        PersonInfo personInfo = extractPersonInfo(page.lines()).orElse(null);
+        if (personInfo == null) {
+            warnings.add("Skipped page " + page.pageNumber() + " because the page owner could not be identified.");
+            return Optional.empty();
+        }
+
+        return switch (section.kind()) {
+            case MEDICAL -> parseMedicalCandidate(page, section, personInfo, warnings);
+            case INSURANCE -> parseInsuranceCandidate(page, section, personInfo, warnings);
+            case EDUCATION -> parseEducationCandidate(page, section, personInfo, warnings);
+            case CREDIT_CARD -> parseCreditCardCandidate(page, section, personInfo, warnings);
+        };
+    }
+
+    private Optional<ParsedDeductionCandidate> parseMedicalCandidate(
+        ExtractedPageText page,
+        SectionDescriptor section,
+        PersonInfo personInfo,
+        List<String> warnings
+    ) {
+        List<String> bodyLines = extractSectionBody(page.lines(), List.of("의료비 지출내역"));
+        AmountExtraction total = findExactTotal(bodyLines, "인별합계금액").orElse(null);
+        if (total == null || total.amount() == 0L) {
+            warnings.add("Skipped medical page " + page.pageNumber() + " because the per-person total was not found.");
+            return Optional.empty();
+        }
+
+        return Optional.of(buildCandidate(page, section, personInfo, total.amount(), total.rawLine(), Map.of()));
+    }
+
+    private Optional<ParsedDeductionCandidate> parseInsuranceCandidate(
+        ExtractedPageText page,
+        SectionDescriptor section,
+        PersonInfo personInfo,
+        List<String> warnings
+    ) {
+        List<String> bodyLines = extractSectionBody(
+            page.lines(),
+            List.of(
+                "보장성보험 납입내역",
+                "보장성보험)납입내역",
+                "장애인전용보장성보험)납입내역"
+            )
+        );
+        AmountExtraction total = findExactTotal(bodyLines, "인별합계금액").orElse(null);
+        if (total == null || total.amount() == 0L) {
+            warnings.add("Skipped insurance page " + page.pageNumber() + " because the per-person total was not found.");
+            return Optional.empty();
+        }
+
+        return Optional.of(buildCandidate(page, section, personInfo, total.amount(), total.rawLine(), Map.of()));
+    }
+
+    private Optional<ParsedDeductionCandidate> parseEducationCandidate(
+        ExtractedPageText page,
+        SectionDescriptor section,
+        PersonInfo personInfo,
+        List<String> warnings
+    ) {
+        List<String> bodyLines = extractSectionBody(
+            page.lines(),
+            List.of(
+                "교육비 지출내역",
+                "직업훈련비 납입내역",
+                "교복구입비 지출내역",
+                "학자금대출 원리금상환내역"
+            )
+        );
+
+        List<String> totalLines = bodyLines.stream()
+            .filter(this::isEducationTotalLine)
+            .toList();
+
+        long amount = totalLines.stream()
+            .map(this::extractTailAmount)
+            .flatMap(Optional::stream)
+            .mapToLong(AmountExtraction::amount)
+            .sum();
+
+        if (amount == 0L) {
+            warnings.add("Skipped education page " + page.pageNumber() + " because no education total was found.");
+            return Optional.empty();
+        }
+
+        Map<String, Object> parsedAttributes = new LinkedHashMap<>();
+        parsedAttributes.put("educationSubType", resolveEducationSubType(section.rawLabel(), bodyLines));
+        parsedAttributes.put("educationTotalLines", totalLines);
+
+        String rawLine = String.join(" | ", totalLines);
+        return Optional.of(buildCandidate(page, section, personInfo, amount, rawLine, parsedAttributes));
+    }
+
+    private Optional<ParsedDeductionCandidate> parseCreditCardCandidate(
+        ExtractedPageText page,
+        SectionDescriptor section,
+        PersonInfo personInfo,
+        List<String> warnings
+    ) {
+        SummaryExtraction summary = extractCreditCardSummary(page.lines()).orElse(null);
+        if (summary == null || summary.amount() == 0L) {
+            warnings.add("Skipped card page " + page.pageNumber() + " because the summary total was not found.");
+            return Optional.empty();
+        }
+
+        return Optional.of(buildCandidate(page, section, personInfo, summary.amount(), summary.rawLine(), summary.attributes()));
+    }
+
+    private ParsedDeductionCandidate buildCandidate(
+        ExtractedPageText page,
+        SectionDescriptor section,
+        PersonInfo personInfo,
+        long amount,
+        String rawLine,
+        Map<String, Object> parsedAttributes
+    ) {
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("personName", personInfo.name());
+        attributes.put("personResidentId", personInfo.residentId());
+        attributes.put("sectionKind", section.kind().name());
+        attributes.put("sectionLabel", section.rawLabel());
+        attributes.put("calculationSupported", section.calculationSupported());
+        attributes.put("quickApproveSupported", section.quickApproveSupported());
+        attributes.putAll(parsedAttributes);
+
+        String subType = section.kind() == SectionKind.EDUCATION
+            ? (String) attributes.getOrDefault("educationSubType", section.subType())
+            : section.subType();
+
+        return new ParsedDeductionCandidate(
+            section.deductionType(),
+            subType,
+            amount,
+            null,
+            buildSourceName(personInfo.name(), section.displayLabel()),
+            EvidenceStatus.SUBMITTED,
+            ImportReviewDecision.needsReview("MEDIUM", section.reviewReason()),
+            page.pageNumber(),
+            section.rawLabel(),
+            rawLine,
+            attributes
+        );
+    }
+
+    private Optional<AmountExtraction> findExactTotal(List<String> lines, String totalLabel) {
+        String compactLabel = compact(totalLabel);
+
+        for (int index = lines.size() - 1; index >= 0; index--) {
+            String line = lines.get(index);
+            if (!compact(line).startsWith(compactLabel)) {
+                continue;
+            }
+            Optional<AmountExtraction> amount = extractTailAmount(line);
+            if (amount.isPresent()) {
+                return amount;
             }
         }
 
-        return matches;
+        return Optional.empty();
     }
 
-    private Optional<ScoredCandidate> buildCandidate(
-        TaxSession session,
-        int pageNumber,
-        String sectionTitle,
-        String line,
-        CandidateRule rule
-    ) {
-        if (shouldSkipLine(line)) {
+    private boolean isEducationTotalLine(String line) {
+        String compactLine = compact(line);
+        return compactLine.contains("합계금액") && countAmounts(line) >= 1;
+    }
+
+    private Optional<SummaryExtraction> extractCreditCardSummary(List<String> lines) {
+        int summaryHeaderIndex = findLineIndex(lines, List.of("신용카드 등 사용금액 집계", "현금영수증 사용금액 집계"));
+        if (summaryHeaderIndex < 0) {
             return Optional.empty();
         }
 
-        Optional<Long> amount = extractAmount(line);
-        if (amount.isEmpty()) {
+        int nextSectionIndex = lines.size();
+        for (int index = summaryHeaderIndex + 1; index < lines.size(); index++) {
+            if (lines.get(index).startsWith("■")) {
+                nextSectionIndex = index;
+                break;
+            }
+        }
+
+        String headerLine = null;
+        String amountLine = null;
+        for (int index = summaryHeaderIndex + 1; index < nextSectionIndex; index++) {
+            String line = lines.get(index);
+            if (headerLine == null && compact(line).contains("합계금액")) {
+                headerLine = line;
+                continue;
+            }
+            if (headerLine != null && countAmounts(line) >= 2) {
+                amountLine = line;
+                break;
+            }
+        }
+
+        if (!StringUtils.hasText(headerLine) || !StringUtils.hasText(amountLine)) {
             return Optional.empty();
         }
 
-        int score = scoreLine(line, sectionTitle, rule);
-        if (score < 40) {
-            return Optional.empty();
+        List<String> labels = extractSummaryLabels(headerLine);
+        List<Long> amounts = extractAllAmounts(amountLine);
+        long totalAmount = amounts.isEmpty() ? 0L : amounts.getLast();
+
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        if (!labels.isEmpty() && labels.size() == amounts.size()) {
+            Map<String, Long> categoryTotals = new LinkedHashMap<>();
+            for (int index = 0; index < labels.size(); index++) {
+                categoryTotals.put(labels.get(index), amounts.get(index));
+            }
+            attributes.put("categoryTotals", categoryTotals);
         }
 
-        LocalDate usedAt = extractDate(line).orElse(null);
-        String sourceName = extractSourceName(sectionTitle, line, rule, amount.get(), usedAt);
-
-        ParsedDeductionCandidate candidate = new ParsedDeductionCandidate(
-            rule.deductionType(),
-            rule.subType(),
-            amount.get(),
-            usedAt,
-            sourceName,
-            EvidenceStatus.SUBMITTED,
-            ImportReviewDecision.needsReview(
-                "MEDIUM",
-                "실제 PDF 텍스트에서 추출한 1차 후보입니다. 금액과 공제 항목을 검토한 뒤 승인 여부를 결정해 주세요."
-            ),
-            pageNumber,
-            sectionTitle,
-            line
-        );
-
-        return Optional.of(new ScoredCandidate(candidate, score, false));
+        return Optional.of(new SummaryExtraction(totalAmount, headerLine + " => " + amountLine, attributes));
     }
 
-    private Optional<CandidateRule> detectRule(String line) {
-        String normalized = normalizeForMatch(line);
-        String compact = compactForMatch(line);
-        return CANDIDATE_RULES.stream()
-            .filter(rule -> rule.keywords().stream().anyMatch(keyword ->
-                normalized.contains(keyword.toLowerCase(Locale.ROOT))
-                    || compact.contains(keyword.replace(" ", "").toLowerCase(Locale.ROOT))
-            ))
-            .findFirst();
+    private List<String> extractSummaryLabels(String headerLine) {
+        String normalized = normalizeLine(headerLine)
+            .replace("(", " ")
+            .replace(")", " ")
+            .replace(":", " ");
+
+        List<String> labels = new ArrayList<>();
+        for (String token : normalized.split("\\s+")) {
+            if (StringUtils.hasText(token)) {
+                labels.add(token);
+            }
+        }
+        return labels;
     }
 
-    private boolean shouldSkipLine(String line) {
-        String normalized = normalizeForMatch(line);
-        String compact = compactForMatch(line);
-
-        return RESIDENT_ID_PATTERN.matcher(line).find()
-            || PAGE_NUMBER_PATTERN.matcher(line.trim()).matches()
-            || containsAny(normalized, compact, List.of(
-                "주민등록번호",
-                "주민등록",
-                "인적사항",
-                "조회기간",
-                "일련번호",
-                "조회되지않는내역",
-                "소득공제대상금액",
-                "영수증발급기관"
-            ));
+    private Optional<AmountExtraction> extractTailAmount(String line) {
+        List<Long> amounts = extractAllAmounts(line);
+        if (amounts.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new AmountExtraction(amounts.getLast(), normalizeLine(line)));
     }
 
-    private Optional<Long> extractAmount(String line) {
-        return AMOUNT_PATTERN.matcher(line)
-            .results()
-            .map(MatchResult::group)
-            .map(this::parseAmount)
-            .filter(amount -> amount >= 10_000L)
-            .max(Comparator.naturalOrder());
+    private List<Long> extractAllAmounts(String line) {
+        Matcher matcher = AMOUNT_PATTERN.matcher(line);
+        List<Long> amounts = new ArrayList<>();
+        while (matcher.find()) {
+            amounts.add(parseAmount(matcher.group(1)));
+        }
+        return amounts;
     }
 
     private long parseAmount(String amountText) {
-        String digitsOnly = amountText.replaceAll("[^0-9]", "");
-        return digitsOnly.isBlank() ? 0L : Long.parseLong(digitsOnly);
-    }
-
-    private int scoreLine(String line, String sectionTitle, CandidateRule rule) {
-        String normalized = normalizeForMatch(line);
-        String compact = compactForMatch(line);
-        String sectionNormalized = normalizeForMatch(sectionTitle);
-        String sectionCompact = compactForMatch(sectionTitle);
-
-        int score = 20;
-        if (StringUtils.hasText(sectionTitle)) {
-            score += 20;
-        }
-        if (containsAny(sectionNormalized, sectionCompact, rule.keywords())) {
-            score += 15;
-        }
-        if (containsAny(normalized, compact, rule.keywords())) {
-            score += 30;
-        }
-        if (containsAny(normalized, compact, List.of("총합계", "grand total"))) {
-            score += 140;
-        } else if (containsAny(normalized, compact, List.of("합계", "subtotal", "total"))) {
-            score += 90;
-        }
-        if (containsAny(normalized, compact, List.of("연말정산"))) {
-            score += 20;
-        }
-        if (MONTH_LINE_PATTERN.matcher(line).find()) {
-            score -= 25;
-        }
-        if (countAmounts(line) >= 3 && !containsAny(normalized, compact, List.of("합계", "총합계"))) {
-            score -= 15;
-        }
-        if (containsAny(normalized, compact, List.of("단위:원", "내역", "조회기간"))) {
-            score -= 10;
-        }
-
-        return score;
+        return Long.parseLong(amountText.replace(",", ""));
     }
 
     private int countAmounts(String line) {
-        return (int) AMOUNT_PATTERN.matcher(line).results().count();
+        return extractAllAmounts(line).size();
     }
 
-    private Optional<LocalDate> extractDate(String line) {
-        java.util.regex.Matcher matcher = DATE_PATTERN.matcher(line);
-        if (!matcher.find()) {
+    private List<String> extractSectionBody(List<String> lines, List<String> headerKeywords) {
+        int headerIndex = findLineIndex(lines, headerKeywords);
+        if (headerIndex < 0) {
+            return List.of();
+        }
+
+        List<String> body = new ArrayList<>();
+        for (int index = headerIndex + 1; index < lines.size(); index++) {
+            String line = lines.get(index);
+            if (line.startsWith("■") || line.startsWith("일련번호") || PAGE_NUMBER_PATTERN.matcher(line).matches()) {
+                break;
+            }
+            if (line.matches("^[0-9]+\\..*")) {
+                break;
+            }
+            body.add(line);
+        }
+        return body;
+    }
+
+    private int findLineIndex(List<String> lines, List<String> keywords) {
+        List<String> compactKeywords = keywords.stream()
+            .map(this::compact)
+            .toList();
+
+        for (int index = 0; index < lines.size(); index++) {
+            String compactLine = compact(lines.get(index));
+            if (compactKeywords.stream().anyMatch(compactLine::contains)) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    private Optional<String> extractSectionLabel(List<String> lines) {
+        int limit = Math.min(lines.size(), 6);
+        for (int index = 0; index < limit; index++) {
+            Matcher matcher = BRACKET_TITLE_PATTERN.matcher(lines.get(index));
+            if (matcher.find()) {
+                return Optional.of(normalizeSectionLabel(matcher.group(1)));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private SectionDescriptor classifySection(String sectionLabel) {
+        String compactLabel = compact(sectionLabel);
+
+        if (compactLabel.equals("의료비")) {
+            return new SectionDescriptor(
+                SectionKind.MEDICAL,
+                DeductionType.MEDICAL_EXPENSE,
+                sectionLabel,
+                "의료비",
+                "MEDICAL_TOTAL",
+                true,
+                true,
+                "Medical expense totals were extracted from the Hometax PDF. Please confirm reimbursements and eligibility."
+            );
+        }
+
+        if (compactLabel.contains("보장성보험")) {
+            return new SectionDescriptor(
+                SectionKind.INSURANCE,
+                DeductionType.INSURANCE,
+                sectionLabel,
+                "보장성 보험",
+                "INSURANCE_PREMIUM",
+                true,
+                true,
+                "Insurance premium totals were extracted from the Hometax PDF. Please confirm insured dependents and policy type."
+            );
+        }
+
+        if (compactLabel.contains("교육비")
+            || compactLabel.contains("직업훈련비")
+            || compactLabel.contains("교복구입비")
+            || compactLabel.contains("수능응시료")
+            || compactLabel.contains("대학입학전형료")) {
+            return new SectionDescriptor(
+                SectionKind.EDUCATION,
+                DeductionType.EDUCATION_EXPENSE,
+                sectionLabel,
+                resolveEducationDisplayLabel(compactLabel),
+                "SCHOOL",
+                true,
+                true,
+                "Education expense totals were extracted from the Hometax PDF. Please confirm the education subtype and deduction limit."
+            );
+        }
+
+        if (compactLabel.contains("신용카드")) {
+            return new SectionDescriptor(
+                SectionKind.CREDIT_CARD,
+                DeductionType.CREDIT_CARD,
+                sectionLabel,
+                "신용카드",
+                "CREDIT_CARD",
+                false,
+                false,
+                "Credit card usage totals were imported for review. Calculation engine support will be connected in phase 2."
+            );
+        }
+
+        if (compactLabel.contains("직불카드등(제로페이사용분)")) {
+            return new SectionDescriptor(
+                SectionKind.CREDIT_CARD,
+                DeductionType.CREDIT_CARD,
+                sectionLabel,
+                "제로페이",
+                "ZERO_PAY",
+                false,
+                false,
+                "Zero-pay usage totals were imported for review. Calculation engine support will be connected in phase 2."
+            );
+        }
+
+        if (compactLabel.contains("직불카드등")) {
+            return new SectionDescriptor(
+                SectionKind.CREDIT_CARD,
+                DeductionType.CREDIT_CARD,
+                sectionLabel,
+                "직불카드",
+                "DEBIT_CARD",
+                false,
+                false,
+                "Debit card usage totals were imported for review. Calculation engine support will be connected in phase 2."
+            );
+        }
+
+        if (compactLabel.contains("현금영수증")) {
+            return new SectionDescriptor(
+                SectionKind.CREDIT_CARD,
+                DeductionType.CREDIT_CARD,
+                sectionLabel,
+                "현금영수증",
+                "CASH_RECEIPT",
+                false,
+                false,
+                "Cash-receipt totals were imported for review. Calculation engine support will be connected in phase 2."
+            );
+        }
+
+        return null;
+    }
+
+    private String resolveEducationDisplayLabel(String compactLabel) {
+        if (compactLabel.contains("직업훈련비")) {
+            return "직업훈련비";
+        }
+        if (compactLabel.contains("교복구입비")) {
+            return "교복구입비";
+        }
+        if (compactLabel.contains("학자금대출")) {
+            return "학자금대출 상환";
+        }
+        if (compactLabel.contains("수능응시료") || compactLabel.contains("대학입학전형료")) {
+            return "입학전형료";
+        }
+        return "교육비";
+    }
+
+    private String resolveEducationSubType(String sectionLabel, List<String> bodyLines) {
+        String compactLabel = compact(sectionLabel);
+        String joined = compact(String.join(" ", bodyLines));
+
+        if (compactLabel.contains("직업훈련비") || compactLabel.contains("학자금대출")) {
+            return "SELF_EDUCATION";
+        }
+        if (compactLabel.contains("교복구입비")) {
+            return "SCHOOL";
+        }
+        if (compactLabel.contains("수능응시료") || compactLabel.contains("대학입학전형료")) {
+            return joined.contains("졸업예정") ? "SCHOOL" : "UNIVERSITY";
+        }
+        if (joined.contains("대학원") || joined.contains("전문대학") || joined.contains("대학교") || joined.contains("학점은행제")) {
+            return "UNIVERSITY";
+        }
+        if (joined.contains("유치원")) {
+            return "PRESCHOOL";
+        }
+        if (joined.contains("고등학교") || joined.contains("중학교") || joined.contains("초등학교") || joined.contains("현장체험학습비")) {
+            return "SCHOOL";
+        }
+        if (joined.contains("학원")) {
+            return "ACADEMY";
+        }
+        return "SCHOOL";
+    }
+
+    private Optional<PersonInfo> extractPersonInfo(List<String> lines) {
+        int personIndex = findLineIndex(lines, List.of("인적사항"));
+        if (personIndex < 0) {
             return Optional.empty();
         }
 
-        int year = Integer.parseInt(matcher.group(1));
-        int month = Integer.parseInt(matcher.group(2));
-        int day = Integer.parseInt(matcher.group(3));
+        int endExclusive = Math.min(lines.size(), personIndex + 6);
+        for (int index = personIndex + 1; index < endExclusive; index++) {
+            String line = normalizeLine(lines.get(index));
+            Matcher matcher = RESIDENT_ID_PATTERN.matcher(line);
+            if (!matcher.find()) {
+                continue;
+            }
 
-        try {
-            return Optional.of(LocalDate.of(year, month, day));
-        } catch (RuntimeException exception) {
-            return Optional.empty();
-        }
-    }
-
-    private String extractSourceName(
-        String sectionTitle,
-        String line,
-        CandidateRule rule,
-        long amount,
-        LocalDate usedAt
-    ) {
-        String fromLine = cleanupSource(line, amount, usedAt, rule);
-        if (StringUtils.hasText(fromLine) && !isGenericSummaryWord(fromLine)) {
-            return truncate(fromLine);
+            String residentId = matcher.group(1);
+            String name = normalizeLine(line.substring(0, matcher.start()))
+                .replace("성 명", "")
+                .trim();
+            if (StringUtils.hasText(name)) {
+                return Optional.of(new PersonInfo(name, residentId));
+            }
         }
 
-        String fromSection = cleanupSectionTitle(sectionTitle, usedAt);
-        if (StringUtils.hasText(fromSection)) {
-            return truncate(fromSection);
+        return Optional.empty();
+    }
+
+    private String buildSourceName(String personName, String displayLabel) {
+        if (StringUtils.hasText(personName)) {
+            return personName + " · " + displayLabel;
         }
-
-        return rule.subType() + " 추출 1건";
+        return displayLabel;
     }
 
-    private String cleanupSource(String raw, long amount, LocalDate usedAt, CandidateRule rule) {
-        String cleaned = normalizeWhitespace(raw);
-        cleaned = cleaned.replace(Long.toString(amount), " ");
-        cleaned = cleaned.replace(String.format("%,d", amount), " ");
-        cleaned = cleaned.replace("원", " ");
-        if (usedAt != null) {
-            cleaned = cleaned.replace(usedAt.toString(), " ");
-            cleaned = cleaned.replace(usedAt.toString().replace("-", "."), " ");
-            cleaned = cleaned.replace(usedAt.toString().replace("-", "/"), " ");
-        }
-        for (String keyword : rule.keywords()) {
-            cleaned = cleaned.replace(keyword, " ");
-        }
-        cleaned = cleaned
-            .replace("총합계", " ")
-            .replace("합계", " ")
-            .replace("연말정산", " ")
-            .replace("[", " ")
-            .replace("]", " ")
-            .replace("(", " ")
-            .replace(")", " ");
-        cleaned = CIRCLED_NUMBER_PATTERN.matcher(cleaned).replaceAll(" ");
-        cleaned = cleaned.replaceAll("(?i)\\bgrand total\\b", " ");
-        cleaned = cleaned.replaceAll("(?i)\\bsubtotal\\b", " ");
-        cleaned = cleaned.replaceAll("(?i)\\btotal\\b", " ");
-        cleaned = cleaned.replaceAll("[,:|·]", " ");
-        cleaned = cleaned.replaceAll("\\s+", " ").trim();
-        return cleaned;
-    }
-
-    private String cleanupSectionTitle(String raw, LocalDate usedAt) {
-        String cleaned = normalizeWhitespace(raw);
-        if (usedAt != null) {
-            cleaned = cleaned.replace(usedAt.toString(), " ");
-            cleaned = cleaned.replace(usedAt.toString().replace("-", "."), " ");
-            cleaned = cleaned.replace(usedAt.toString().replace("-", "/"), " ");
-        }
-
-        cleaned = cleaned
-            .replace("2025년 귀속 소득", " ")
-            .replace("세액공제증명서류", " ")
-            .replace("기본내역", " ")
-            .replace("내역", " ")
-            .replace("단위:원", " ")
-            .replace("단위원", " ")
-            .replace("[", " ")
-            .replace("]", " ")
-            .replace("(", " ")
-            .replace(")", " ");
-        cleaned = CIRCLED_NUMBER_PATTERN.matcher(cleaned).replaceAll(" ");
-        cleaned = cleaned.replaceAll("[,:|·]", " ");
-        cleaned = cleaned.replaceAll("\\s+", " ").trim();
-        return cleaned;
-    }
-
-    private boolean isMeaningfulSectionTitle(String line) {
-        String normalized = normalizeForMatch(line);
-        String compact = compactForMatch(line);
-
-        if (CIRCLED_NUMBER_PATTERN.matcher(line).find()) {
-            return false;
-        }
-
-        return !containsAny(normalized, compact, List.of(
-            "월별",
-            "고지금액",
-            "납부금액",
-            "건강보험료①",
-            "장기요양보험료②",
-            "건강보험료③",
-            "장기요양보험료④"
-        ));
-    }
-
-    private boolean isGenericSummaryWord(String value) {
-        String compact = compactForMatch(value);
-        return compact.isBlank()
-            || compact.equals("총합계")
-            || compact.equals("합계")
-            || compact.equals("연말정산")
-            || compact.equals("grandtotal")
-            || compact.equals("total")
-            || compact.equals("subtotal");
-    }
-
-    private String truncate(String value) {
-        return value.length() > 100 ? value.substring(0, 100) : value;
-    }
-
-    private boolean containsAny(String normalized, String compact, List<String> keywords) {
-        return keywords.stream().anyMatch(keyword -> {
-            String lowerKeyword = keyword.toLowerCase(Locale.ROOT);
-            String compactKeyword = lowerKeyword.replace(" ", "");
-            return normalized.contains(lowerKeyword) || compact.contains(compactKeyword);
-        });
+    private String normalizeDocumentText(String value) {
+        return value == null ? "" : value.replace('\u00A0', ' ').strip();
     }
 
     private List<String> splitLines(String text) {
         return text.lines()
-            .map(this::normalizeWhitespace)
+            .map(this::normalizeLine)
             .filter(StringUtils::hasText)
             .toList();
     }
 
-    private String normalizeWhitespace(String value) {
-        return value == null ? "" : value.replace('\u00A0', ' ').trim();
+    private String normalizeLine(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace('\u00A0', ' ')
+            .replace('\u3000', ' ')
+            .trim()
+            .replaceAll("\\s+", " ");
     }
 
-    private String normalizeForMatch(String value) {
-        return normalizeWhitespace(value).toLowerCase(Locale.ROOT);
+    private String normalizeSectionLabel(String value) {
+        return normalizeLine(value)
+            .replace(" :", ":")
+            .replace(": ", ":")
+            .replace(" ,", ",")
+            .replace(", ", ", ");
     }
 
-    private String compactForMatch(String value) {
-        return normalizeForMatch(value).replace(" ", "");
+    private String compact(String value) {
+        return normalizeLine(value).replace(" ", "").toLowerCase(Locale.ROOT);
+    }
+
+    private enum SectionKind {
+        MEDICAL,
+        INSURANCE,
+        EDUCATION,
+        CREDIT_CARD
     }
 
     private record ExtractedPageText(
@@ -471,17 +778,34 @@ public class HometaxPdfImportParser {
     ) {
     }
 
-    private record CandidateRule(
+    private record SectionDescriptor(
+        SectionKind kind,
         DeductionType deductionType,
+        String rawLabel,
+        String displayLabel,
         String subType,
-        List<String> keywords
+        boolean calculationSupported,
+        boolean quickApproveSupported,
+        String reviewReason
     ) {
     }
 
-    private record ScoredCandidate(
-        ParsedDeductionCandidate parsedCandidate,
-        int score,
-        boolean excludedResidentIdLine
+    private record PersonInfo(
+        String name,
+        String residentId
+    ) {
+    }
+
+    private record AmountExtraction(
+        long amount,
+        String rawLine
+    ) {
+    }
+
+    private record SummaryExtraction(
+        long amount,
+        String rawLine,
+        Map<String, Object> attributes
     ) {
     }
 }

@@ -1,17 +1,43 @@
 {
-  "asOfDate": "2026-04-06",
+  "asOfDate": "2026-04-09",
   "defaultTaxYear": 2025,
   "defaultFilingYear": 2026,
   "lawContext": "2025 income / 2026 filing",
+  "defaultRuleVersion": "2025.01",
   "artifactRoot": ".local/harness",
   "artifactPathPattern": ".local/harness/<date>/<run-id>",
   "artifactDateFolderFormat": "YYYY-MM-DD",
   "runIdFormat": "YYYYMMDD-HHmmss-<worktag>",
+  "lawPackRoot": "plugins/year-end-harness/law-packs",
+  "ruleVersionPattern": "YYYY.MM[.patch]",
+  "snapshotCadence": "monthly",
+  "publishPolicy": {
+    "requiresHumanReview": true,
+    "useRuleEffectiveDateWindow": true,
+    "allowMidMonthPatch": true
+  },
   "allowedOfficialSources": [
-    "NTS",
-    "Korea Law Information Center",
-    "MOEF"
+    "NTS Guide",
+    "Hometax",
+    "National Law Information Center API",
+    "MOLEG Interpretation API",
+    "MOEF RSS"
   ],
+  "officialSourcePriority": [
+    "NTS Guide",
+    "Hometax",
+    "National Law Information Center API",
+    "MOLEG Interpretation API",
+    "MOEF RSS"
+  ],
+  "officialSourceRegistry": {
+    "ntsYearEndGuide": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=238938",
+    "ntsFileDataCatalog": "https://www.data.go.kr/data/15050749/fileData.do",
+    "lawApiGuide": "https://open.law.go.kr/LSO/openApi/guideList.do",
+    "lawApiInfo": "https://open.law.go.kr/LSO/information/guide.do",
+    "ntsInterpretationApi": "https://www.data.go.kr/data/15140313/openapi.do",
+    "moefRss": "https://mofe.go.kr/mn/siteguide/rssService.do?menuNo=2060000"
+  },
   "unsupportedDeductionTypes": [
     "DONATION",
     "CREDIT_CARD"

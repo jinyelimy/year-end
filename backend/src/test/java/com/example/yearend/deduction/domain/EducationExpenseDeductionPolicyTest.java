@@ -41,4 +41,27 @@ class EducationExpenseDeductionPolicyTest {
         assertThat(decision.eligibleAmount()).isEqualTo(10_000_000L);
         assertThat(decision.appliedAmount()).isEqualTo(9_000_000L);
     }
+
+    @Test
+    @DisplayName("supports self education import subtype without applying a cap")
+    void evaluateSelfEducationSubtype() {
+        EducationExpenseDeductionPolicy policy = new EducationExpenseDeductionPolicy(
+            new DependentIncomeEligibilityChecker(),
+            new EducationInstitutionChecker()
+        );
+
+        TaxContext context = new TaxContext(2025, 50_000_000L, 1_500_000L, List.of(), List.of());
+
+        DeductionItem item = new DeductionItem();
+        item.setId(UUID.randomUUID());
+        item.setDeductionType(DeductionType.EDUCATION_EXPENSE);
+        item.setSubType("SELF_EDUCATION");
+        item.setAmount(2_020_255L);
+
+        DeductionDecision decision = policy.evaluate(context, item);
+
+        assertThat(decision.eligible()).isTrue();
+        assertThat(decision.eligibleAmount()).isEqualTo(2_020_255L);
+        assertThat(decision.appliedAmount()).isEqualTo(2_020_255L);
+    }
 }

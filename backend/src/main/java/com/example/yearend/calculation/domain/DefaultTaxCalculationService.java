@@ -18,7 +18,10 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
 
         long taxableIncomeAmount = Math.max(0L, command.totalSalary() - totalDeductionAmount);
         long calculatedTaxAmount = progressiveTax(taxableIncomeAmount);
-        long taxCreditAmount = 0L;
+        long taxCreditAmount = command.deductionDecisions().stream()
+            .filter(DeductionDecision::eligible)
+            .mapToLong(DeductionDecision::taxCreditContribution)
+            .sum();
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 

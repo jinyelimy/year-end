@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,6 +39,7 @@ public class DeductionItemService {
     private final DocumentChecklistService documentChecklistService;
     private final HometaxPdfImportParser hometaxPdfImportParser;
     private final DeductionItemReviewPolicy deductionItemReviewPolicy;
+    private final DeductionPolicyRegistry deductionPolicyRegistry;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -103,9 +105,11 @@ public class DeductionItemService {
         UUID importBatchId = UUID.randomUUID();
         OffsetDateTime importedAt = OffsetDateTime.now();
         ParsedHometaxDocument parsedDocument = hometaxPdfImportParser.parse(session, file, fileName, importedAt);
+        List<Dependent> dependents = dependentService.getEntities(email, sessionId);
+        String filerName = extractFilerName(session);
 
         List<DeductionItem> createdItems = parsedDocument.candidates().stream()
-            .map(candidate -> createImportedItem(session, importBatchId, parsedDocument, candidate))
+            .map(candidate -> createImportedItem(session, importBatchId, parsedDocument, candidate, dependents, filerName))
             .toList();
 
         synchronizeDocuments(session);
@@ -147,18 +151,24 @@ public class DeductionItemService {
         TaxSession session,
         UUID importBatchId,
         ParsedHometaxDocument parsedDocument,
-        ParsedDeductionCandidate candidate
+        ParsedDeductionCandidate candidate,
+        List<Dependent> dependents,
+        String filerName
     ) {
+        Dependent matchedDependent = resolveImportedDependent(candidate, dependents, filerName).orElse(null);
+
         DeductionItem item = new DeductionItem();
         item.setTaxSession(session);
         item.setDeductionType(candidate.deductionType());
-        item.setDependent(null);
+        item.setDependent(matchedDependent);
         item.setSubType(candidate.subType());
         item.setAmount(candidate.amount());
         item.setUsedAt(candidate.usedAt());
         item.setSourceName(candidate.sourceName());
         item.setEvidenceStatus(candidate.evidenceStatus());
-        item.setAttributesJsonb(writeAttributes(buildImportedAttributes(importBatchId, parsedDocument, candidate)));
+        item.setAttributesJsonb(
+            writeAttributes(buildImportedAttributes(importBatchId, parsedDocument, candidate, matchedDependent, filerName))
+        );
         deductionItemRepository.save(item);
         return item;
     }
@@ -166,7 +176,9 @@ public class DeductionItemService {
     private Map<String, Object> buildImportedAttributes(
         UUID importBatchId,
         ParsedHometaxDocument parsedDocument,
-        ParsedDeductionCandidate candidate
+        ParsedDeductionCandidate candidate,
+        Dependent matchedDependent,
+        String filerName
     ) {
         Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("sourceType", "HOMETAX");
@@ -185,7 +197,111 @@ public class DeductionItemService {
         attributes.put("pageNumber", candidate.pageNumber());
         attributes.put("rawSectionTitle", candidate.rawSectionTitle());
         attributes.put("rawLineText", candidate.rawLineText());
+        attributes.putAll(candidate.parsedAttributes());
+
+        boolean calculationSupported = deductionPolicyRegistry.supports(candidate.deductionType());
+        Object parsedCalculationSupported = candidate.parsedAttributes().get("calculationSupported");
+        if (parsedCalculationSupported instanceof Boolean candidateValue) {
+            calculationSupported = calculationSupported && candidateValue;
+        }
+        attributes.put("calculationSupported", calculationSupported);
+        if (!calculationSupported) {
+            attributes.put(
+                "calculationBlockedReason",
+                "This imported deduction is stored for review only until the calculation engine supports it."
+            );
+        }
+
+        if (matchedDependent != null) {
+            attributes.put("dependentMatchStatus", "MATCHED");
+            attributes.put("matchedDependentId", matchedDependent.getId().toString());
+            attributes.put("matchedDependentName", matchedDependent.getName());
+        } else if (isSelfImportedCandidate(candidate, filerName)) {
+            attributes.put("dependentMatchStatus", "SELF");
+        } else if (StringUtils.hasText(readCandidateAttribute(candidate, "personName"))) {
+            attributes.put("dependentMatchStatus", "UNMATCHED");
+        }
         return attributes;
+    }
+
+    private Optional<Dependent> resolveImportedDependent(
+        ParsedDeductionCandidate candidate,
+        List<Dependent> dependents,
+        String filerName
+    ) {
+        String personName = readCandidateAttribute(candidate, "personName");
+        if (!StringUtils.hasText(personName) || isSelfImportedCandidate(candidate, filerName)) {
+            return Optional.empty();
+        }
+
+        String residentBirthKey = extractResidentBirthKey(readCandidateAttribute(candidate, "personResidentId"));
+        List<Dependent> nameMatches = dependents.stream()
+            .filter(dependent -> personName.equals(dependent.getName()))
+            .toList();
+
+        if (StringUtils.hasText(residentBirthKey)) {
+            List<Dependent> exactMatches = nameMatches.stream()
+                .filter(dependent -> residentBirthKey.equals(toBirthKey(dependent)))
+                .toList();
+            if (exactMatches.size() == 1) {
+                return Optional.of(exactMatches.getFirst());
+            }
+        }
+
+        if (nameMatches.size() == 1) {
+            return Optional.of(nameMatches.getFirst());
+        }
+
+        if (StringUtils.hasText(residentBirthKey)) {
+            List<Dependent> birthMatches = dependents.stream()
+                .filter(dependent -> residentBirthKey.equals(toBirthKey(dependent)))
+                .toList();
+            if (birthMatches.size() == 1) {
+                return Optional.of(birthMatches.getFirst());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private boolean isSelfImportedCandidate(ParsedDeductionCandidate candidate, String filerName) {
+        String personName = readCandidateAttribute(candidate, "personName");
+        return StringUtils.hasText(filerName) && filerName.equals(personName);
+    }
+
+    private String readCandidateAttribute(ParsedDeductionCandidate candidate, String key) {
+        Object value = candidate.parsedAttributes().get(key);
+        return value == null ? null : value.toString();
+    }
+
+    private String extractFilerName(TaxSession session) {
+        try {
+            Map<?, ?> basicInfo = objectMapper.readValue(
+                Objects.requireNonNullElse(session.getBasicInfoJsonb(), "{}"),
+                Map.class
+            );
+            Object fullName = basicInfo.get("fullName");
+            return fullName == null ? null : fullName.toString().trim();
+        } catch (IOException exception) {
+            return null;
+        }
+    }
+
+    private String extractResidentBirthKey(String residentId) {
+        if (!StringUtils.hasText(residentId) || residentId.length() < 6) {
+            return null;
+        }
+        return residentId.substring(0, 6);
+    }
+
+    private String toBirthKey(Dependent dependent) {
+        if (dependent.getBirthDate() == null) {
+            return null;
+        }
+        String year = String.format("%04d", dependent.getBirthDate().getYear());
+        String month = String.format("%02d", dependent.getBirthDate().getMonthValue());
+        String day = String.format("%02d", dependent.getBirthDate().getDayOfMonth());
+        return year.substring(2) + month + day;
     }
 
     private void clearImportedItems(UUID sessionId) {

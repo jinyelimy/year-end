@@ -137,7 +137,15 @@ year-end/
 │  ├─ app/
 │  └─ lib/
 ├─ docs/
+│  ├─ analysis/
+│  ├─ architecture/
+│  ├─ guides/
+│  ├─ notes/
+│  ├─ references/
+│  ├─ samples/
 │  └─ images/
+├─ scripts/
+├─ AGENTS.md
 ├─ docker-compose.yml
 └─ README.md
 ```
@@ -209,10 +217,12 @@ npm run start
 
 ## 문서
 
-- `docs/year-end-simulator-blueprint.md`
-- `docs/deduction-rule-engine-design.md`
-- `docs/postgresql-erd-draft.md`
-- `docs/api-spec-draft.md`
+- `docs/analysis/project-analysis.md`
+- `docs/architecture/harness-engineering-design.md`
+- `docs/architecture/year-end-simulator-blueprint.md`
+- `docs/architecture/deduction-rule-engine-design.md`
+- `docs/architecture/postgresql-erd-draft.md`
+- `docs/architecture/api-spec-draft.md`
 
 ## 다음 작업 방향
 

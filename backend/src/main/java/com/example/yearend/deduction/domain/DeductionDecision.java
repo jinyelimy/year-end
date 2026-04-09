@@ -10,9 +10,10 @@ public record DeductionDecision(
     long requestedAmount,
     long eligibleAmount,
     long appliedAmount,
+    long taxCreditContribution,
     List<String> reasons
 ) {
     public static DeductionDecision rejected(UUID itemId, DeductionType type, long requestedAmount, List<String> reasons) {
-        return new DeductionDecision(itemId, type, false, requestedAmount, 0L, 0L, reasons);
+        return new DeductionDecision(itemId, type, false, requestedAmount, 0L, 0L, 0L, reasons);
     }
 }

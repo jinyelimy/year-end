@@ -28,4 +28,8 @@ public class DeductionPolicyRegistry {
         }
         return policy;
     }
+
+    public boolean supports(DeductionType deductionType) {
+        return policies.containsKey(deductionType);
+    }
 }

@@ -1,0 +1,15 @@
+{
+  "scenarioId": "S01-single-taxpayer",
+  "expectedRecords": [
+    {
+      "person": "고길동",
+      "mappingConfidence": "high",
+      "claimability": "taxpayer_claimable",
+      "evidenceStatus": "ready"
+    }
+  ],
+  "notes": [
+    "본인 명의 항목은 자동 합산 후보가 되어야 한다.",
+    "지원하지 않는 공제 타입은 review-only 또는 excluded로 남아야 한다."
+  ]
+}

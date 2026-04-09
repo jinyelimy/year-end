@@ -1,0 +1,32 @@
+{
+  "ruleSetId": "<tax-year>@<rule-version>",
+  "taxYear": 2025,
+  "filingYear": 2026,
+  "ruleVersion": "2025.01",
+  "status": "READY_FOR_REVIEW",
+  "generatedAt": "<iso-datetime>",
+  "generatedFrom": {
+    "sourceManifestPath": ".local/harness/<date>/<run-id>/source-manifest.json",
+    "previousRuleSetId": "<previous-rule-set-id-or-null>",
+    "diffPath": ".local/harness/<date>/<run-id>/diff-from-previous.md"
+  },
+  "rules": [
+    {
+      "deductionType": "INSURANCE",
+      "subType": "STANDARD",
+      "ruleCode": "INSURANCE_TAX_CREDIT",
+      "ruleCategory": "TAX_CREDIT",
+      "parameters": {
+        "annualLimit": 1000000,
+        "creditRate": 0.12
+      },
+      "effectiveFrom": "2026-01-01",
+      "effectiveTo": "2026-12-31",
+      "sourceRefs": [
+        "<source-id-1>",
+        "<source-id-2>"
+      ],
+      "confidence": "confirmed"
+    }
+  ]
+}

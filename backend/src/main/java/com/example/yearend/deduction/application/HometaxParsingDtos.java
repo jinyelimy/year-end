@@ -5,7 +5,9 @@ import com.example.yearend.deduction.domain.EvidenceStatus;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public final class HometaxParsingDtos {
@@ -75,8 +77,15 @@ public final class HometaxParsingDtos {
         ImportReviewDecision reviewDecision,
         Integer pageNumber,
         String rawSectionTitle,
-        String rawLineText
+        String rawLineText,
+        Map<String, Object> parsedAttributes
     ) {
+        public ParsedDeductionCandidate {
+            parsedAttributes = parsedAttributes == null
+                ? Map.of()
+                : Map.copyOf(new LinkedHashMap<>(parsedAttributes));
+        }
+
         public boolean isAutoApplied() {
             return reviewDecision.isAutoApplied();
         }

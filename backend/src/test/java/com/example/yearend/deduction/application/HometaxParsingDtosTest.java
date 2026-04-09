@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +31,8 @@ class HometaxParsingDtosTest {
             ImportReviewDecision.autoApplied("HIGH", "Matched cleanly"),
             1,
             "Medical expense details",
-            "Medical expense / Seoul General Hospital / 480000"
+            "Medical expense / Seoul General Hospital / 480000",
+            Map.of()
         );
 
         assertThat(candidate.isAutoApplied()).isTrue();
@@ -51,7 +53,8 @@ class HometaxParsingDtosTest {
             ImportReviewDecision.needsReview("MEDIUM", "School type needs manual review"),
             3,
             "Education expense details",
-            "Education / Mirae Academy / 2400000"
+            "Education / Mirae Academy / 2400000",
+            Map.of()
         );
 
         assertThat(candidate.isAutoApplied()).isFalse();
@@ -76,7 +79,8 @@ class HometaxParsingDtosTest {
             ImportReviewDecision.needsReview("MEDIUM", "Certificate not checked yet"),
             4,
             "Donation details",
-            "Donation / Sharing Foundation / 150000"
+            "Donation / Sharing Foundation / 150000",
+            Map.of()
         ));
 
         ParsedHometaxDocument document = new ParsedHometaxDocument(
