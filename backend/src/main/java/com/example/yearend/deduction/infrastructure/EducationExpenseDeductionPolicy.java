@@ -42,6 +42,7 @@ public class EducationExpenseDeductionPolicy extends AbstractDeductionPolicy {
     private long resolveLimit(String subType) {
         String normalized = subType == null ? "" : subType.trim().toUpperCase(Locale.ROOT);
         return switch (normalized) {
+            case "SELF_EDUCATION" -> Long.MAX_VALUE;
             case "UNIVERSITY" -> 9_000_000L;
             case "PRESCHOOL", "SCHOOL", "ACADEMY" -> 3_000_000L;
             default -> 0L;

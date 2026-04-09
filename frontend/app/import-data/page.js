@@ -22,10 +22,12 @@ import {
 } from "@/lib/yearEndApi";
 import {
   buildDeductionAttributes,
+  canQuickApproveImportItem,
   buildSuggestedImportHints,
   getConfidenceMeta,
   getDeductionSource,
   getImportBucket,
+  getQuickApproveBlockedReason,
   getImportReviewMeta,
   getImportReviewReason,
   getLatestImportSummary,
@@ -259,6 +261,13 @@ export default function ImportDataPage() {
 
   async function handleApprove(item) {
     if (!session?.id || isConfirmed) {
+      return;
+    }
+    if (!canQuickApproveImportItem(item)) {
+      setMessage({
+        type: "error",
+        text: getQuickApproveBlockedReason(item) || "Please review and save this item from the deductions page."
+      });
       return;
     }
 

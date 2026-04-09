@@ -6,6 +6,9 @@
 - Run id: <run-id>
 - Run directory: .local/harness/<date>/<run-id>
 - Target law context: <law-context>
+- Target tax year: <tax-year>
+- Target filing year: <filing-year>
+- Target rule version: <rule-version>
 - Requested scope: <requested-scope>
 
 ## Inputs
@@ -33,11 +36,23 @@
 
 ### 증빙 요구사항 표
 
+## Normalization Notes
+
+- Rule version decision: <why this month version was chosen>
+- Previous rule set: <previous version or first version>
+- Diff summary: <what changed>
+- Publish readiness: `READY_FOR_REVIEW | BLOCKED | PUBLISHED`
+
 ## Inferred Rules
 
 ## Open Questions
 
 ## Files
+
+- `.local/harness/<date>/<run-id>/source-manifest.json`
+- `.local/harness/<date>/<run-id>/normalized-rule-pack.json`
+- `.local/harness/<date>/<run-id>/diff-from-previous.md`
+- `plugins/year-end-harness/law-packs/<tax-year>/<rule-version>/...` (review 후 정본 승격 시)
 
 ## Validation
 
@@ -45,7 +60,7 @@
 === HARNESS RESULT ===
 STATUS   : warning
 SUMMARY  : Replace template placeholders and validate the tax pack before handoff.
-ARTIFACTS: .local/harness/<date>/<run-id>/agent-a-tax-pack.md
-NEXT     : Fill the report, run artifact validation, then hand off to Agent B.
+ARTIFACTS: .local/harness/<date>/<run-id>/agent-a-tax-pack.md, .local/harness/<date>/<run-id>/source-manifest.json, .local/harness/<date>/<run-id>/normalized-rule-pack.json
+NEXT     : Fill the report, verify rule normalization and diff, then hand off to Agent B.
 ======================
 ```

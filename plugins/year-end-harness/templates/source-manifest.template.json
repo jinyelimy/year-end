@@ -1,0 +1,22 @@
+{
+  "asOfDate": "2026-04-09",
+  "runId": "<run-id>",
+  "runDirectory": ".local/harness/<date>/<run-id>",
+  "taxYear": 2025,
+  "filingYear": 2026,
+  "ruleVersion": "2025.04",
+  "generatedAt": "<iso-datetime>",
+  "sources": [
+    {
+      "sourceId": "<source-id>",
+      "sourceName": "<source-name>",
+      "authority": "<authority>",
+      "sourceUrl": "<https-url>",
+      "publishedAt": "<yyyy-mm-dd>",
+      "effectiveAt": "<yyyy-mm-dd-or-null>",
+      "checkedAt": "<iso-datetime>",
+      "contentType": "html",
+      "notes": "<notes>"
+    }
+  ]
+}

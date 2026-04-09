@@ -28,8 +28,13 @@ public class DeductionItemReviewPolicy {
             return true;
         }
 
-        Object reviewStatus = readAttributes(item).get("reviewStatus");
-        return !"PENDING".equals(reviewStatus) && !"EXCLUDED".equals(reviewStatus);
+        Map<String, Object> attributes = readAttributes(item);
+        Object reviewStatus = attributes.get("reviewStatus");
+        Object calculationSupported = attributes.get("calculationSupported");
+
+        return !"PENDING".equals(reviewStatus)
+            && !"EXCLUDED".equals(reviewStatus)
+            && !Boolean.FALSE.equals(calculationSupported);
     }
 
     public boolean isIncludedInDocumentChecklist(DeductionItem item) {

@@ -98,8 +98,8 @@ class SimulationServiceTest {
         DeductionItem manualMedical = deductionItem(DeductionType.MEDICAL_EXPENSE, 480_000L, "{}");
         List<DeductionItem> eligibleItems = List.of(approvedImported, manualMedical);
         List<DeductionDecision> decisions = List.of(
-            new DeductionDecision(approvedImported.getId(), DeductionType.INSURANCE, true, 2_545_170L, 2_545_170L, 2_545_170L, List.of()),
-            new DeductionDecision(manualMedical.getId(), DeductionType.MEDICAL_EXPENSE, true, 480_000L, 480_000L, 480_000L, List.of())
+            new DeductionDecision(approvedImported.getId(), DeductionType.INSURANCE, true, 2_545_170L, 0L, 0L, 120_000L, List.of()),
+            new DeductionDecision(manualMedical.getId(), DeductionType.MEDICAL_EXPENSE, true, 480_000L, 480_000L, 480_000L, 0L, List.of())
         );
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
@@ -110,13 +110,13 @@ class SimulationServiceTest {
         when(taxCalculationService.calculate(any())).thenReturn(
             new TaxCalculationOutcome(
                 50_000_000L,
-                3_025_170L,
-                46_974_830L,
-                2_818_490L,
-                0L,
-                2_818_490L,
+                480_000L,
+                49_520_000L,
+                2_971_200L,
+                120_000L,
+                2_851_200L,
                 3_000_000L,
-                181_510L,
+                148_800L,
                 List.of("ok")
             )
         );

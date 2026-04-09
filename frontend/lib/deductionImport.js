@@ -89,6 +89,28 @@ export function getImportReviewReason(item) {
   return parseDeductionAttributes(item).reviewReason || "";
 }
 
+export function isCalculationSupported(item) {
+  const attributes = parseDeductionAttributes(item);
+  return attributes.calculationSupported !== false;
+}
+
+export function canQuickApproveImportItem(item) {
+  const attributes = parseDeductionAttributes(item);
+  if (attributes.quickApproveSupported === false) {
+    return false;
+  }
+  return isCalculationSupported(item);
+}
+
+export function getQuickApproveBlockedReason(item) {
+  const attributes = parseDeductionAttributes(item);
+  return (
+    attributes.calculationBlockedReason ||
+    attributes.quickApproveBlockedReason ||
+    getImportReviewReason(item)
+  );
+}
+
 export function getLatestImportSummary(items = []) {
   const importedItems = items.filter(isImportedDeduction);
   if (importedItems.length === 0) {
@@ -127,7 +149,7 @@ export function isDeductionIncludedInCalculation(item) {
   }
 
   const reviewStatus = parseDeductionAttributes(item).reviewStatus || "APPROVED";
-  return reviewStatus !== "PENDING" && reviewStatus !== "EXCLUDED";
+  return reviewStatus !== "PENDING" && reviewStatus !== "EXCLUDED" && isCalculationSupported(item);
 }
 
 export function buildDeductionAttributes(currentAttributes = {}, overrides = {}) {
@@ -152,8 +174,7 @@ export function buildDeductionAttributes(currentAttributes = {}, overrides = {})
 }
 
 export function buildSuggestedImportHints(items = []) {
-  const includedItems = items.filter(isDeductionIncludedInCalculation);
-  const deductionTypes = new Set(includedItems.map((item) => item.deductionType));
+  const deductionTypes = new Set(items.map((item) => item.deductionType));
   const hints = [];
 
   if (!deductionTypes.has("CREDIT_CARD")) {

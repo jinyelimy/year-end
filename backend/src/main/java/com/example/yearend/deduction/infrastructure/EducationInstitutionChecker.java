@@ -11,7 +11,13 @@ import java.util.Set;
 @Component
 public class EducationInstitutionChecker implements EligibilityChecker {
 
-    private static final Set<String> SUPPORTED_TYPES = Set.of("PRESCHOOL", "SCHOOL", "UNIVERSITY", "ACADEMY");
+    private static final Set<String> SUPPORTED_TYPES = Set.of(
+        "PRESCHOOL",
+        "SCHOOL",
+        "UNIVERSITY",
+        "ACADEMY",
+        "SELF_EDUCATION"
+    );
 
     @Override
     public EligibilityCheckResult check(TaxContext context, DeductionItem item) {
