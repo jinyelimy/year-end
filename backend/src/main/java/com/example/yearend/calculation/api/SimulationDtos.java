@@ -40,6 +40,8 @@ public final class SimulationDtos {
         UUID resultId,
         int calculationVersion,
         String ruleVersion,
+        String ruleSetId,
+        String ruleSnapshotHash,
         long totalIncomeAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,

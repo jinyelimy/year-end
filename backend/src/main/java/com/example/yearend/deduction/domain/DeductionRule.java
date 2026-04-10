@@ -8,6 +8,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +34,10 @@ public class DeductionRule extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Integer taxYear;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tax_rule_set_id")
+    private TaxRuleSet taxRuleSet;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

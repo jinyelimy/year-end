@@ -2,6 +2,7 @@ package com.example.yearend.taxsession.application;
 
 import com.example.yearend.common.exception.BusinessException;
 import com.example.yearend.common.exception.ErrorCode;
+import com.example.yearend.deduction.application.RuleVersionNormalizer;
 import com.example.yearend.taxsession.api.TaxSessionDtos;
 import com.example.yearend.taxsession.domain.FilingType;
 import com.example.yearend.taxsession.domain.SessionStatus;
@@ -24,6 +25,7 @@ public class TaxSessionService {
 
     private final TaxSessionRepository taxSessionRepository;
     private final UserService userService;
+    private final RuleVersionNormalizer ruleVersionNormalizer;
 
     @Transactional
     public TaxSessionDtos.TaxSessionResponse create(String email, TaxSessionDtos.CreateTaxSessionRequest request) {
@@ -33,7 +35,7 @@ public class TaxSessionService {
         session.setUser(user);
         session.setTaxYear(request.taxYear());
         session.setFilingType(Objects.requireNonNullElse(request.filingType(), FilingType.SALARY_WORKER));
-        session.setRuleVersion(request.ruleVersion());
+        session.setRuleVersion(ruleVersionNormalizer.normalize(request.taxYear(), request.ruleVersion()));
         session.setSessionStatus(SessionStatus.DRAFT);
         session.setBasicInfoJsonb("{}");
 
@@ -99,7 +101,7 @@ public class TaxSessionService {
             session.getTaxYear(),
             session.getSessionStatus(),
             session.getFilingType(),
-            session.getRuleVersion(),
+            ruleVersionNormalizer.normalize(session.getTaxYear(), session.getRuleVersion()),
             session.getBasicInfoJsonb(),
             session.getMemo(),
             session.getSubmittedAt()

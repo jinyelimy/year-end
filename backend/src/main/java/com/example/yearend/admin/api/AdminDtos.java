@@ -1,8 +1,11 @@
 package com.example.yearend.admin.api;
 
+import com.example.yearend.deduction.domain.HumanReviewStatus;
+import com.example.yearend.deduction.domain.RuleSetStatus;
 import com.example.yearend.document.domain.DocumentType;
 import com.example.yearend.document.domain.ReviewStatus;
 import com.example.yearend.taxsession.domain.SessionStatus;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -44,6 +47,30 @@ public final class AdminDtos {
         String comment,
         OffsetDateTime reviewedAt,
         UUID reviewedBy
+    ) {
+    }
+
+    public record ReviewRuleSetRequest(
+        boolean approved,
+
+        @NotBlank
+        @Size(max = 1000)
+        String comment
+    ) {
+    }
+
+    public record AdminRuleSetResponse(
+        UUID id,
+        Integer taxYear,
+        String ruleVersion,
+        RuleSetStatus status,
+        HumanReviewStatus humanReviewStatus,
+        String ruleSnapshotHash,
+        String gitCommitSha,
+        String reviewedBy,
+        OffsetDateTime reviewedAt,
+        String publishedBy,
+        OffsetDateTime publishedAt
     ) {
     }
 }

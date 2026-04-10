@@ -9,5 +9,11 @@ import java.util.UUID;
 
 public interface DeductionRuleRepository extends JpaRepository<DeductionRule, UUID> {
 
+    List<DeductionRule> findAllByTaxYearAndIsActiveTrueOrderByEffectiveFromAscRuleCodeAsc(Integer taxYear);
+
     List<DeductionRule> findAllByTaxYearAndDeductionTypeAndIsActiveTrue(Integer taxYear, DeductionType deductionType);
+
+    List<DeductionRule> findAllByTaxRuleSetIdAndIsActiveTrueOrderByEffectiveFromAscRuleCodeAsc(UUID taxRuleSetId);
+
+    List<DeductionRule> findAllByTaxRuleSetId(UUID taxRuleSetId);
 }

@@ -41,6 +41,12 @@ public class CalculationResult extends BaseTimeEntity {
     @Column(nullable = false)
     private String ruleVersion;
 
+    @Column
+    private String ruleSetId;
+
+    @Column
+    private String ruleSnapshotHash;
+
     @Column(nullable = false)
     private String inputHash;
 

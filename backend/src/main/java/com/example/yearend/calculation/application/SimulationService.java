@@ -11,8 +11,10 @@ import com.example.yearend.common.exception.ErrorCode;
 import com.example.yearend.deduction.application.DeductionEngine;
 import com.example.yearend.deduction.application.DeductionItemService;
 import com.example.yearend.deduction.application.DeductionItemReviewPolicy;
+import com.example.yearend.deduction.application.RuleSetResolver;
 import com.example.yearend.deduction.domain.DeductionDecision;
 import com.example.yearend.deduction.domain.DeductionItem;
+import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.deduction.domain.TaxContext;
 import com.example.yearend.document.application.DocumentChecklistService;
 import com.example.yearend.taxsession.application.DependentService;
@@ -28,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,10 +39,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SimulationService {
 
+    private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
+
     private final TaxSessionService taxSessionService;
     private final IncomeItemService incomeItemService;
     private final DependentService dependentService;
     private final DeductionItemService deductionItemService;
+    private final RuleSetResolver ruleSetResolver;
     private final DeductionItemReviewPolicy deductionItemReviewPolicy;
     private final DeductionEngine deductionEngine;
     private final TaxCalculationService taxCalculationService;
@@ -50,8 +57,9 @@ public class SimulationService {
     public SimulationDtos.SimulationRunResponse run(String email, UUID sessionId) {
         TaxSession session = taxSessionService.getOwnedSession(email, sessionId);
         List<DeductionItem> deductionItems = deductionItemService.getCalculationEligibleEntities(email, sessionId);
+        RuleSetSnapshot ruleSetSnapshot = resolveRuleSet(session);
 
-        TaxContext context = buildContext(email, sessionId);
+        TaxContext context = buildContext(email, session, ruleSetSnapshot);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(context.totalSalary(), context.withholdingTax(), decisions)
@@ -60,7 +68,9 @@ public class SimulationService {
         CalculationResult result = new CalculationResult();
         result.setTaxSession(session);
         result.setCalculationVersion(nextVersion(sessionId));
-        result.setRuleVersion(session.getRuleVersion());
+        result.setRuleVersion(ruleSetSnapshot.ruleVersion());
+        result.setRuleSetId(ruleSetSnapshot.ruleSetId());
+        result.setRuleSnapshotHash(ruleSetSnapshot.ruleSnapshotHash());
         result.setInputHash(hashContext(context, deductionItems));
         result.setTotalIncomeAmount(outcome.totalIncomeAmount());
         result.setTotalDeductionAmount(outcome.totalDeductionAmount());
@@ -105,7 +115,8 @@ public class SimulationService {
 
     @Transactional(readOnly = true)
     public List<SimulationDtos.RejectionReasonResponse> getRejections(String email, UUID sessionId) {
-        TaxContext context = buildContext(email, sessionId);
+        TaxSession session = taxSessionService.getOwnedSession(email, sessionId);
+        TaxContext context = buildContext(email, session, resolveRuleSet(session));
         List<DeductionDecision> decisions = deductionEngine.evaluate(
             context,
             deductionItemService.getCalculationEligibleEntities(email, sessionId)
@@ -120,10 +131,9 @@ public class SimulationService {
             .toList();
     }
 
-    private TaxContext buildContext(String email, UUID sessionId) {
-        TaxSession session = taxSessionService.getOwnedSession(email, sessionId);
-        var incomeItems = incomeItemService.getEntities(email, sessionId);
-        var dependents = dependentService.getEntities(email, sessionId);
+    private TaxContext buildContext(String email, TaxSession session, RuleSetSnapshot ruleSetSnapshot) {
+        var incomeItems = incomeItemService.getEntities(email, session.getId());
+        var dependents = dependentService.getEntities(email, session.getId());
 
         long totalSalary = incomeItems.stream().mapToLong(item -> item.getTaxableAmount() == null ? 0L : item.getTaxableAmount()).sum();
         long withholdingTax = incomeItems.stream().mapToLong(item -> item.getWithheldTaxAmount() == null ? 0L : item.getWithheldTaxAmount()).sum();
@@ -133,7 +143,16 @@ public class SimulationService {
             totalSalary,
             withholdingTax,
             dependents,
-            incomeItems
+            incomeItems,
+            ruleSetSnapshot
+        );
+    }
+
+    private RuleSetSnapshot resolveRuleSet(TaxSession session) {
+        return ruleSetResolver.resolve(
+            session.getTaxYear(),
+            session.getRuleVersion(),
+            LocalDate.now(KOREA_ZONE_ID)
         );
     }
 
@@ -177,6 +196,8 @@ public class SimulationService {
             result.getId(),
             result.getCalculationVersion(),
             result.getRuleVersion(),
+            result.getRuleSetId(),
+            result.getRuleSnapshotHash(),
             result.getTotalIncomeAmount(),
             result.getTotalDeductionAmount(),
             result.getTaxableIncomeAmount(),

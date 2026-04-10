@@ -1,15 +1,18 @@
 package com.example.yearend.calculation.application;
 
+import com.example.yearend.calculation.domain.CalculationResult;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
 import com.example.yearend.calculation.infrastructure.CalculationResultRepository;
 import com.example.yearend.deduction.application.DeductionEngine;
 import com.example.yearend.deduction.application.DeductionItemReviewPolicy;
 import com.example.yearend.deduction.application.DeductionItemService;
+import com.example.yearend.deduction.application.RuleSetResolver;
 import com.example.yearend.deduction.domain.DeductionDecision;
 import com.example.yearend.deduction.domain.DeductionItem;
 import com.example.yearend.deduction.domain.DeductionType;
 import com.example.yearend.deduction.domain.EvidenceStatus;
+import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.document.application.DocumentChecklistService;
 import com.example.yearend.taxsession.application.DependentService;
 import com.example.yearend.taxsession.application.IncomeItemService;
@@ -31,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -50,6 +54,9 @@ class SimulationServiceTest {
 
     @Mock
     private DeductionItemService deductionItemService;
+
+    @Mock
+    private RuleSetResolver ruleSetResolver;
 
     @Mock
     private DeductionEngine deductionEngine;
@@ -72,6 +79,7 @@ class SimulationServiceTest {
             incomeItemService,
             dependentService,
             deductionItemService,
+            ruleSetResolver,
             new DeductionItemReviewPolicy(new ObjectMapper()),
             deductionEngine,
             taxCalculationService,
@@ -97,6 +105,7 @@ class SimulationServiceTest {
         );
         DeductionItem manualMedical = deductionItem(DeductionType.MEDICAL_EXPENSE, 480_000L, "{}");
         List<DeductionItem> eligibleItems = List.of(approvedImported, manualMedical);
+        RuleSetSnapshot snapshot = new RuleSetSnapshot("2025@2025.01", "2025.01", "abc123", false, List.of());
         List<DeductionDecision> decisions = List.of(
             new DeductionDecision(approvedImported.getId(), DeductionType.INSURANCE, true, 2_545_170L, 0L, 0L, 120_000L, List.of()),
             new DeductionDecision(manualMedical.getId(), DeductionType.MEDICAL_EXPENSE, true, 480_000L, 480_000L, 480_000L, 0L, List.of())
@@ -104,9 +113,13 @@ class SimulationServiceTest {
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
         when(deductionItemService.getCalculationEligibleEntities(email, sessionId)).thenReturn(eligibleItems);
+        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), any())).thenReturn(snapshot);
         when(incomeItemService.getEntities(email, sessionId)).thenReturn(List.of(incomeItem(session)));
         when(dependentService.getEntities(email, sessionId)).thenReturn(List.of());
-        when(deductionEngine.evaluate(any(), eq(eligibleItems))).thenReturn(decisions);
+        when(deductionEngine.evaluate(
+            argThat(context -> context.ruleSetSnapshot().ruleVersion().equals("2025.01")),
+            eq(eligibleItems)
+        )).thenReturn(decisions);
         when(taxCalculationService.calculate(any())).thenReturn(
             new TaxCalculationOutcome(
                 50_000_000L,
@@ -123,7 +136,14 @@ class SimulationServiceTest {
         when(calculationResultRepository.findFirstByTaxSessionIdOrderByCalculationVersionDesc(sessionId))
             .thenReturn(Optional.empty());
 
-        simulationService.run(email, sessionId);
+        var response = simulationService.run(email, sessionId);
+
+        ArgumentCaptor<CalculationResult> resultCaptor = ArgumentCaptor.forClass(CalculationResult.class);
+        verify(calculationResultRepository).save(resultCaptor.capture());
+        assertThat(resultCaptor.getValue().getRuleVersion()).isEqualTo("2025.01");
+        assertThat(resultCaptor.getValue().getRuleSetId()).isEqualTo("2025@2025.01");
+        assertThat(resultCaptor.getValue().getRuleSnapshotHash()).isEqualTo("abc123");
+        assertThat(response.calculationResultId()).isEqualTo(resultCaptor.getValue().getId());
 
         verify(deductionItemService).getCalculationEligibleEntities(email, sessionId);
 
@@ -148,12 +168,17 @@ class SimulationServiceTest {
                 """
         );
         List<DeductionItem> eligibleItems = List.of(approvedImported);
+        RuleSetSnapshot snapshot = new RuleSetSnapshot("2025@2025.01", "2025.01", "abc123", false, List.of());
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
         when(deductionItemService.getCalculationEligibleEntities(email, sessionId)).thenReturn(eligibleItems);
+        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), any())).thenReturn(snapshot);
         when(incomeItemService.getEntities(email, sessionId)).thenReturn(List.of(incomeItem(session)));
         when(dependentService.getEntities(email, sessionId)).thenReturn(List.of());
-        when(deductionEngine.evaluate(any(), eq(eligibleItems))).thenReturn(
+        when(deductionEngine.evaluate(
+            argThat(context -> context.ruleSetSnapshot().ruleVersion().equals("2025.01")),
+            eq(eligibleItems)
+        )).thenReturn(
             List.of(DeductionDecision.rejected(
                 approvedImported.getId(),
                 DeductionType.INSURANCE,
@@ -169,11 +194,30 @@ class SimulationServiceTest {
         verify(deductionItemService).getCalculationEligibleEntities(email, sessionId);
     }
 
+    @Test
+    @DisplayName("latest result exposes persisted rule snapshot identifiers")
+    void latestResultIncludesRuleSnapshotMetadata() {
+        String email = "tester@example.com";
+        UUID sessionId = UUID.randomUUID();
+        TaxSession session = taxSession(sessionId);
+        CalculationResult storedResult = calculationResult(session, "2025.01", "2025@2025.01", "abc123");
+
+        when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
+        when(calculationResultRepository.findFirstByTaxSessionIdOrderByCalculationVersionDesc(sessionId))
+            .thenReturn(Optional.of(storedResult));
+
+        var response = simulationService.getLatestResult(email, sessionId);
+
+        assertThat(response.ruleVersion()).isEqualTo("2025.01");
+        assertThat(response.ruleSetId()).isEqualTo("2025@2025.01");
+        assertThat(response.ruleSnapshotHash()).isEqualTo("abc123");
+    }
+
     private TaxSession taxSession(UUID sessionId) {
         TaxSession session = new TaxSession();
         session.setId(sessionId);
         session.setTaxYear(2025);
-        session.setRuleVersion("2025.1");
+        session.setRuleVersion("rule-2025.1");
         return session;
     }
 
@@ -195,5 +239,32 @@ class SimulationServiceTest {
         item.setEvidenceStatus(EvidenceStatus.SUBMITTED);
         item.setAttributesJsonb(attributesJsonb);
         return item;
+    }
+
+    private CalculationResult calculationResult(
+        TaxSession session,
+        String ruleVersion,
+        String ruleSetId,
+        String ruleSnapshotHash
+    ) {
+        CalculationResult result = new CalculationResult();
+        result.setId(UUID.randomUUID());
+        result.setTaxSession(session);
+        result.setCalculationVersion(2);
+        result.setRuleVersion(ruleVersion);
+        result.setRuleSetId(ruleSetId);
+        result.setRuleSnapshotHash(ruleSnapshotHash);
+        result.setInputHash("input-hash");
+        result.setTotalIncomeAmount(50_000_000L);
+        result.setTotalDeductionAmount(480_000L);
+        result.setTaxableIncomeAmount(49_520_000L);
+        result.setCalculatedTaxAmount(2_971_200L);
+        result.setTaxCreditAmount(120_000L);
+        result.setFinalTaxAmount(2_851_200L);
+        result.setWithholdingTaxAmount(3_000_000L);
+        result.setExpectedRefundAmount(148_800L);
+        result.setDecisionTraceJsonb("[]");
+        result.setSummaryJsonb("[\"ok\"]");
+        return result;
     }
 }

@@ -1,6 +1,7 @@
 package com.example.yearend.admin.api;
 
 import com.example.yearend.admin.application.AdminReviewService;
+import com.example.yearend.admin.application.AdminRuleSetService;
 import com.example.yearend.common.api.ApiResponse;
 import com.example.yearend.taxsession.domain.SessionStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminReviewService adminReviewService;
+    private final AdminRuleSetService adminRuleSetService;
 
     @Operation(summary = "검토 대상 세션 목록 조회")
     @GetMapping("/tax-sessions")
@@ -50,5 +52,24 @@ public class AdminController {
         @Valid @RequestBody AdminDtos.ReviewChecklistRequest request
     ) {
         return ApiResponse.success(adminReviewService.reviewChecklist(userDetails.getUsername(), checklistId, request));
+    }
+
+    @Operation(summary = "猷곗뀑 ?щ씪 寃??寃곗젙 湲곕줉")
+    @PostMapping("/rule-sets/{ruleSetId}/review")
+    public ApiResponse<AdminDtos.AdminRuleSetResponse> reviewRuleSet(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable UUID ruleSetId,
+        @Valid @RequestBody AdminDtos.ReviewRuleSetRequest request
+    ) {
+        return ApiResponse.success(adminRuleSetService.reviewRuleSet(userDetails.getUsername(), ruleSetId, request));
+    }
+
+    @Operation(summary = "READY_FOR_REVIEW 猷곗뀑 PUBLISHED 寃뚯떆")
+    @PostMapping("/rule-sets/{ruleSetId}/publish")
+    public ApiResponse<AdminDtos.AdminRuleSetResponse> publishRuleSet(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable UUID ruleSetId
+    ) {
+        return ApiResponse.success(adminRuleSetService.publishRuleSet(userDetails.getUsername(), ruleSetId));
     }
 }

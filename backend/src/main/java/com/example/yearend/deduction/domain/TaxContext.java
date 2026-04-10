@@ -10,6 +10,17 @@ public record TaxContext(
     long totalSalary,
     long withholdingTax,
     List<Dependent> dependents,
-    List<IncomeItem> incomeItems
+    List<IncomeItem> incomeItems,
+    RuleSetSnapshot ruleSetSnapshot
 ) {
+
+    public TaxContext(
+        int taxYear,
+        long totalSalary,
+        long withholdingTax,
+        List<Dependent> dependents,
+        List<IncomeItem> incomeItems
+    ) {
+        this(taxYear, totalSalary, withholdingTax, dependents, incomeItems, RuleSetSnapshot.unresolved(taxYear));
+    }
 }

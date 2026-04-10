@@ -92,7 +92,7 @@ Phase 1부터 1.5까지만 수행하고 코드 수정은 하지 마.
 목적:
 세법팩의 숫자와 효력일을 계산 엔진이 읽을 JSON으로 정규화한다.
 
-명령:
+명령:★
 방금 만든 세법팩을 기준으로 하네스 기준 `normalized-rule-pack.json`을 생성해줘.
 Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 각 규칙마다 `deductionType`, `subType`, `ruleCode`, `ruleCategory`, `parameters`, `effectiveFrom`, `effectiveTo`, `sourceRefs`, `confidence`를 넣어줘.
@@ -104,7 +104,7 @@ Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 목적:
 새 월 버전이 이전 월 버전과 무엇이 달라졌는지 검토 가능하게 만든다.
 
-명령:
+명령:★
 하네스 기준으로 이번 달 세법팩과 직전 월 세법팩의 diff를 만들어줘.
 Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 `diff-from-previous.md`에 추가/변경/삭제 규칙, 영향받는 공제 타입, 계산 영향도를 정리해줘.
@@ -116,7 +116,7 @@ Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 목적:
 정규화 룰팩이 계산에 연결될 준비가 되었는지 확인한다.
 
-명령:
+명령:★
 하네스 기준으로 이번 달 `normalized-rule-pack.json`의 publish 적합성을 검토해줘.
 Phase 1.5부터 2까지만 수행하고 코드 수정은 하지 마.
 누락 출처, inferred 규칙, 효력일 충돌, 중복 ruleCode, 이전 버전 대비 위험 변경을 점검해줘.
@@ -128,7 +128,7 @@ publish 가능하면 `READY_FOR_REVIEW`, 아니면 `BLOCKED`로 판정해줘.
 목적:
 review 를 통과한 월별 세법팩을 Git 관리 정본 경로로 승격한다.
 
-명령:
+명령:★
 하네스 기준으로 [run-id]의 월별 세법팩을 정본 경로로 승격할 준비 상태를 점검해줘.
 Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 `.local/harness/<date>/<run-id>/` 아래의 `source-manifest.json`, `agent-a-tax-pack.md`, `normalized-rule-pack.json`, `diff-from-previous.md`를 검토 완료 기준으로 확인하고 `plugins/year-end-harness/law-packs/<tax-year>/<rule-version>/` 경로에 승격 가능한지 정리해줘.
@@ -142,7 +142,7 @@ Phase 1.5까지만 수행하고 코드 수정은 하지 마.
 목적:
 월별 세법팩을 DB와 계산 엔진에 연결하는 저장/해석 구조를 먼저 설계한다.
 
-명령:
+명령:★
 하네스 기준으로 rule set publish 구조를 설계해줘.
 Phase 0부터 2까지만 수행하고 코드 수정은 하지 마.
 Git law pack 정본, `normalized-rule-pack.json`, 사람 검토, `READY_FOR_REVIEW -> PUBLISHED` 상태 전이, `tax_rule_sets`, `deduction_rules`, `RuleSetResolver`, `ruleSnapshotHash`, rollback 전략을 포함해 설계해줘.
@@ -153,35 +153,26 @@ Git law pack 정본, `normalized-rule-pack.json`, 사람 검토, `READY_FOR_REVI
 목적:
 현재 프론트/백엔드의 `ruleVersion` 형식을 일관되게 맞춘다.
 
-명령:
+명령:★
 하네스 기준으로 현재 `ruleVersion` 정리 설계를 진행해줘.
 Phase 0부터 2까지만 수행하고 코드 수정은 하지 마.
 현재 `2025.1`, `rule-2025.1`처럼 섞인 버전 문자열을 `YYYY.MM[.patch]` 규칙으로 통일하는 방안을 설계해줘.
 산출물은 `.local/harness/오늘날짜/<run-id>/`에 남겨줘.
 
-## Phase 3. 룰셋 연결 구현 명령
+## Phase 3. 룰셋 공통 구현 명령
+
+이 섹션은 저장소 전체에 한 번 또는 소수 회 수행하는 공통 인프라 작업이다.
+특정 공제 항목마다 반복 호출하는 기본 흐름은 아니다.
 
 ### (3-3) `RuleSetResolver` 구현
 
 목적:
 계산 시점에 `taxYear + ruleVersion + calculationDate` 기준으로 룰셋을 고정한다.
 
-명령:
+명령:★
 방금 만든 설계를 기준으로 하네스 기준 `RuleSetResolver`를 구현해줘.
 Phase 3부터 3.5까지만 수행해줘.
 `DeductionRule` 또는 새 룰셋 저장 구조를 읽어 계산에 사용할 규칙 스냅샷을 결정하게 해줘.
-필요한 backend regression을 수행하고 validation report를 남겨줘.
-산출물은 같은 `run-id` 아래에 남겨줘.
-
-### (3-4) 정책 클래스 상수 제거
-
-목적:
-하드코딩된 한도/공제율을 정규화 룰팩 기반으로 치환한다.
-
-명령:
-하네스 기준으로 [공제명] 정책 클래스의 하드코딩 숫자를 룰셋 기반으로 치환해줘.
-Phase 3부터 3.5까지만 수행해줘.
-정책 클래스가 상수 대신 `RuleSnapshot` 또는 동등한 읽기 모델에서 한도/공제율/효력일을 읽게 바꿔줘.
 필요한 backend regression을 수행하고 validation report를 남겨줘.
 산출물은 같은 `run-id` 아래에 남겨줘.
 
@@ -190,7 +181,7 @@ Phase 3부터 3.5까지만 수행해줘.
 목적:
 과거 계산을 다시 재현할 수 있게 만든다.
 
-명령:
+명령:★
 하네스 기준으로 계산 결과 스냅샷 보강을 구현해줘.
 Phase 3부터 3.5까지만 수행해줘.
 `CalculationResult`에 `ruleVersion`뿐 아니라 `ruleSetId` 또는 `ruleSnapshotHash`를 저장하도록 보강해줘.
@@ -202,7 +193,7 @@ Phase 3부터 3.5까지만 수행해줘.
 목적:
 review 를 통과한 정본 세법팩만 런타임 활성 룰셋으로 게시한다.
 
-명령:
+명령:★
 하네스 기준으로 `PUBLISHED` 룰셋 게시 구현을 진행해줘.
 Phase 3부터 3.5까지만 수행해줘.
 `READY_FOR_REVIEW` 상태의 정규화 룰팩이 사람 검토를 거친 뒤에만 `PUBLISHED`로 전이되고, 계산 엔진은 `PUBLISHED` 상태의 룰셋만 읽도록 구현해줘.
@@ -210,6 +201,9 @@ Phase 3부터 3.5까지만 수행해줘.
 산출물은 같은 `run-id` 아래에 남겨줘.
 
 ## Phase 3. 공제 슬라이스 구현 명령
+
+특정 공제 항목을 실제로 작업할 때의 기본 순서는 보통 `4-1 -> 4-2 -> 4-3`이다.
+이미 구현된 정책 클래스를 룰셋 기반으로 바꾸는 경우에만 `3-4`를 추가로 사용한다.
 
 ### (4-1) 기존 공제 구현 상태 점검
 
@@ -235,6 +229,19 @@ Phase 0부터 2까지만 수행하고 코드 수정은 하지 마.
 Phase 3부터 3.5까지만 수행해줘.
 가능하면 `파싱/등록`, `매칭/증빙`, `계산/결과확인` 중 한 슬라이스만 선택해서 진행해줘.
 필요한 parser tests / backend regression / frontend build를 수행하고 validation report를 남겨줘.
+산출물은 같은 `run-id` 아래에 남겨줘.
+
+### (3-4) 정책 클래스 상수 제거
+
+목적:
+이미 구현된 특정 공제 정책 클래스의 하드코딩 한도/공제율을 정규화 룰팩 기반으로 치환한다.
+
+명령:
+하네스 기준으로 [공제명] 정책 클래스의 하드코딩 숫자를 룰셋 기반으로 치환해줘.
+Phase 3부터 3.5까지만 수행해줘.
+보통 `4-1`과 `4-2`를 먼저 수행한 뒤, 이미 구현된 정책 클래스를 룰셋 기반으로 전환할 때 사용해줘.
+정책 클래스가 상수 대신 `RuleSnapshot` 또는 동등한 읽기 모델에서 한도/공제율/효력일을 읽게 바꿔줘.
+필요한 backend regression을 수행하고 validation report를 남겨줘.
 산출물은 같은 `run-id` 아래에 남겨줘.
 
 ## Phase 3.5. 저장소 검증 명령
@@ -282,6 +289,7 @@ publish 적합성과 정본 승격 가능 여부까지 검토해줘.
 
 하네스 기준으로 [공제명] 정책을 룰셋 기반으로 전환해줘.
 Phase 0부터 3.5까지 수행해줘.
+이 명령은 보통 `4-1 -> 4-2 -> 3-4`를 한 번에 묶어 실행하는 조합 명령으로 봐줘.
 먼저 해당 공제의 월별 세법팩/정규화 룰을 점검하고, 그 다음 정책 클래스가 하드코딩 상수 대신 룰셋을 읽게 바꿔줘.
 계산 엔진은 `PUBLISHED` 상태의 룰셋만 읽도록 유지해줘.
 필요한 backend regression을 수행하고 validation report를 남겨줘.

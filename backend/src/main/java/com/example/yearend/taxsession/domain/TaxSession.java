@@ -49,7 +49,7 @@ public class TaxSession extends BaseTimeEntity {
     private FilingType filingType = FilingType.SALARY_WORKER;
 
     @Column(nullable = false)
-    private String ruleVersion = "2025.1";
+    private String ruleVersion = "2025.01";
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
