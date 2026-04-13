@@ -127,17 +127,83 @@ export function sumAmounts(items, key) {
   return (Array.isArray(items) ? items : []).reduce((total, item) => total + (Number(item?.[key]) || 0), 0);
 }
 
+function parseAttributes(item) {
+  if (!item?.attributesJsonb) return {};
+
+  try {
+    return JSON.parse(item.attributesJsonb);
+  } catch {
+    return {};
+  }
+}
+
+function isEmploymentIncome(item) {
+  if (parseAttributes(item).entryKind === "OTHER_INCOME") {
+    return false;
+  }
+  return item?.incomeType === "SALARY" || item?.incomeType === "BONUS";
+}
+
+function resolveTaxableIncomeAmount(item) {
+  const grossAmount = Number(item?.grossAmount) || 0;
+  const nonTaxableAmount = Number(item?.nonTaxableAmount) || 0;
+  if (grossAmount > 0 || nonTaxableAmount > 0) {
+    return Math.max(grossAmount - nonTaxableAmount, 0);
+  }
+  return Number(item?.taxableAmount) || 0;
+}
+
+export function calculateEarnedIncomeDeduction(taxableSalaryAmount) {
+  const amount = Math.max(Number(taxableSalaryAmount) || 0, 0);
+  let deductionAmount = 0;
+
+  if (amount <= 5_000_000) {
+    deductionAmount = Math.round(amount * 0.7);
+  } else if (amount <= 15_000_000) {
+    deductionAmount = 3_500_000 + Math.round((amount - 5_000_000) * 0.4);
+  } else if (amount <= 45_000_000) {
+    deductionAmount = 7_500_000 + Math.round((amount - 15_000_000) * 0.15);
+  } else if (amount <= 100_000_000) {
+    deductionAmount = 12_000_000 + Math.round((amount - 45_000_000) * 0.05);
+  } else {
+    deductionAmount = 14_750_000 + Math.round((amount - 100_000_000) * 0.02);
+  }
+
+  return Math.min(deductionAmount, 20_000_000);
+}
+
+function calculateEstimatedTax(taxBaseAmount) {
+  if (taxBaseAmount <= 14_000_000) {
+    return Math.round(taxBaseAmount * 0.06);
+  }
+  return Math.round(taxBaseAmount * 0.15);
+}
+
 export function calculateFinancialSummary(incomeItems, deductionItems) {
   const totalGrossIncome = sumAmounts(incomeItems, "grossAmount");
   const totalTaxableIncome = sumAmounts(incomeItems, "taxableAmount");
   const totalWithheldTax = sumAmounts(incomeItems, "withheldTaxAmount");
   const totalNonTaxableIncome = sumAmounts(incomeItems, "nonTaxableAmount");
+  const employmentIncomeItems = (Array.isArray(incomeItems) ? incomeItems : []).filter(isEmploymentIncome);
+  const otherIncomeItems = (Array.isArray(incomeItems) ? incomeItems : []).filter((item) => !isEmploymentIncome(item));
+  const totalGrossSalaryAmount = sumAmounts(employmentIncomeItems, "grossAmount");
+  const totalNonTaxableSalaryAmount = sumAmounts(employmentIncomeItems, "nonTaxableAmount");
+  const taxableSalaryAmount = employmentIncomeItems.reduce(
+    (total, item) => total + resolveTaxableIncomeAmount(item),
+    0
+  );
+  const otherTaxableIncomeAmount = otherIncomeItems.reduce(
+    (total, item) => total + resolveTaxableIncomeAmount(item),
+    0
+  );
+  const earnedIncomeDeductionAmount = calculateEarnedIncomeDeduction(taxableSalaryAmount);
+  const earnedIncomeAmount = Math.max(taxableSalaryAmount - earnedIncomeDeductionAmount, 0);
   const totalDeduction = sumAmounts(
     (Array.isArray(deductionItems) ? deductionItems : []).filter(isDeductionIncludedInCalculation),
     "amount"
   );
-  const estimatedTaxBase = Math.max(totalTaxableIncome - totalDeduction, 0);
-  const estimatedTax = Math.round(estimatedTaxBase * 0.06);
+  const estimatedTaxBase = Math.max(earnedIncomeAmount + otherTaxableIncomeAmount - totalDeduction, 0);
+  const estimatedTax = calculateEstimatedTax(estimatedTaxBase);
   const estimatedRefund = totalWithheldTax - estimatedTax;
 
   return {
@@ -145,6 +211,12 @@ export function calculateFinancialSummary(incomeItems, deductionItems) {
     totalTaxableIncome,
     totalWithheldTax,
     totalNonTaxableIncome,
+    totalGrossSalaryAmount,
+    totalNonTaxableSalaryAmount,
+    taxableSalaryAmount,
+    otherTaxableIncomeAmount,
+    earnedIncomeDeductionAmount,
+    earnedIncomeAmount,
     totalDeduction,
     estimatedTaxBase,
     estimatedTax,

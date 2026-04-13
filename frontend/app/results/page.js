@@ -10,6 +10,7 @@ import {
   initializeAuthenticatedContext,
   listDeductionItems,
   listIncomeItems,
+  runSimulation,
   saveCurrentSession,
   submitTaxSession
 } from "@/lib/yearEndApi";
@@ -42,6 +43,7 @@ export default function ResultsPage() {
   const [session, setSession] = useState(null);
   const [incomeItems, setIncomeItems] = useState([]);
   const [deductionItems, setDeductionItems] = useState([]);
+  const [calculationResult, setCalculationResult] = useState(null);
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -65,9 +67,33 @@ export default function ResultsPage() {
           return;
         }
 
-        setSession(context.currentSession);
+        let nextCalculationResult = null;
+        try {
+          nextCalculationResult = await runSimulation(context.currentSession.id);
+        } catch (error) {
+          if (error.status === 401) {
+            throw error;
+          }
+          if (active) {
+            setMessage(error.message || "계산 결과를 갱신하지 못했습니다.");
+          }
+        }
+
+        if (!active) {
+          return;
+        }
+
+        const nextSession = nextCalculationResult
+          ? { ...context.currentSession, sessionStatus: "CALCULATED" }
+          : context.currentSession;
+
+        setSession(nextSession);
+        if (nextCalculationResult) {
+          saveCurrentSession(nextSession);
+        }
         setIncomeItems(incomeList);
         setDeductionItems(deductionList);
+        setCalculationResult(nextCalculationResult);
         setIsLoading(false);
       } catch {
         if (!active) {
@@ -122,7 +148,22 @@ export default function ResultsPage() {
     );
   }
 
-  const summary = calculateFinancialSummary(incomeItems, deductionItems);
+  const localSummary = calculateFinancialSummary(incomeItems, deductionItems);
+  const summary = calculationResult
+    ? {
+        ...localSummary,
+        totalGrossSalaryAmount: calculationResult.totalGrossSalaryAmount,
+        totalNonTaxableSalaryAmount: calculationResult.totalNonTaxableIncomeAmount,
+        taxableSalaryAmount: calculationResult.taxableSalaryAmount,
+        otherTaxableIncomeAmount: calculationResult.otherTaxableIncomeAmount,
+        earnedIncomeDeductionAmount: calculationResult.earnedIncomeDeductionAmount,
+        earnedIncomeAmount: calculationResult.earnedIncomeAmount,
+        totalDeduction: calculationResult.totalDeductionAmount,
+        estimatedTaxBase: calculationResult.taxableIncomeAmount,
+        estimatedTax: calculationResult.calculatedTaxAmount,
+        estimatedRefund: calculationResult.expectedRefundAmount
+      }
+    : localSummary;
   const totalBreakdown = summary.totalDeduction || 1;
   const personShare = Math.round((summary.totalDeduction * 0.55 / totalBreakdown) * 100) || 0;
   const expenseShare = Math.round((summary.totalDeduction * 0.3 / totalBreakdown) * 100) || 0;
@@ -211,8 +252,8 @@ export default function ResultsPage() {
                 <div className="space-y-6">
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">총 과세소득</span>
-                      <span className="font-semibold">{formatCurrency(summary.totalTaxableIncome)}</span>
+                      <span className="text-slate-500">근로소득금액</span>
+                      <span className="font-semibold">{formatCurrency(summary.earnedIncomeAmount)}</span>
                     </div>
                     <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
                       <div className="h-full w-[60%] bg-primary" />
@@ -265,6 +306,30 @@ export default function ResultsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+              <h3 className="mb-6 flex items-center gap-2 text-lg font-bold">
+                <span className="material-symbols-outlined text-primary">calculate</span>
+                근로소득 계산
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+                {[
+                  ["총급여", summary.totalGrossSalaryAmount],
+                  ["비과세 금액", summary.totalNonTaxableSalaryAmount],
+                  ["과세 대상 급여", summary.taxableSalaryAmount],
+                  ["근로소득공제", summary.earnedIncomeDeductionAmount],
+                  ["근로소득금액", summary.earnedIncomeAmount]
+                ].map(([label, value]) => (
+                  <div className="rounded-lg bg-slate-50 p-4" key={label}>
+                    <p className="text-xs font-bold text-slate-500">{label}</p>
+                    <p className="mt-2 text-lg font-black text-slate-900">{formatCurrency(value)}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-xs text-slate-500">
+                적용 규칙: EARNED_INCOME_DEDUCTION_BRACKETS, EARNED_INCOME_DEDUCTION_MAX_LIMIT
+              </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

@@ -371,6 +371,12 @@ export async function importHometaxPdf(sessionId, file) {
   });
 }
 
+export async function runSimulation(sessionId) {
+  return request(`/api/v1/tax-sessions/${sessionId}/simulation`, {
+    method: "POST"
+  });
+}
+
 export async function listDocumentChecklists(sessionId) {
   return request(`/api/v1/tax-sessions/${sessionId}/document-checklists`);
 }

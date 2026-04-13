@@ -1,6 +1,7 @@
 package com.example.yearend.calculation.application;
 
 import com.example.yearend.calculation.domain.CalculationResult;
+import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
 import com.example.yearend.calculation.infrastructure.CalculationResultRepository;
@@ -18,6 +19,7 @@ import com.example.yearend.taxsession.application.DependentService;
 import com.example.yearend.taxsession.application.IncomeItemService;
 import com.example.yearend.taxsession.application.TaxSessionService;
 import com.example.yearend.taxsession.domain.IncomeItem;
+import com.example.yearend.taxsession.domain.IncomeType;
 import com.example.yearend.taxsession.domain.SessionStatus;
 import com.example.yearend.taxsession.domain.TaxSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,14 +124,20 @@ class SimulationServiceTest {
         )).thenReturn(decisions);
         when(taxCalculationService.calculate(any())).thenReturn(
             new TaxCalculationOutcome(
+                37_750_000L,
                 50_000_000L,
+                0L,
+                50_000_000L,
+                0L,
+                12_250_000L,
+                37_750_000L,
                 480_000L,
-                49_520_000L,
-                2_971_200L,
+                37_270_000L,
+                2_236_200L,
                 120_000L,
-                2_851_200L,
+                2_116_200L,
                 3_000_000L,
-                148_800L,
+                883_800L,
                 List.of("ok")
             )
         );
@@ -146,6 +154,12 @@ class SimulationServiceTest {
         assertThat(response.calculationResultId()).isEqualTo(resultCaptor.getValue().getId());
 
         verify(deductionItemService).getCalculationEligibleEntities(email, sessionId);
+
+        ArgumentCaptor<TaxCalculationCommand> commandCaptor = ArgumentCaptor.forClass(TaxCalculationCommand.class);
+        verify(taxCalculationService).calculate(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().totalGrossSalaryAmount()).isEqualTo(50_000_000L);
+        assertThat(commandCaptor.getValue().totalNonTaxableIncomeAmount()).isZero();
+        assertThat(commandCaptor.getValue().taxableSalaryAmount()).isEqualTo(50_000_000L);
 
         ArgumentCaptor<List<DeductionItem>> checklistCaptor = ArgumentCaptor.forClass(List.class);
         verify(documentChecklistService).synchronize(eq(session), checklistCaptor.capture());
@@ -224,6 +238,7 @@ class SimulationServiceTest {
     private IncomeItem incomeItem(TaxSession session) {
         IncomeItem item = new IncomeItem();
         item.setTaxSession(session);
+        item.setIncomeType(IncomeType.SALARY);
         item.setGrossAmount(50_000_000L);
         item.setTaxableAmount(50_000_000L);
         item.setWithheldTaxAmount(3_000_000L);
@@ -264,7 +279,7 @@ class SimulationServiceTest {
         result.setWithholdingTaxAmount(3_000_000L);
         result.setExpectedRefundAmount(148_800L);
         result.setDecisionTraceJsonb("[]");
-        result.setSummaryJsonb("[\"ok\"]");
+        result.setSummaryJsonb("{\"trace\":[\"ok\"]}");
         return result;
     }
 }

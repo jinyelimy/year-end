@@ -5,7 +5,10 @@ import com.example.yearend.deduction.domain.DeductionDecision;
 import java.util.List;
 
 public record TaxCalculationCommand(
-    long totalSalary,
+    long totalGrossSalaryAmount,
+    long totalNonTaxableIncomeAmount,
+    long taxableSalaryAmount,
+    long otherTaxableIncomeAmount,
     long withholdingTax,
     List<DeductionDecision> deductionDecisions
 ) {

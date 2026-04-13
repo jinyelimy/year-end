@@ -18,6 +18,9 @@ class DefaultTaxCalculationServiceTest {
         DefaultTaxCalculationService service = new DefaultTaxCalculationService();
         TaxCalculationCommand command = new TaxCalculationCommand(
             10_000_000L,
+            0L,
+            10_000_000L,
+            0L,
             1_000_000L,
             List.of(
                 new DeductionDecision(UUID.randomUUID(), DeductionType.MEDICAL_EXPENSE, true, 1_000_000L, 1_000_000L, 1_000_000L, 0L, List.of("applied")),
@@ -27,9 +30,13 @@ class DefaultTaxCalculationServiceTest {
 
         TaxCalculationOutcome outcome = service.calculate(command);
 
+        assertThat(outcome.earnedIncomeDeductionAmount()).isEqualTo(5_500_000L);
+        assertThat(outcome.earnedIncomeAmount()).isEqualTo(4_500_000L);
+        assertThat(outcome.totalIncomeAmount()).isEqualTo(4_500_000L);
         assertThat(outcome.totalDeductionAmount()).isEqualTo(1_000_000L);
-        assertThat(outcome.taxableIncomeAmount()).isEqualTo(9_000_000L);
-        assertThat(outcome.calculatedTaxAmount()).isEqualTo(540_000L);
-        assertThat(outcome.expectedRefundAmount()).isEqualTo(460_000L);
+        assertThat(outcome.taxableIncomeAmount()).isEqualTo(3_500_000L);
+        assertThat(outcome.calculatedTaxAmount()).isEqualTo(210_000L);
+        assertThat(outcome.expectedRefundAmount()).isEqualTo(790_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("EARNED_INCOME_DEDUCTION_BRACKETS"));
     }
 }
