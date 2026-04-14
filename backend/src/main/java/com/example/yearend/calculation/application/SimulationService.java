@@ -2,6 +2,7 @@ package com.example.yearend.calculation.application;
 
 import com.example.yearend.calculation.api.SimulationDtos;
 import com.example.yearend.calculation.domain.CalculationResult;
+import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -75,7 +76,8 @@ public class SimulationService {
                 incomeSummary.taxableSalaryAmount(),
                 incomeSummary.otherTaxableIncomeAmount(),
                 incomeSummary.withholdingTaxAmount(),
-                decisions
+                decisions,
+                ruleSetSnapshot
             )
         );
 
@@ -279,7 +281,11 @@ public class SimulationService {
                 "EMPLOYMENT_TAXABLE_SALARY_FORMULA",
                 "EARNED_INCOME_DEDUCTION_BRACKETS",
                 "EARNED_INCOME_DEDUCTION_MAX_LIMIT",
-                "EARNED_INCOME_AMOUNT_FORMULA"
+                "EARNED_INCOME_AMOUNT_FORMULA",
+                "COMPREHENSIVE_INCOME_AMOUNT_FORMULA_2025",
+                IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE,
+                IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
+                IncomeTaxRateTableCalculator.CALCULATED_TAX_FORMULA_RULE_CODE
             ),
             outcome.trace()
         );

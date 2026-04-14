@@ -151,6 +151,7 @@ class SimulationServiceTest {
         assertThat(resultCaptor.getValue().getRuleVersion()).isEqualTo("2025.01");
         assertThat(resultCaptor.getValue().getRuleSetId()).isEqualTo("2025@2025.01");
         assertThat(resultCaptor.getValue().getRuleSnapshotHash()).isEqualTo("abc123");
+        assertThat(resultCaptor.getValue().getSummaryJsonb()).contains("INCOME_TAX_BASIC_BRACKETS_2025");
         assertThat(response.calculationResultId()).isEqualTo(resultCaptor.getValue().getId());
 
         verify(deductionItemService).getCalculationEligibleEntities(email, sessionId);
@@ -160,6 +161,7 @@ class SimulationServiceTest {
         assertThat(commandCaptor.getValue().totalGrossSalaryAmount()).isEqualTo(50_000_000L);
         assertThat(commandCaptor.getValue().totalNonTaxableIncomeAmount()).isZero();
         assertThat(commandCaptor.getValue().taxableSalaryAmount()).isEqualTo(50_000_000L);
+        assertThat(commandCaptor.getValue().ruleSetSnapshot()).isSameAs(snapshot);
 
         ArgumentCaptor<List<DeductionItem>> checklistCaptor = ArgumentCaptor.forClass(List.class);
         verify(documentChecklistService).synchronize(eq(session), checklistCaptor.capture());

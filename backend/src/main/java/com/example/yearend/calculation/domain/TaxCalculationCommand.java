@@ -1,6 +1,7 @@
 package com.example.yearend.calculation.domain;
 
 import com.example.yearend.deduction.domain.DeductionDecision;
+import com.example.yearend.deduction.domain.RuleSetSnapshot;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ public record TaxCalculationCommand(
     long taxableSalaryAmount,
     long otherTaxableIncomeAmount,
     long withholdingTax,
-    List<DeductionDecision> deductionDecisions
+    List<DeductionDecision> deductionDecisions,
+    RuleSetSnapshot ruleSetSnapshot
 ) {
 }
