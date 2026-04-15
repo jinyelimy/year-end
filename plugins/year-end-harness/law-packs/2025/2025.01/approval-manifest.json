@@ -1,0 +1,10 @@
+{
+  "approvedAt": "2026-04-15T06:43:29Z",
+  "sourceRunDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+  "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
+  "taxYear": 2025,
+  "ruleVersion": "2025.01",
+  "ruleSetId": "2025@2025.01-personal-deduction-proposal",
+  "status": "PUBLISHED",
+  "approvedBy": "manual CLI approval"
+}

@@ -2,7 +2,11 @@ package com.example.yearend.calculation.domain;
 
 import com.example.yearend.deduction.domain.DeductionDecision;
 import com.example.yearend.calculation.domain.EarnedIncomeDeductionCalculator.EarnedIncomeDeductionRuleSnapshot;
+import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator.EarnedIncomeTaxCreditCalculation;
+import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator.EarnedIncomeTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator.IncomeTaxCalculation;
+import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
+import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,19 +16,25 @@ import java.util.List;
 public class DefaultTaxCalculationService implements TaxCalculationService {
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
+    private final PersonalDeductionCalculator personalDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
+    private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
-        IncomeTaxRateTableCalculator incomeTaxRateTableCalculator
+        PersonalDeductionCalculator personalDeductionCalculator,
+        IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
+        EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
+        this.personalDeductionCalculator = personalDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
+        this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
 
     @Override
     public TaxCalculationOutcome calculate(TaxCalculationCommand command) {
-        long totalDeductionAmount = command.deductionDecisions().stream()
+        long itemDeductionAmount = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .mapToLong(DeductionDecision::appliedAmount)
             .sum();
@@ -37,16 +47,36 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         );
         long earnedIncomeAmount = Math.max(0L, command.taxableSalaryAmount() - earnedIncomeDeductionAmount);
         long totalIncomeAmount = earnedIncomeAmount + command.otherTaxableIncomeAmount();
+        PersonalDeductionRuleSnapshot personalDeductionRuleSnapshot =
+            personalDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        PersonalDeductionCalculation personalDeductionCalculation = personalDeductionCalculator.calculate(
+            command.taxYear(),
+            totalIncomeAmount,
+            command.dependents(),
+            command.basicInfoAttributes(),
+            personalDeductionRuleSnapshot
+        );
+        long personalDeductionAmount = personalDeductionCalculation.totalPersonalDeductionAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
             command.ruleSetSnapshot()
         );
         long calculatedTaxAmount = incomeTaxCalculation.calculatedTaxAmount();
-        long taxCreditAmount = command.deductionDecisions().stream()
+        EarnedIncomeTaxCreditRuleSnapshot earnedIncomeTaxCreditRuleSnapshot =
+            earnedIncomeTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        EarnedIncomeTaxCreditCalculation earnedIncomeTaxCreditCalculation = earnedIncomeTaxCreditCalculator.calculate(
+            command.totalGrossSalaryAmount(),
+            calculatedTaxAmount,
+            earnedIncomeTaxCreditRuleSnapshot
+        );
+        long earnedIncomeTaxCreditAmount = earnedIncomeTaxCreditCalculation.earnedIncomeTaxCreditAmount();
+        long otherTaxCreditAmount = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .mapToLong(DeductionDecision::taxCreditContribution)
             .sum();
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + otherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -65,6 +95,27 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("earnedIncomeAmount = " + earnedIncomeAmount);
         trace.add("otherTaxableIncomeAmount = " + command.otherTaxableIncomeAmount());
         trace.add("totalIncomeAmount = " + totalIncomeAmount);
+        trace.add("deductionItemAppliedAmount = " + itemDeductionAmount);
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.basicAmountRule().ruleCode() + " applied");
+        trace.add(personalDeductionRuleSnapshot.basicAmountRule().ruleCode() + " effectiveFrom = " + personalDeductionRuleSnapshot.basicAmountRule().effectiveFrom());
+        trace.add(personalDeductionRuleSnapshot.basicAmountRule().ruleCode() + " effectiveTo = " + personalDeductionRuleSnapshot.basicAmountRule().effectiveTo());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.basicEligibilityRule().ruleCode() + " applied");
+        trace.add("personalBasicDeductionTargetCount = " + personalDeductionCalculation.basicTargetCount());
+        trace.add("personalBasicDeductionAmount = " + personalDeductionCalculation.basicDeductionAmount());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.seniorRule().ruleCode() + " applied");
+        trace.add("personalSeniorDeductionTargetCount = " + personalDeductionCalculation.seniorTargetCount());
+        trace.add("personalSeniorDeductionAmount = " + personalDeductionCalculation.seniorDeductionAmount());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.disabledRule().ruleCode() + " applied");
+        trace.add("personalDisabledDeductionTargetCount = " + personalDeductionCalculation.disabledTargetCount());
+        trace.add("personalDisabledDeductionAmount = " + personalDeductionCalculation.disabledDeductionAmount());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.womanRule().ruleCode() + " applied");
+        trace.add("personalWomanDeductionApplied = " + personalDeductionCalculation.womanDeductionApplied());
+        trace.add("personalWomanDeductionAmount = " + personalDeductionCalculation.womanDeductionAmount());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.singleParentRule().ruleCode() + " applied");
+        trace.add("personalSingleParentDeductionApplied = " + personalDeductionCalculation.singleParentDeductionApplied());
+        trace.add("personalSingleParentDeductionAmount = " + personalDeductionCalculation.singleParentDeductionAmount());
+        trace.add("ruleCode " + personalDeductionRuleSnapshot.aggregationRule().ruleCode() + " applied");
+        trace.add("personalDeductionAmount = " + personalDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -76,6 +127,20 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("incomeTaxQuickDeductionAmount = " + incomeTaxCalculation.appliedBracket().quickDeductionAmount());
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.CALCULATED_TAX_FORMULA_RULE_CODE + " applied");
         trace.add("calculatedTaxAmount = " + calculatedTaxAmount);
+        trace.add("ruleCode " + earnedIncomeTaxCreditRuleSnapshot.baseFormulaRule().ruleCode() + " applied");
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.baseFormulaRule().ruleCode() + " effectiveFrom = " + earnedIncomeTaxCreditRuleSnapshot.baseFormulaEffectiveFrom());
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.baseFormulaRule().ruleCode() + " effectiveTo = " + earnedIncomeTaxCreditRuleSnapshot.baseFormulaEffectiveTo());
+        trace.add("baseEarnedIncomeTaxCreditAmount = " + earnedIncomeTaxCreditCalculation.baseCreditAmount());
+        trace.add("ruleCode " + earnedIncomeTaxCreditRuleSnapshot.limitRule().ruleCode() + " applied");
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.limitRule().ruleCode() + " effectiveFrom = " + earnedIncomeTaxCreditRuleSnapshot.limitEffectiveFrom());
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.limitRule().ruleCode() + " effectiveTo = " + earnedIncomeTaxCreditRuleSnapshot.limitEffectiveTo());
+        trace.add("earnedIncomeTaxCreditLimitAmount = " + earnedIncomeTaxCreditCalculation.salaryBasedLimitAmount());
+        trace.add("ruleCode " + earnedIncomeTaxCreditRuleSnapshot.finalFormulaRule().ruleCode() + " applied");
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.finalFormulaRule().ruleCode() + " effectiveFrom = " + earnedIncomeTaxCreditRuleSnapshot.finalFormulaEffectiveFrom());
+        trace.add(earnedIncomeTaxCreditRuleSnapshot.finalFormulaRule().ruleCode() + " effectiveTo = " + earnedIncomeTaxCreditRuleSnapshot.finalFormulaEffectiveTo());
+        trace.add("earnedIncomeTaxCreditAmount = " + earnedIncomeTaxCreditAmount);
+        trace.add("otherTaxCreditAmount = " + otherTaxCreditAmount);
+        trace.add("taxCreditAmount = " + taxCreditAmount);
         trace.add("expectedRefundAmount = " + expectedRefundAmount);
 
         return new TaxCalculationOutcome(
@@ -86,9 +151,12 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             command.otherTaxableIncomeAmount(),
             earnedIncomeDeductionAmount,
             earnedIncomeAmount,
+            personalDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,
+            earnedIncomeTaxCreditAmount,
+            otherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,
             command.withholdingTax(),

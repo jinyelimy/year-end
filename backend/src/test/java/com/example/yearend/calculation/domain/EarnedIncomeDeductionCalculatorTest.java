@@ -115,6 +115,77 @@ class EarnedIncomeDeductionCalculatorTest {
                     null
                 ),
                 deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.BASIC_AMOUNT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amountPerPerson\":1500000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.BASIC_ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    """
+                        {
+                          "incomeLimitAmount": 1000000,
+                          "salaryOnlyGrossLimitAmount": 5000000,
+                          "parentMinAge": 60,
+                          "childMaxAge": 20,
+                          "disabledDependentsIgnoreAgeLimit": true,
+                          "supportedRelations": ["SELF", "SPOUSE", "CHILD", "PARENT"]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.SENIOR_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amountPerPerson\":1000000,\"minAge\":70,\"requiresBasicDeductionTarget\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.DISABLED_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amountPerPerson\":2000000,\"requiresBasicDeductionTarget\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.WOMAN_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amount\":500000,\"maxComprehensiveIncomeAmount\":30000000,\"requiresExplicitFilerFlag\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.SINGLE_PARENT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amount\":1000000,\"requiresNoSpouse\":true,\"requiresBasicDeductionTargetChild\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PERSONAL_DEDUCTION,
+                    PersonalDeductionCalculator.AGGREGATION_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "formula": "basicAmount + seniorAmount + disabledAmount + max(singleParentAmount, womanAmount)",
+                          "singleParentOverridesWoman": true,
+                          "floorAtZero": true
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.INCOME_TAX,
                     IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
                     RuleCategory.BRACKET,
@@ -131,6 +202,55 @@ class EarnedIncomeDeductionCalculatorTest {
                             {"sequence":7,"fromExclusive":500000000,"upToInclusive":1000000000,"rate":0.42,"quickDeductionAmount":35940000},
                             {"sequence":8,"fromExclusive":1000000000,"upToInclusive":null,"rate":0.45,"quickDeductionAmount":65940000}
                           ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INCOME_TAX,
+                    EarnedIncomeTaxCreditCalculator.BASE_FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "taxAmountSource": "calculatedTaxAmount",
+                          "brackets": [
+                            {"sequence":1,"upToInclusive":1300000,"baseCreditAmount":0,"excessBaseAmount":0,"excessCreditRate":0.55},
+                            {"sequence":2,"fromExclusive":1300000,"upToInclusive":null,"baseCreditAmount":715000,"excessBaseAmount":1300000,"excessCreditRate":0.30}
+                          ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INCOME_TAX,
+                    EarnedIncomeTaxCreditCalculator.LIMIT_BY_GROSS_SALARY_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    """
+                        {
+                          "salaryAmountSource": "totalGrossSalaryAmount",
+                          "limitBrackets": [
+                            {"sequence":1,"upToInclusive":33000000,"limitAmount":740000},
+                            {"sequence":2,"fromExclusive":33000000,"upToInclusive":70000000,"baseLimitAmount":740000,"reductionBaseAmount":33000000,"reductionRate":0.008,"minimumLimitAmount":660000},
+                            {"sequence":3,"fromExclusive":70000000,"upToInclusive":120000000,"baseLimitAmount":660000,"reductionBaseAmount":70000000,"reductionRate":0.5,"minimumLimitAmount":500000},
+                            {"sequence":4,"fromExclusive":120000000,"upToInclusive":null,"baseLimitAmount":500000,"reductionBaseAmount":120000000,"reductionRate":0.5,"minimumLimitAmount":200000}
+                          ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INCOME_TAX,
+                    EarnedIncomeTaxCreditCalculator.FINAL_FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "formula": "min(baseCreditAmount, salaryBasedLimitAmount)",
+                          "baseRuleCode": "EARNED_INCOME_TAX_CREDIT_BASE_FORMULA_2025",
+                          "limitRuleCode": "EARNED_INCOME_TAX_CREDIT_LIMIT_BY_GROSS_SALARY_2025",
+                          "floorAtZero": true
                         }
                         """,
                     LocalDate.of(2025, 1, 1),

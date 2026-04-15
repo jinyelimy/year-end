@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -115,7 +116,7 @@ class SimulationServiceTest {
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
         when(deductionItemService.getCalculationEligibleEntities(email, sessionId)).thenReturn(eligibleItems);
-        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), any())).thenReturn(snapshot);
+        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), eq(LocalDate.of(2025, 12, 31)))).thenReturn(snapshot);
         when(incomeItemService.getEntities(email, sessionId)).thenReturn(List.of(incomeItem(session)));
         when(dependentService.getEntities(email, sessionId)).thenReturn(List.of());
         when(deductionEngine.evaluate(
@@ -131,13 +132,16 @@ class SimulationServiceTest {
                 0L,
                 12_250_000L,
                 37_750_000L,
+                1_500_000L,
                 480_000L,
                 37_270_000L,
                 2_236_200L,
+                660_000L,
                 120_000L,
-                2_116_200L,
+                780_000L,
+                1_456_200L,
                 3_000_000L,
-                883_800L,
+                1_543_800L,
                 List.of("ok")
             )
         );
@@ -152,15 +156,24 @@ class SimulationServiceTest {
         assertThat(resultCaptor.getValue().getRuleSetId()).isEqualTo("2025@2025.01");
         assertThat(resultCaptor.getValue().getRuleSnapshotHash()).isEqualTo("abc123");
         assertThat(resultCaptor.getValue().getSummaryJsonb()).contains("INCOME_TAX_BASIC_BRACKETS_2025");
+        assertThat(resultCaptor.getValue().getSummaryJsonb()).contains("earnedIncomeTaxCreditAmount");
+        assertThat(resultCaptor.getValue().getSummaryJsonb()).contains("EARNED_INCOME_TAX_CREDIT_BASE_FORMULA_2025");
+        assertThat(response.earnedIncomeTaxCreditAmount()).isEqualTo(660_000L);
+        assertThat(response.otherTaxCreditAmount()).isEqualTo(120_000L);
+        assertThat(response.taxCreditAmount()).isEqualTo(780_000L);
+        assertThat(response.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(response.calculationResultId()).isEqualTo(resultCaptor.getValue().getId());
 
         verify(deductionItemService).getCalculationEligibleEntities(email, sessionId);
 
         ArgumentCaptor<TaxCalculationCommand> commandCaptor = ArgumentCaptor.forClass(TaxCalculationCommand.class);
         verify(taxCalculationService).calculate(commandCaptor.capture());
+        assertThat(commandCaptor.getValue().taxYear()).isEqualTo(2025);
         assertThat(commandCaptor.getValue().totalGrossSalaryAmount()).isEqualTo(50_000_000L);
         assertThat(commandCaptor.getValue().totalNonTaxableIncomeAmount()).isZero();
         assertThat(commandCaptor.getValue().taxableSalaryAmount()).isEqualTo(50_000_000L);
+        assertThat(commandCaptor.getValue().dependents()).isEmpty();
+        assertThat(commandCaptor.getValue().basicInfoAttributes()).isEmpty();
         assertThat(commandCaptor.getValue().ruleSetSnapshot()).isSameAs(snapshot);
 
         ArgumentCaptor<List<DeductionItem>> checklistCaptor = ArgumentCaptor.forClass(List.class);
@@ -188,7 +201,7 @@ class SimulationServiceTest {
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
         when(deductionItemService.getCalculationEligibleEntities(email, sessionId)).thenReturn(eligibleItems);
-        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), any())).thenReturn(snapshot);
+        when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), eq(LocalDate.of(2025, 12, 31)))).thenReturn(snapshot);
         when(incomeItemService.getEntities(email, sessionId)).thenReturn(List.of(incomeItem(session)));
         when(dependentService.getEntities(email, sessionId)).thenReturn(List.of());
         when(deductionEngine.evaluate(

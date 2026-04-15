@@ -1,0 +1,53 @@
+{
+  "asOfDate": "2026-04-15",
+  "runId": "20260415-152140-personal-deduction",
+  "runDirectory": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+  "taxYear": 2025,
+  "filingYear": 2026,
+  "ruleVersion": "2025.01",
+  "generatedAt": "2026-04-15T15:21:40+09:00",
+  "sources": [
+    {
+      "sourceId": "law-income-tax-act-50-2025-10-01",
+      "sourceName": "Income Tax Act Article 50 basic personal deduction",
+      "authority": "National Law Information Center",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0050&lsiSeq=276127&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-10-01",
+      "checkedAt": "2026-04-15",
+      "contentType": "law-article",
+      "notes": "Article 50 confirms KRW 1,500,000 basic deduction per eligible person and the spouse/dependent income and age categories."
+    },
+    {
+      "sourceId": "law-income-tax-act-51-2025-10-01",
+      "sourceName": "Income Tax Act Article 51 additional personal deduction",
+      "authority": "National Law Information Center",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0051&lsiSeq=276127&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-10-01",
+      "checkedAt": "2026-04-15",
+      "contentType": "law-article",
+      "notes": "Article 51 confirms senior, disabled, woman, and single-parent additional deduction amounts and the woman/single-parent precedence rule."
+    },
+    {
+      "sourceId": "nts-year-end-guide-238938",
+      "sourceName": "National Tax Service year-end settlement guide",
+      "authority": "National Tax Service",
+      "sourceUrl": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=238938",
+      "publishedAt": "2026-04-15",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-15",
+      "contentType": "guide-index",
+      "notes": "Official NTS year-end settlement guide index used as the administrative source registry entry for this slice."
+    }
+  ],
+  "previousRuns": [
+    ".local/harness/2026-04-13/20260413-172450-earned-income-deduction-audit",
+    ".local/harness/2026-04-13/20260413-173846-earned-income-deduction-design",
+    ".local/harness/2026-04-14/20260414-114723-earned-income-ruleset-conversion",
+    ".local/harness/2026-04-14/20260414-155945-income-tax-rate-table-audit",
+    ".local/harness/2026-04-14/20260414-161036-income-tax-rate-table-design",
+    ".local/harness/2026-04-15/20260415-112347-earned-income-tax-credit-audit",
+    ".local/harness/2026-04-15/20260415-130636-earned-income-tax-credit-design"
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "ruleSetId": "2025@2025.01-personal-deduction-proposal",
+  "taxYear": 2025,
+  "filingYear": 2026,
+  "ruleVersion": "2025.01",
+  "status": "PUBLISHED",
+  "generatedAt": "2026-04-15T15:21:40+09:00",
+  "generatedFrom": {
+    "runDirectory": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+    "sourceManifest": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
+    "sourceManifestPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
+    "proposalPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/normalized-rule-pack-proposal.json",
+    "phase1Reentry": true,
+    "approvedFromRunDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+    "approvedAt": "2026-04-15T06:43:29Z",
+    "approvalCommand": "approve-phase1-reentry.py"
+  },
+  "rules": [
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "BASIC",
+      "ruleCode": "PERSONAL_BASIC_DEDUCTION_AMOUNT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amountPerPerson": 1500000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-50-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "BASIC_ELIGIBILITY",
+      "ruleCode": "PERSONAL_BASIC_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "incomeLimitAmount": 1000000,
+        "salaryOnlyGrossLimitAmount": 5000000,
+        "parentMinAge": 60,
+        "childMaxAge": 20,
+        "disabledDependentsIgnoreAgeLimit": true,
+        "supportedRelations": [
+          "SELF",
+          "SPOUSE",
+          "CHILD",
+          "PARENT"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-50-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "SENIOR",
+      "ruleCode": "PERSONAL_ADDITIONAL_SENIOR_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amountPerPerson": 1000000,
+        "minAge": 70,
+        "requiresBasicDeductionTarget": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "DISABLED",
+      "ruleCode": "PERSONAL_ADDITIONAL_DISABLED_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amountPerPerson": 2000000,
+        "requiresBasicDeductionTarget": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "WOMAN",
+      "ruleCode": "PERSONAL_ADDITIONAL_WOMAN_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amount": 500000,
+        "maxComprehensiveIncomeAmount": 30000000,
+        "requiresExplicitFilerFlag": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "SINGLE_PARENT",
+      "ruleCode": "PERSONAL_ADDITIONAL_SINGLE_PARENT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amount": 1000000,
+        "requiresNoSpouse": true,
+        "requiresBasicDeductionTargetChild": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PERSONAL_DEDUCTION",
+      "subType": "AGGREGATION",
+      "ruleCode": "PERSONAL_DEDUCTION_AGGREGATION_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "formula": "basicAmount + seniorAmount + disabledAmount + max(singleParentAmount, womanAmount)",
+        "singleParentOverridesWoman": true,
+        "floorAtZero": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-50-2025-10-01",
+        "law-income-tax-act-51-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    }
+  ],
+  "implementationNotes": [
+    "This proposal must be promoted to a published law pack before runtime code should consume these rule codes.",
+    "Current repository audit found no published normalized-rule-pack.json under plugins/year-end-harness/law-packs."
+  ]
+}

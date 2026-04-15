@@ -2,6 +2,7 @@ package com.example.yearend.calculation.application;
 
 import com.example.yearend.calculation.api.SimulationDtos;
 import com.example.yearend.calculation.domain.CalculationResult;
+import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator;
 import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
@@ -35,7 +36,6 @@ import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Map;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +44,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SimulationService {
 
-    private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
     private static final TypeReference<Map<String, Object>> ATTRIBUTES_TYPE = new TypeReference<>() {
     };
 
@@ -71,11 +70,14 @@ public class SimulationService {
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
+                session.getTaxYear(),
                 incomeSummary.totalGrossSalaryAmount(),
                 incomeSummary.totalNonTaxableIncomeAmount(),
                 incomeSummary.taxableSalaryAmount(),
                 incomeSummary.otherTaxableIncomeAmount(),
                 incomeSummary.withholdingTaxAmount(),
+                context.dependents(),
+                context.basicInfoAttributes(),
                 decisions,
                 ruleSetSnapshot
             )
@@ -117,9 +119,13 @@ public class SimulationService {
             outcome.otherTaxableIncomeAmount(),
             outcome.earnedIncomeDeductionAmount(),
             outcome.earnedIncomeAmount(),
+            outcome.personalDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
+            outcome.earnedIncomeTaxCreditAmount(),
+            outcome.otherTaxCreditAmount(),
+            outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
             outcome.expectedRefundAmount(),
             decisions.stream().map(this::toDecisionResponse).toList(),
@@ -164,6 +170,7 @@ public class SimulationService {
             incomeSummary.withholdingTaxAmount(),
             dependents,
             incomeItems,
+            readBasicInfoAttributes(session),
             ruleSetSnapshot
         );
     }
@@ -172,7 +179,7 @@ public class SimulationService {
         return ruleSetResolver.resolve(
             session.getTaxYear(),
             session.getRuleVersion(),
-            LocalDate.now(KOREA_ZONE_ID)
+            LocalDate.of(session.getTaxYear(), 12, 31)
         );
     }
 
@@ -184,6 +191,14 @@ public class SimulationService {
 
     private String hashContext(TaxContext context, List<DeductionItem> deductionItems) {
         String raw = context.taxYear() + "|" + context.totalSalary() + "|" + context.withholdingTax() + "|" +
+            toJson(context.basicInfoAttributes()) +
+            context.dependents().stream()
+                .map(dependent -> dependent.getRelationType() + ":" + dependent.getBirthDate() + ":" +
+                    nullToZero(dependent.getAnnualIncomeAmount()) + ":" + dependent.getResidentType() + ":" +
+                    dependent.isLivesTogether() + ":" + dependent.isDisabled() + ":" +
+                    dependent.isBasicDeductionTarget())
+                .sorted()
+                .reduce("", String::concat) +
             context.incomeItems().stream()
                 .map(item -> item.getIncomeType() + ":" + nullToZero(item.getGrossAmount()) + ":" +
                     nullToZero(item.getTaxableAmount()) + ":" + nullToZero(item.getNonTaxableAmount()) + ":" +
@@ -270,9 +285,12 @@ public class SimulationService {
             outcome.otherTaxableIncomeAmount(),
             outcome.earnedIncomeDeductionAmount(),
             outcome.earnedIncomeAmount(),
+            outcome.personalDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
+            outcome.earnedIncomeTaxCreditAmount(),
+            outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
             outcome.withholdingTaxAmount(),
@@ -282,10 +300,20 @@ public class SimulationService {
                 "EARNED_INCOME_DEDUCTION_BRACKETS",
                 "EARNED_INCOME_DEDUCTION_MAX_LIMIT",
                 "EARNED_INCOME_AMOUNT_FORMULA",
+                "PERSONAL_BASIC_DEDUCTION_AMOUNT_2025",
+                "PERSONAL_BASIC_ELIGIBILITY_2025",
+                "PERSONAL_ADDITIONAL_SENIOR_2025",
+                "PERSONAL_ADDITIONAL_DISABLED_2025",
+                "PERSONAL_ADDITIONAL_WOMAN_2025",
+                "PERSONAL_ADDITIONAL_SINGLE_PARENT_2025",
+                "PERSONAL_DEDUCTION_AGGREGATION_FORMULA_2025",
                 "COMPREHENSIVE_INCOME_AMOUNT_FORMULA_2025",
                 IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE,
                 IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
-                IncomeTaxRateTableCalculator.CALCULATED_TAX_FORMULA_RULE_CODE
+                IncomeTaxRateTableCalculator.CALCULATED_TAX_FORMULA_RULE_CODE,
+                EarnedIncomeTaxCreditCalculator.BASE_FORMULA_RULE_CODE,
+                EarnedIncomeTaxCreditCalculator.LIMIT_BY_GROSS_SALARY_RULE_CODE,
+                EarnedIncomeTaxCreditCalculator.FINAL_FORMULA_RULE_CODE
             ),
             outcome.trace()
         );
@@ -296,6 +324,17 @@ public class SimulationService {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Failed to serialize calculation payload.", exception);
+        }
+    }
+
+    private Map<String, Object> readBasicInfoAttributes(TaxSession session) {
+        try {
+            return objectMapper.readValue(
+                session.getBasicInfoJsonb() == null ? "{}" : session.getBasicInfoJsonb(),
+                ATTRIBUTES_TYPE
+            );
+        } catch (JsonProcessingException exception) {
+            return Map.of();
         }
     }
 
@@ -348,9 +387,12 @@ public class SimulationService {
         long otherTaxableIncomeAmount,
         long earnedIncomeDeductionAmount,
         long earnedIncomeAmount,
+        long personalDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,
+        long earnedIncomeTaxCreditAmount,
+        long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,
         long withholdingTaxAmount,

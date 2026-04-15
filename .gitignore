@@ -2,6 +2,10 @@
 .notion-sync-state.json
 node_modules/
 .local/
+.omx/
+.claude/settings.local.json
+__pycache__/
+*.pyc
 .claude/worktrees/
 backend/*.log
 backend/build/

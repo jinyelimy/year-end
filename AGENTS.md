@@ -42,6 +42,24 @@
 
 ---
 
+## 원샷 공제 자동화 트리거
+
+사용자가 아래와 같거나 의미상 동일한 요청을 하면, 설명에서 멈추지 말고 즉시
+`plugins/year-end-harness/automation/one-shot-autopilot.md`를 읽고 그대로 실행한다.
+
+```
+진행되지 않은 과정을 자동화에 따라 전부 구현해줘
+```
+
+실행 기준:
+- 작업 큐는 `plugins/year-end-harness/automation/backlog.json`이다.
+- 전체 흐름은 `docs/notes/command_list.md`와 `plugins/year-end-harness/automation/inner-workflow.md`를 따른다.
+- 루프는 `BACKLOG_EMPTY`, `HUMAN_REVIEW_REQUIRED`, `PHASE1_REENTRY_REQUIRED`, `FAIL` 중 하나가 될 때만 멈춘다.
+- 세법팩 `PUBLISHED` 전이는 사람이 승인해야 하므로 자동으로 수행하지 않는다.
+- Windows 원샷 진입 스크립트는 `plugins\year-end-harness\scripts\run-deduction-autopilot.cmd`이다.
+
+---
+
 ## 관찰(Observation) 프로토콜
 
 모든 스크립트와 하네스 산출물은 아래 블록으로 종료한다.
