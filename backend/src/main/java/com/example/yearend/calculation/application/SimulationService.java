@@ -7,6 +7,7 @@ import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator;
 import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.CreditCardDeductionCalculator;
+import com.example.yearend.calculation.domain.DonationTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -74,6 +75,7 @@ public class SimulationService {
         long healthInsurancePremiumAmount = summarizeHealthInsurancePremiums(context.incomeItems());
         long employmentInsurancePremiumAmount = summarizeEmploymentInsurancePremiums(context.incomeItems());
         CreditCardUsageSummary creditCardSummary = summarizeCreditCardItems(deductionItems);
+        DonationSummary donationSummary = summarizeDonationItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -90,6 +92,11 @@ public class SimulationService {
                 creditCardSummary.debitCardAmount(),
                 creditCardSummary.cashReceiptAmount(),
                 creditCardSummary.zeroPayAmount(),
+                donationSummary.politicalAmount(),
+                donationSummary.legalAmount(),
+                donationSummary.employeeStockAmount(),
+                donationSummary.designatedAmount(),
+                donationSummary.designatedReligiousAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -141,6 +148,7 @@ public class SimulationService {
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
             outcome.earnedIncomeTaxCreditAmount(),
+            outcome.donationTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -300,6 +308,23 @@ public class SimulationService {
             .sum();
     }
 
+    private DonationSummary summarizeDonationItems(List<DeductionItem> deductionItems) {
+        long political = sumDonationSubType(deductionItems, "POLITICAL");
+        long legal = sumDonationSubType(deductionItems, "LEGAL");
+        long employeeStock = sumDonationSubType(deductionItems, "EMPLOYEE_STOCK");
+        long designated = sumDonationSubType(deductionItems, "DESIGNATED");
+        long designatedReligious = sumDonationSubType(deductionItems, "DESIGNATED_RELIGIOUS");
+        return new DonationSummary(political, legal, employeeStock, designated, designatedReligious);
+    }
+
+    private long sumDonationSubType(List<DeductionItem> deductionItems, String subType) {
+        return deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.DONATION
+                && subType.equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+    }
+
     private long readAttributeLong(IncomeItem item, String key) {
         try {
             Map<String, Object> attributes = objectMapper.readValue(
@@ -374,6 +399,7 @@ public class SimulationService {
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
             outcome.earnedIncomeTaxCreditAmount(),
+            outcome.donationTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -410,7 +436,14 @@ public class SimulationService {
                 IncomeTaxRateTableCalculator.CALCULATED_TAX_FORMULA_RULE_CODE,
                 EarnedIncomeTaxCreditCalculator.BASE_FORMULA_RULE_CODE,
                 EarnedIncomeTaxCreditCalculator.LIMIT_BY_GROSS_SALARY_RULE_CODE,
-                EarnedIncomeTaxCreditCalculator.FINAL_FORMULA_RULE_CODE
+                EarnedIncomeTaxCreditCalculator.FINAL_FORMULA_RULE_CODE,
+                DonationTaxCreditCalculator.POLITICAL_BRACKET_RULE_CODE,
+                DonationTaxCreditCalculator.LEGAL_LIMIT_RATE_RULE_CODE,
+                DonationTaxCreditCalculator.DESIGNATED_RELIGIOUS_RULE_CODE,
+                DonationTaxCreditCalculator.DESIGNATED_RULE_CODE,
+                DonationTaxCreditCalculator.EMPLOYEE_STOCK_RULE_CODE,
+                DonationTaxCreditCalculator.AGGREGATE_FORMULA_RULE_CODE,
+                DonationTaxCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -475,6 +508,15 @@ public class SimulationService {
     ) {
     }
 
+    private record DonationSummary(
+        long politicalAmount,
+        long legalAmount,
+        long employeeStockAmount,
+        long designatedAmount,
+        long designatedReligiousAmount
+    ) {
+    }
+
     private record IncomeCalculationSummary(
         long totalGrossSalaryAmount,
         long totalNonTaxableIncomeAmount,
@@ -500,6 +542,7 @@ public class SimulationService {
         long taxableIncomeAmount,
         long calculatedTaxAmount,
         long earnedIncomeTaxCreditAmount,
+        long donationTaxCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

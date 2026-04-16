@@ -21,6 +21,7 @@ class DefaultTaxCalculationServiceTest {
             new PensionInsurancePremiumCalculator(new ObjectMapper()),
             new SocialInsurancePremiumCalculator(new ObjectMapper()),
             new CreditCardDeductionCalculator(new ObjectMapper()),
+            new DonationTaxCreditCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );
@@ -40,6 +41,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(
@@ -90,6 +92,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -125,6 +128,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -158,6 +162,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -187,6 +192,7 @@ class DefaultTaxCalculationServiceTest {
             1_200_000L,   // healthInsurancePremiumAmount
             300_000L,     // employmentInsurancePremiumAmount
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -220,6 +226,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             12_000_000L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -251,6 +258,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             8_000_000L, 5_000_000L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -283,6 +291,7 @@ class DefaultTaxCalculationServiceTest {
             800_000L,     // health
             200_000L,     // employment
             0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -295,5 +304,70 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.trace()).anyMatch(line -> line.contains("socialInsuranceAggregateCapRemainingAmount = 0"));
+    }
+
+    @Test
+    @DisplayName("calculates legal donation tax credit at 15% rate for amounts below threshold (기부금 세액공제)")
+    void appliesLegalDonationTaxCredit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 2_000_000L, 0L, 0L, 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // earnedIncome = 30M - 9,750,000 = 20,250,000
+        // legal limit = 20,250,000 × 100% → 2M is within limit
+        // credit = 2M × 15% = 300,000 (below 10M threshold)
+        assertThat(outcome.donationTaxCreditAmount()).isEqualTo(300_000L);
+        assertThat(outcome.taxCreditAmount()).isEqualTo(
+            outcome.earnedIncomeTaxCreditAmount() + outcome.donationTaxCreditAmount() + outcome.otherTaxCreditAmount()
+        );
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(DonationTaxCreditCalculator.LEGAL_LIMIT_RATE_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("donationTaxCreditAmount = 300000"));
+    }
+
+    @Test
+    @DisplayName("calculates political donation tax credit using bracket rates (정치자금 기부금 세액공제)")
+    void appliesPoliticalDonationTaxCredit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            200_000L, 0L, 0L, 0L, 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // below 100,000: Math.round(100,000 × 0.9091) = 90,910
+        // above 100,000: Math.round(100,000 × 0.15) = 15,000
+        // total = 105,910
+        assertThat(outcome.donationTaxCreditAmount()).isEqualTo(105_910L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(DonationTaxCreditCalculator.POLITICAL_BRACKET_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("donationTaxCreditAmount = 105910"));
     }
 }

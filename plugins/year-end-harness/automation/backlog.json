@@ -143,7 +143,11 @@
         "4-3"
       ],
       "notes": "DONATION enum만 존재, Policy 없음. 기부금 종류별(정치/법정/지정/우리사주 등) 한도/공제율/이월공제 처리 필요",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-16T07:12:38Z",
+      "doneRuns": [
+        ".local/harness/2026-04-16/20260416-162250-donation"
+      ]
     },
     {
       "id": "insurance-premium-ext",
@@ -215,6 +219,12 @@
       "runDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
       "commitSha": null,
       "at": "2026-04-16T06:20:25Z"
+    },
+    {
+      "sliceId": "donation",
+      "runDir": ".local/harness/2026-04-16/20260416-162250-donation",
+      "commitSha": null,
+      "at": "2026-04-16T07:12:38Z"
     }
   ]
 }

@@ -414,6 +414,62 @@ class EarnedIncomeDeductionCalculatorTest {
                         """,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.POLITICAL_BRACKET_RULE_CODE,
+                    RuleCategory.BRACKET,
+                    "{\"firstThreshold\":100000,\"firstRate\":0.9091,\"secondThreshold\":30000000,\"secondRate\":0.15,\"thirdRate\":0.25}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.LEGAL_LIMIT_RATE_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"incomeLimitRate\":1.0,\"creditRateBelowThreshold\":0.15,\"creditRateAboveThreshold\":0.30,\"creditThresholdAmount\":10000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.DESIGNATED_RELIGIOUS_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"incomeLimitRate\":0.10,\"creditRateBelowThreshold\":0.15,\"creditRateAboveThreshold\":0.30,\"creditThresholdAmount\":10000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.DESIGNATED_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"incomeLimitRate\":0.30,\"creditRateBelowThreshold\":0.15,\"creditRateAboveThreshold\":0.30,\"creditThresholdAmount\":10000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.EMPLOYEE_STOCK_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"incomeLimitRate\":0.30,\"creditRate\":0.30}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.AGGREGATE_FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"calculationOrder\":[\"POLITICAL\",\"LEGAL\",\"EMPLOYEE_STOCK\",\"DESIGNATED\",\"DESIGNATED_RELIGIOUS\"],\"incomeBasisField\":\"earnedIncomeAmount\",\"carryForwardDeferred\":true,\"floorAtZero\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.DONATION,
+                    DonationTaxCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"politicalDonationAmount\",\"legalDonationAmount\",\"employeeStockDonationAmount\",\"designatedDonationAmount\",\"designatedReligiousDonationAmount\",\"totalDonationTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
                 )
             )
         );

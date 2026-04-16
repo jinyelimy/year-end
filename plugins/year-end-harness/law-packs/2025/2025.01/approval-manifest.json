@@ -1,10 +1,10 @@
 {
-  "approvedAt": "2026-04-16T15:50:00Z",
-  "sourceRunDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
+  "approvedAt": "2026-04-16T16:30:00Z",
+  "sourceRunDir": ".local/harness/2026-04-16/20260416-162250-donation",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-merged",
   "status": "PUBLISHED",
   "approvedBy": "manual CLI approval",
   "approvalHistory": [
@@ -39,6 +39,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["credit-card"]
+    },
+    {
+      "approvedAt": "2026-04-16T16:30:00Z",
+      "sourceRunDir": ".local/harness/2026-04-16/20260416-162250-donation",
+      "ruleSetId": "2025@2025.01-donation-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["donation"]
     }
   ]
 }

@@ -140,6 +140,7 @@ class SimulationServiceTest {
                 37_270_000L,
                 2_236_200L,
                 660_000L,
+                0L,  // donationTaxCreditAmount
                 120_000L,
                 780_000L,
                 1_456_200L,

@@ -1,6 +1,6 @@
 {
   "asOfDate": "2026-04-16",
-  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special+20260416-155000-credit-card",
+  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special+20260416-155000-credit-card+20260416-162250-donation",
   "runDirectory": ".local/harness/2026-04-16/20260416-155000-credit-card",
   "taxYear": 2025,
   "filingYear": 2026,
@@ -74,6 +74,7 @@
     ".local/harness/2026-04-15/20260415-152140-personal-deduction",
     ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
     ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
-    ".local/harness/2026-04-16/20260416-155000-credit-card"
+    ".local/harness/2026-04-16/20260416-155000-credit-card",
+    ".local/harness/2026-04-16/20260416-162250-donation"
   ]
 }
