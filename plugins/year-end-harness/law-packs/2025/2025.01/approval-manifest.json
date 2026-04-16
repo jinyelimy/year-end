@@ -1,10 +1,10 @@
 {
-  "approvedAt": "2026-04-16T13:44:05Z",
-  "sourceRunDir": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+  "approvedAt": "2026-04-16T15:50:00Z",
+  "sourceRunDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
-  "ruleSetId": "2025@2025.01-personal-pension-social-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-merged",
   "status": "PUBLISHED",
   "approvedBy": "manual CLI approval",
   "approvalHistory": [
@@ -31,6 +31,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["social-insurance-special"]
+    },
+    {
+      "approvedAt": "2026-04-16T15:50:00Z",
+      "sourceRunDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
+      "ruleSetId": "2025@2025.01-credit-card-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["credit-card"]
     }
   ]
 }

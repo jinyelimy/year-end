@@ -135,6 +135,7 @@ class SimulationServiceTest {
                 1_500_000L,
                 0L,  // pensionInsurancePremiumDeductionAmount
                 0L,  // socialInsurancePremiumDeductionAmount
+                0L,  // creditCardDeductionAmount
                 480_000L,
                 37_270_000L,
                 2_236_200L,

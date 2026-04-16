@@ -20,6 +20,7 @@ class DefaultTaxCalculationServiceTest {
             new PersonalDeductionCalculator(new ObjectMapper()),
             new PensionInsurancePremiumCalculator(new ObjectMapper()),
             new SocialInsurancePremiumCalculator(new ObjectMapper()),
+            new CreditCardDeductionCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );
@@ -38,6 +39,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L,
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(
@@ -87,6 +89,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             0L,
             0L,
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -121,6 +124,7 @@ class DefaultTaxCalculationServiceTest {
             1_350_000L,
             0L,
             0L,
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -153,6 +157,7 @@ class DefaultTaxCalculationServiceTest {
             500_000L,
             0L,
             0L,
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -181,6 +186,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             1_200_000L,   // healthInsurancePremiumAmount
             300_000L,     // employmentInsurancePremiumAmount
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -201,6 +207,69 @@ class DefaultTaxCalculationServiceTest {
     }
 
     @Test
+    @DisplayName("deducts credit card usage above the minimum threshold (신용카드 총급여 25% 초과분 공제)")
+    void deductsCreditCardAboveMinimumThreshold() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            12_000_000L, 0L, 0L, 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // threshold = 30M * 25% = 7.5M; creditAbove = 12M - 7.5M = 4.5M; deduction = 4.5M * 15% = 675,000
+        assertThat(outcome.creditCardDeductionAmount()).isEqualTo(675_000L);
+        assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.totalDeductionAmount()).isEqualTo(2_175_000L);
+        assertThat(outcome.taxableIncomeAmount()).isEqualTo(18_075_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(CreditCardDeductionCalculator.MINIMUM_USAGE_THRESHOLD_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("creditCardDeductionAmount = 675000"));
+    }
+
+    @Test
+    @DisplayName("applies sequential threshold allocation across credit and debit card subtypes")
+    void appliesSequentialThresholdWithMixedSubtypes() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            8_000_000L, 5_000_000L, 0L, 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // threshold=7.5M; credit=8M → creditAbove=500,000; debit=5M → debitAbove=5M
+        // deduction = 500,000*15% + 5M*30% = 75,000 + 1,500,000 = 1,575,000
+        assertThat(outcome.creditCardDeductionAmount()).isEqualTo(1_575_000L);
+        assertThat(outcome.totalDeductionAmount()).isEqualTo(3_075_000L);
+        assertThat(outcome.taxableIncomeAmount()).isEqualTo(17_175_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(CreditCardDeductionCalculator.RATE_CREDIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(CreditCardDeductionCalculator.RATE_DEBIT_CASH_ZEROPAY_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("creditCardDeductionAmount = 1575000"));
+    }
+
+    @Test
     @DisplayName("caps social insurance premium when prior deductions exhaust comprehensive income")
     void capsSocialInsuranceWhenPriorDeductionsExhaustIncome() {
         TaxCalculationCommand command = new TaxCalculationCommand(
@@ -213,6 +282,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             800_000L,     // health
             200_000L,     // employment
+            0L, 0L, 0L, 0L,
             List.of(),
             Map.of(),
             List.of(),

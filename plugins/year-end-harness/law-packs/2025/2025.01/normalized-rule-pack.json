@@ -1,12 +1,12 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
   "status": "PUBLISHED",
-  "generatedAt": "2026-04-16T13:44:05+09:00",
+  "generatedAt": "2026-04-16T15:50:00+09:00",
   "generatedFrom": {
-    "runDirectory": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+    "runDirectory": ".local/harness/2026-04-16/20260416-155000-credit-card",
     "sourceManifest": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
     "sourceManifestPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
     "proposalPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/normalized-rule-pack-proposal.json",
@@ -24,6 +24,18 @@
         "sliceId": "pension-insurance-premium",
         "runDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
         "approvedAt": "2026-04-16T00:00:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "social-insurance-special",
+        "runDir": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+        "approvedAt": "2026-04-16T06:32:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "credit-card",
+        "runDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
+        "approvedAt": "2026-04-16T15:50:00Z",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -302,6 +314,99 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-52-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CREDIT_CARD",
+      "subType": "MINIMUM_USAGE_THRESHOLD",
+      "ruleCode": "CREDIT_CARD_MINIMUM_USAGE_THRESHOLD_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "thresholdRate": 0.25
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-126-2-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CREDIT_CARD",
+      "subType": "RATE_CREDIT",
+      "ruleCode": "CREDIT_CARD_RATE_CREDIT_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "subType": "CREDIT_CARD",
+        "rate": 0.15
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-126-2-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CREDIT_CARD",
+      "subType": "RATE_DEBIT_CASH_ZEROPAY",
+      "ruleCode": "CREDIT_CARD_RATE_DEBIT_CASH_ZEROPAY_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "subTypes": ["DEBIT_CARD", "CASH_RECEIPT", "ZERO_PAY"],
+        "rate": 0.30
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-126-2-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CREDIT_CARD",
+      "subType": "BASIC_LIMIT",
+      "ruleCode": "CREDIT_CARD_BASIC_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "tiers": [
+          { "maxSalary": 70000000, "limit": 3000000 },
+          { "maxSalary": 120000000, "limit": 2500000 },
+          { "maxSalary": null, "limit": 2000000 }
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-126-2-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CREDIT_CARD",
+      "subType": "TRACE",
+      "ruleCode": "CREDIT_CARD_TRACE_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "creditCardAmount",
+          "debitCardAmount",
+          "cashReceiptAmount",
+          "zeroPayAmount",
+          "totalUsageAmount",
+          "minimumUsageThresholdAmount",
+          "creditCardAboveThresholdAmount",
+          "debitCashZeroPayAboveThresholdAmount",
+          "deductionBeforeLimitAmount",
+          "basicLimitAmount",
+          "appliedAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-126-2-2025-10-01"
       ],
       "confidence": "confirmed"
     }

@@ -9,6 +9,8 @@ import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator.
 import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator.PensionInsurancePremiumRuleSnapshot;
 import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator.SocialInsurancePremiumCalculation;
 import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator.SocialInsurancePremiumRuleSnapshot;
+import com.example.yearend.calculation.domain.CreditCardDeductionCalculator.CreditCardCalculation;
+import com.example.yearend.calculation.domain.CreditCardDeductionCalculator.CreditCardRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final PersonalDeductionCalculator personalDeductionCalculator;
     private final PensionInsurancePremiumCalculator pensionInsurancePremiumCalculator;
     private final SocialInsurancePremiumCalculator socialInsurancePremiumCalculator;
+    private final CreditCardDeductionCalculator creditCardDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
@@ -31,6 +34,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         PersonalDeductionCalculator personalDeductionCalculator,
         PensionInsurancePremiumCalculator pensionInsurancePremiumCalculator,
         SocialInsurancePremiumCalculator socialInsurancePremiumCalculator,
+        CreditCardDeductionCalculator creditCardDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
@@ -38,6 +42,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.personalDeductionCalculator = personalDeductionCalculator;
         this.pensionInsurancePremiumCalculator = pensionInsurancePremiumCalculator;
         this.socialInsurancePremiumCalculator = socialInsurancePremiumCalculator;
+        this.creditCardDeductionCalculator = creditCardDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -86,7 +91,18 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             socialRuleSnapshot
         );
         long socialInsurancePremiumDeductionAmount = socialCalculation.appliedAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount;
+        CreditCardRuleSnapshot creditCardRuleSnapshot =
+            creditCardDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        CreditCardCalculation creditCardCalculation = creditCardDeductionCalculator.calculate(
+            command.creditCardAmount(),
+            command.debitCardAmount(),
+            command.cashReceiptAmount(),
+            command.zeroPayAmount(),
+            command.taxableSalaryAmount(),
+            creditCardRuleSnapshot
+        );
+        long creditCardDeductionAmount = creditCardCalculation.appliedAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -168,6 +184,21 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("socialInsuranceAggregateCapRemainingAmount = " + socialCalculation.aggregateCapRemainingAmount());
         trace.add("ruleCode " + socialRuleSnapshot.traceRule().ruleCode() + " applied");
         trace.add("socialInsurancePremiumDeductionAmount = " + socialInsurancePremiumDeductionAmount);
+        trace.add("ruleCode " + creditCardRuleSnapshot.minimumUsageThresholdRule().ruleCode() + " applied");
+        trace.add("creditCardAmount = " + creditCardCalculation.creditCardAmount());
+        trace.add("debitCardAmount = " + creditCardCalculation.debitCardAmount());
+        trace.add("cashReceiptAmount = " + creditCardCalculation.cashReceiptAmount());
+        trace.add("zeroPayAmount = " + creditCardCalculation.zeroPayAmount());
+        trace.add("totalCreditCardUsageAmount = " + creditCardCalculation.totalUsageAmount());
+        trace.add("minimumUsageThresholdAmount = " + creditCardCalculation.minimumUsageThresholdAmount());
+        trace.add("ruleCode " + creditCardRuleSnapshot.rateCreditRule().ruleCode() + " applied");
+        trace.add("creditCardAboveThresholdAmount = " + creditCardCalculation.creditCardAboveThresholdAmount());
+        trace.add("ruleCode " + creditCardRuleSnapshot.rateDebitCashZeroPayRule().ruleCode() + " applied");
+        trace.add("debitCashZeroPayAboveThresholdAmount = " + creditCardCalculation.debitCashZeroPayAboveThresholdAmount());
+        trace.add("ruleCode " + creditCardRuleSnapshot.basicLimitRule().ruleCode() + " applied");
+        trace.add("creditCardBasicLimitAmount = " + creditCardCalculation.basicLimitAmount());
+        trace.add("ruleCode " + creditCardRuleSnapshot.traceRule().ruleCode() + " applied");
+        trace.add("creditCardDeductionAmount = " + creditCardDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -206,6 +237,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             personalDeductionAmount,
             pensionInsurancePremiumDeductionAmount,
             socialInsurancePremiumDeductionAmount,
+            creditCardDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,

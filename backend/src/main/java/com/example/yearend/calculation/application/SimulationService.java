@@ -6,6 +6,7 @@ import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator;
 import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator;
 import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator;
+import com.example.yearend.calculation.domain.CreditCardDeductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -72,6 +73,7 @@ public class SimulationService {
         long publicPensionContributionAmount = summarizePublicPensionContributions(context.incomeItems());
         long healthInsurancePremiumAmount = summarizeHealthInsurancePremiums(context.incomeItems());
         long employmentInsurancePremiumAmount = summarizeEmploymentInsurancePremiums(context.incomeItems());
+        CreditCardUsageSummary creditCardSummary = summarizeCreditCardItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -84,6 +86,10 @@ public class SimulationService {
                 publicPensionContributionAmount,
                 healthInsurancePremiumAmount,
                 employmentInsurancePremiumAmount,
+                creditCardSummary.creditCardAmount(),
+                creditCardSummary.debitCardAmount(),
+                creditCardSummary.cashReceiptAmount(),
+                creditCardSummary.zeroPayAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -130,6 +136,7 @@ public class SimulationService {
             outcome.personalDeductionAmount(),
             outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.socialInsurancePremiumDeductionAmount(),
+            outcome.creditCardDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -277,6 +284,22 @@ public class SimulationService {
             .sum();
     }
 
+    private CreditCardUsageSummary summarizeCreditCardItems(List<DeductionItem> deductionItems) {
+        long creditCard = sumCreditCardSubType(deductionItems, "CREDIT_CARD");
+        long debitCard  = sumCreditCardSubType(deductionItems, "DEBIT_CARD");
+        long cashReceipt = sumCreditCardSubType(deductionItems, "CASH_RECEIPT");
+        long zeroPay    = sumCreditCardSubType(deductionItems, "ZERO_PAY");
+        return new CreditCardUsageSummary(creditCard, debitCard, cashReceipt, zeroPay);
+    }
+
+    private long sumCreditCardSubType(List<DeductionItem> deductionItems, String subType) {
+        return deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.CREDIT_CARD
+                && subType.equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+    }
+
     private long readAttributeLong(IncomeItem item, String key) {
         try {
             Map<String, Object> attributes = objectMapper.readValue(
@@ -346,6 +369,7 @@ public class SimulationService {
             outcome.personalDeductionAmount(),
             outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.socialInsurancePremiumDeductionAmount(),
+            outcome.creditCardDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -375,6 +399,11 @@ public class SimulationService {
                 SocialInsurancePremiumCalculator.EMPLOYMENT_ELIGIBILITY_RULE_CODE,
                 SocialInsurancePremiumCalculator.AGGREGATE_CAP_RULE_CODE,
                 SocialInsurancePremiumCalculator.TRACE_RULE_CODE,
+                CreditCardDeductionCalculator.MINIMUM_USAGE_THRESHOLD_RULE_CODE,
+                CreditCardDeductionCalculator.RATE_CREDIT_RULE_CODE,
+                CreditCardDeductionCalculator.RATE_DEBIT_CASH_ZEROPAY_RULE_CODE,
+                CreditCardDeductionCalculator.BASIC_LIMIT_RULE_CODE,
+                CreditCardDeductionCalculator.TRACE_RULE_CODE,
                 "COMPREHENSIVE_INCOME_AMOUNT_FORMULA_2025",
                 IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE,
                 IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
@@ -438,6 +467,14 @@ public class SimulationService {
         );
     }
 
+    private record CreditCardUsageSummary(
+        long creditCardAmount,
+        long debitCardAmount,
+        long cashReceiptAmount,
+        long zeroPayAmount
+    ) {
+    }
+
     private record IncomeCalculationSummary(
         long totalGrossSalaryAmount,
         long totalNonTaxableIncomeAmount,
@@ -458,6 +495,7 @@ public class SimulationService {
         long personalDeductionAmount,
         long pensionInsurancePremiumDeductionAmount,
         long socialInsurancePremiumDeductionAmount,
+        long creditCardDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

@@ -1,11 +1,11 @@
 {
   "asOfDate": "2026-04-16",
-  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special",
-  "runDirectory": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special+20260416-155000-credit-card",
+  "runDirectory": ".local/harness/2026-04-16/20260416-155000-credit-card",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
-  "generatedAt": "2026-04-16T13:44:05+09:00",
+  "generatedAt": "2026-04-16T15:50:00+09:00",
   "sources": [
     {
       "sourceId": "law-income-tax-act-50-2025-10-01",
@@ -41,6 +41,17 @@
       "notes": "Article 51-3 confirms deduction for public pension-law contributions or personal burdens paid during the taxable period and the aggregate income cap rule."
     },
     {
+      "sourceId": "law-income-tax-act-126-2-2025-10-01",
+      "sourceName": "소득세법 제126조의2 (신용카드 등 사용금액에 대한 소득공제)",
+      "authority": "National Law Information Center",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0126_2&lsiSeq=276127&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-10-01",
+      "checkedAt": "2026-04-16",
+      "contentType": "law-article",
+      "notes": "소득세법 제126조의2 ①: 총급여액의 25% 초과분부터 공제. 신용카드 15%, 직불카드·현금영수증·제로페이 30%. ②: 연간 공제한도(총급여 7천만이하→300만, 7천만~1억2천만→250만, 1억2천만초과→200만원)."
+    },
+    {
       "sourceId": "nts-year-end-guide-238938",
       "sourceName": "National Tax Service year-end settlement guide",
       "authority": "National Tax Service",
@@ -62,6 +73,7 @@
     ".local/harness/2026-04-15/20260415-130636-earned-income-tax-credit-design",
     ".local/harness/2026-04-15/20260415-152140-personal-deduction",
     ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
-    ".local/harness/2026-04-16/20260416-134405-social-insurance-special"
+    ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+    ".local/harness/2026-04-16/20260416-155000-credit-card"
   ]
 }

@@ -3,13 +3,13 @@
 ## Context
 
 - As-of date: 2026-04-16
-- Run id: 20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special
-- Run directory: .local/harness/2026-04-16/20260416-134405-social-insurance-special
+- Run id: 20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special+20260416-155000-credit-card
+- Run directory: .local/harness/2026-04-16/20260416-155000-credit-card
 - Target law context: 2025 income / 2026 filing
 - Target tax year: 2025
 - Target filing year: 2026
 - Target rule version: 2025.01
-- Requested scope: Phase 1 re-entry for personal deduction, pension insurance premium, and social insurance premium (all merged into 2025.01 via manual human approval).
+- Requested scope: Phase 1 re-entry for personal deduction, pension insurance premium, social insurance premium, and credit card deduction (all merged into 2025.01 via manual human approval).
 
 ## Inputs
 
@@ -25,6 +25,9 @@
 - .local/harness/2026-04-16/20260416-134405-social-insurance-special/source-manifest.json
 - .local/harness/2026-04-16/20260416-134405-social-insurance-special/normalized-rule-pack-proposal.json
 - .local/harness/2026-04-16/20260416-134405-social-insurance-special/expected-rule-codes.txt
+- .local/harness/2026-04-16/20260416-155000-credit-card/source-manifest.json
+- .local/harness/2026-04-16/20260416-155000-credit-card/normalized-rule-pack-proposal.json
+- .local/harness/2026-04-16/20260416-155000-credit-card/expected-rule-codes.txt
 
 ## Source Register
 
@@ -36,6 +39,7 @@
 | Income Tax Act Article 52 special income deduction - social insurance premiums | https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0052&lsiSeq=276127&urlMode=lsScJoRltInfoR | 2025-10-01 | 2025-10-01 | 2026-04-16 | Article 52 para 1 item 1: employee health insurance + long-term care premiums deductible in full. Item 2: employee employment insurance premiums deductible in full. Para 4: aggregate cap equals comprehensive income. |
 | National Health Insurance Act Article 69 | https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0069&lsiSeq=276000&urlMode=lsScJoRltInfoR | 2025-10-01 | 2025-10-01 | 2026-04-16 | Defines workplace subscriber health insurance premium; employee bears half of the total premium. |
 | Employment Insurance Act Article 49 | https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0049&lsiSeq=270000&urlMode=lsScJoRltInfoR | 2025-10-01 | 2025-10-01 | 2026-04-16 | Defines employment insurance premium; employee portion is 0.9% of monthly salary for 2025. |
+| 소득세법 제126조의2 신용카드 등 사용금액 소득공제 | https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0126_2&lsiSeq=276127&urlMode=lsScJoRltInfoR | 2025-10-01 | 2025-10-01 | 2026-04-16 | 총급여액의 25% 초과분 공제. 신용카드 15%, 직불카드·현금영수증·제로페이 30%. 연간 한도 구간별 300만/250만/200만 원. |
 | National Tax Service year-end settlement guide | https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=238938 | 2026-04-15 | 2025-01-01 | 2026-04-15 | Official NTS year-end settlement guide index used as the administrative source registry entry for this slice. |
 
 ## Confirmed Rules
@@ -57,6 +61,7 @@
 - `PENSION_INSURANCE_PREMIUM_TRACE_FORMULA_2025` (PENSION_INSURANCE_PREMIUM/TRACE, FORMULA): traceFields=[eligiblePaidAmount, appliedAmount, aggregateCapRemainingAmount]; sources=law-income-tax-act-51-3-2025-10-01
 - `SOCIAL_INSURANCE_PREMIUM_AGGREGATE_CAP_2025` (SOCIAL_INSURANCE_PREMIUM/AGGREGATE_CAP, LIMIT): capSource=comprehensiveIncomeAmount; includedDeductionFamilies=[인적공제, 연금보험료공제]; sources=law-income-tax-act-52-2025-10-01
 - `SOCIAL_INSURANCE_PREMIUM_TRACE_FORMULA_2025` (SOCIAL_INSURANCE_PREMIUM/TRACE, FORMULA): traceFields=[healthInsurancePremiumAmount, employmentInsurancePremiumAmount, totalEligibleAmount, aggregateCapRemainingAmount, appliedAmount]; sources=law-income-tax-act-52-2025-10-01
+- `CREDIT_CARD_BASIC_LIMIT_2025` (CREDIT_CARD/BASIC_LIMIT, LIMIT): tiers=[{maxSalary:70M,limit:3M},{maxSalary:120M,limit:2.5M},{maxSalary:null,limit:2M}]; sources=law-income-tax-act-126-2-2025-10-01
 
 ### 인적공제 판단표
 
@@ -64,6 +69,10 @@
 - `PENSION_INSURANCE_PREMIUM_ELIGIBILITY_2025` (PENSION_INSURANCE_PREMIUM/ELIGIBILITY, ELIGIBILITY): eligiblePaidAmountSource=employeePublicPensionContributionAmount; excludeEmployerContribution=True; sources=law-income-tax-act-51-3-2025-10-01
 - `SOCIAL_INSURANCE_PREMIUM_HEALTH_ELIGIBILITY_2025` (SOCIAL_INSURANCE_PREMIUM/ELIGIBILITY, ELIGIBILITY): eligiblePaidAmountSource=employeeHealthInsurancePremiumAmount; includesLongTermCare=True; excludeEmployerContribution=True; sources=law-income-tax-act-52-2025-10-01, law-national-health-insurance-act-69-2025-10-01
 - `SOCIAL_INSURANCE_PREMIUM_EMPLOYMENT_ELIGIBILITY_2025` (SOCIAL_INSURANCE_PREMIUM/ELIGIBILITY, ELIGIBILITY): eligiblePaidAmountSource=employeeEmploymentInsurancePremiumAmount; excludeEmployerContribution=True; sources=law-income-tax-act-52-2025-10-01, law-employment-insurance-act-49-2025-10-01
+- `CREDIT_CARD_MINIMUM_USAGE_THRESHOLD_2025` (CREDIT_CARD/MINIMUM_USAGE_THRESHOLD, FORMULA): thresholdRate=0.25; sources=law-income-tax-act-126-2-2025-10-01
+- `CREDIT_CARD_RATE_CREDIT_2025` (CREDIT_CARD/RATE_CREDIT, FORMULA): subType=CREDIT_CARD; rate=0.15; sources=law-income-tax-act-126-2-2025-10-01
+- `CREDIT_CARD_RATE_DEBIT_CASH_ZEROPAY_2025` (CREDIT_CARD/RATE_DEBIT_CASH_ZEROPAY, FORMULA): subTypes=[DEBIT_CARD,CASH_RECEIPT,ZERO_PAY]; rate=0.30; sources=law-income-tax-act-126-2-2025-10-01
+- `CREDIT_CARD_TRACE_FORMULA_2025` (CREDIT_CARD/TRACE, FORMULA): traceFields=[creditCardAmount,debitCardAmount,...,appliedAmount]; sources=law-income-tax-act-126-2-2025-10-01
 
 ### 항목별 가족 합산 가능 여부 표
 
@@ -80,9 +89,9 @@
 
 ## Normalization Notes
 
-- Rule version decision: 2025.01 was selected for both slices merged in this version.
+- Rule version decision: 2025.01 was selected for all slices merged in this version.
 - Previous rule set: first version because `plugins/year-end-harness/law-packs/` had no published normalized rule pack before this approval.
-- Diff summary: added 7 personal deduction rule codes, 4 pension insurance premium rule codes, and 4 social insurance premium rule codes (15 total).
+- Diff summary: added 7 personal deduction rule codes, 4 pension insurance premium rule codes, 4 social insurance premium rule codes, and 5 credit card deduction rule codes (20 total).
 - Publish readiness: `PUBLISHED` (human-approved merge).
 
 ## Inferred Rules
@@ -91,7 +100,7 @@
 
 ## Open Questions
 
-- None. All three slices' rule codes have been confirmed against official sources and merged under 2025.01 by human approval.
+- None. All four slices' rule codes have been confirmed against official sources and merged under 2025.01 by human approval.
 
 ## Files
 
@@ -105,8 +114,8 @@
 ```text
 === HARNESS RESULT ===
 STATUS   : success
-SUMMARY  : Merged personal-deduction, pension-insurance-premium, and social-insurance-premium rule codes under 2025.01 via human approval.
-ARTIFACTS: .local/harness/2026-04-16/20260416-134405-social-insurance-special/agent-a-tax-pack.md
-NEXT     : Re-run Gate 3 and proceed with social-insurance-special slice implementation.
+SUMMARY  : Merged personal-deduction, pension-insurance-premium, social-insurance-premium, and credit-card rule codes under 2025.01 via human approval.
+ARTIFACTS: .local/harness/2026-04-16/20260416-155000-credit-card/agent-a-tax-pack.md
+NEXT     : Re-run Gate 3 and proceed with credit-card slice implementation.
 ======================
 ```

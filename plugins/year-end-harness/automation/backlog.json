@@ -126,7 +126,11 @@
         "4-3"
       ],
       "notes": "CREDIT_CARD enum과 홈택스 PDF 파싱 존재, 계산은 calculationSupported=false. CreditCardDeductionPolicy + subtype별 규칙 + Registry 매핑 필요",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-16T06:20:25Z",
+      "doneRuns": [
+        ".local/harness/2026-04-16/20260416-155000-credit-card"
+      ]
     },
     {
       "id": "donation",
@@ -205,6 +209,12 @@
       "runDir": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
       "commitSha": null,
       "at": "2026-04-16T05:32:22Z"
+    },
+    {
+      "sliceId": "credit-card",
+      "runDir": ".local/harness/2026-04-16/20260416-155000-credit-card",
+      "commitSha": null,
+      "at": "2026-04-16T06:20:25Z"
     }
   ]
 }

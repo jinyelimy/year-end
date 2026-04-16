@@ -3,8 +3,8 @@
 ## Context
 
 - As-of date: 2026-04-16
-- Run id: 20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special
-- Run directory: .local/harness/2026-04-16/20260416-134405-social-insurance-special
+- Run id: 20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special+20260416-155000-credit-card
+- Run directory: .local/harness/2026-04-16/20260416-155000-credit-card
 - Target law context: 2025 income / 2026 filing
 - Current rule version: 2025.01
 - Previous rule version: first version
@@ -21,9 +21,9 @@
 
 ## Version Pair
 
-- Current rule set id: 2025@2025.01-personal-pension-social-merged
+- Current rule set id: 2025@2025.01-personal-pension-social-creditcard-merged
 - Previous rule set id: first version
-- Change summary: first version merging personal deduction, pension insurance premium, and social insurance premium rule codes under 2025.01.
+- Change summary: first version merging personal deduction, pension insurance premium, social insurance premium, and credit card deduction rule codes under 2025.01.
 
 ## Added Rules
 
@@ -44,6 +44,11 @@
 | SOCIAL_INSURANCE_PREMIUM_EMPLOYMENT_ELIGIBILITY_2025 | SOCIAL_INSURANCE_PREMIUM | eligiblePaidAmountSource=employeeEmploymentInsurancePremiumAmount; excludeEmployerContribution=True | law-income-tax-act-52-2025-10-01, law-employment-insurance-act-49-2025-10-01 |
 | SOCIAL_INSURANCE_PREMIUM_AGGREGATE_CAP_2025 | SOCIAL_INSURANCE_PREMIUM | capSource=comprehensiveIncomeAmount; includedDeductionFamilies=[인적공제, 연금보험료공제] | law-income-tax-act-52-2025-10-01 |
 | SOCIAL_INSURANCE_PREMIUM_TRACE_FORMULA_2025 | SOCIAL_INSURANCE_PREMIUM | traceFields=[healthInsurancePremiumAmount, employmentInsurancePremiumAmount, totalEligibleAmount, aggregateCapRemainingAmount, appliedAmount] | law-income-tax-act-52-2025-10-01 |
+| CREDIT_CARD_MINIMUM_USAGE_THRESHOLD_2025 | CREDIT_CARD | thresholdRate=0.25 | law-income-tax-act-126-2-2025-10-01 |
+| CREDIT_CARD_RATE_CREDIT_2025 | CREDIT_CARD | subType=CREDIT_CARD; rate=0.15 | law-income-tax-act-126-2-2025-10-01 |
+| CREDIT_CARD_RATE_DEBIT_CASH_ZEROPAY_2025 | CREDIT_CARD | subTypes=[DEBIT_CARD,CASH_RECEIPT,ZERO_PAY]; rate=0.30 | law-income-tax-act-126-2-2025-10-01 |
+| CREDIT_CARD_BASIC_LIMIT_2025 | CREDIT_CARD | tiers=[{max:70M,limit:3M},{max:120M,limit:2.5M},{max:null,limit:2M}] | law-income-tax-act-126-2-2025-10-01 |
+| CREDIT_CARD_TRACE_FORMULA_2025 | CREDIT_CARD | traceFields=[creditCardAmount,...,appliedAmount] | law-income-tax-act-126-2-2025-10-01 |
 
 ## Changed Rules
 
@@ -60,8 +65,8 @@
 ## Impact Summary
 
 - This is the first published version of the 2025.01 normalized rule pack for this repository.
-- It covers personal deduction (Articles 50 and 51), pension insurance premium deduction (Article 51-3), and social insurance premium special income deduction (Article 52).
-- Runtime implementation for social insurance premium is unblocked only after this merge; personal deduction and pension insurance premium implementations were already landed in prior commits.
+- It covers personal deduction (Articles 50 and 51), pension insurance premium deduction (Article 51-3), social insurance premium special income deduction (Article 52), and credit card usage income deduction (Article 126-2).
+- Runtime implementation for credit card deduction is unblocked only after this merge; personal deduction, pension insurance premium, and social insurance premium implementations were already landed in prior commits.
 
 ## Files
 
@@ -73,8 +78,8 @@
 ```text
 === HARNESS RESULT ===
 STATUS   : success
-SUMMARY  : First-version 2025.01 rule diff documents personal-deduction, pension-insurance-premium, and social-insurance-special merge.
-ARTIFACTS: .local/harness/2026-04-16/20260416-134405-social-insurance-special/diff-from-previous.md
-NEXT     : Continue social-insurance-special implementation against the published rule codes.
+SUMMARY  : First-version 2025.01 rule diff documents personal-deduction, pension-insurance-premium, social-insurance-premium, and credit-card merge.
+ARTIFACTS: .local/harness/2026-04-16/20260416-155000-credit-card/diff-from-previous.md
+NEXT     : Continue credit-card slice implementation against the published rule codes.
 ======================
 ```

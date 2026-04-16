@@ -361,6 +361,46 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.CREDIT_CARD,
+                    CreditCardDeductionCalculator.MINIMUM_USAGE_THRESHOLD_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"thresholdRate\":0.25}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CREDIT_CARD,
+                    CreditCardDeductionCalculator.RATE_CREDIT_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"rate\":0.15}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CREDIT_CARD,
+                    CreditCardDeductionCalculator.RATE_DEBIT_CASH_ZEROPAY_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"rate\":0.30}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CREDIT_CARD,
+                    CreditCardDeductionCalculator.BASIC_LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"tiers\":[{\"maxSalary\":70000000,\"limit\":3000000},{\"maxSalary\":120000000,\"limit\":2500000},{\"maxSalary\":null,\"limit\":2000000}]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CREDIT_CARD,
+                    CreditCardDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"totalUsageAmount\",\"minimumUsageThresholdAmount\",\"creditCardAboveThresholdAmount\",\"debitCashZeroPayAboveThresholdAmount\",\"deductionBeforeLimitAmount\",\"basicLimitAmount\",\"appliedAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.INCOME_TAX,
                     EarnedIncomeTaxCreditCalculator.FINAL_FORMULA_RULE_CODE,
                     RuleCategory.FORMULA,
