@@ -5,6 +5,7 @@ import com.example.yearend.deduction.domain.DeductionRule;
 import com.example.yearend.deduction.domain.DeductionType;
 import com.example.yearend.deduction.domain.RuleCategory;
 import com.example.yearend.deduction.domain.RuleSetSnapshot;
+import com.example.yearend.deduction.infrastructure.InsurancePremiumDeductionPolicy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -468,6 +469,38 @@ class EarnedIncomeDeductionCalculatorTest {
                     DonationTaxCreditCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"politicalDonationAmount\",\"legalDonationAmount\",\"employeeStockDonationAmount\",\"designatedDonationAmount\",\"designatedReligiousDonationAmount\",\"totalDonationTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INSURANCE,
+                    InsurancePremiumDeductionPolicy.STANDARD_LIMIT_RATE_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"limitAmount\":1000000,\"creditRate\":0.12,\"maxCredit\":120000,\"subType\":\"INSURANCE_PREMIUM\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INSURANCE,
+                    InsurancePremiumDeductionPolicy.DISABILITY_LIMIT_RATE_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"limitAmount\":1000000,\"creditRate\":0.15,\"maxCredit\":150000,\"subType\":\"INSURANCE_PREMIUM_DISABILITY\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INSURANCE,
+                    InsurancePremiumDeductionPolicy.AGGREGATE_FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"formula\":\"standardCredit + disabilityCredit\",\"subtypes\":[\"INSURANCE_PREMIUM\",\"INSURANCE_PREMIUM_DISABILITY\"],\"independentLimitsPerSubtype\":true,\"floorAtZero\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.INSURANCE,
+                    InsurancePremiumDeductionPolicy.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"subType\",\"amount\",\"limitAmount\",\"creditRate\",\"taxCreditContribution\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 )

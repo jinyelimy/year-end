@@ -1,10 +1,10 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
   "status": "PUBLISHED",
-  "generatedAt": "2026-04-16T16:30:00+09:00",
+  "generatedAt": "2026-04-16T16:29:26+09:00",
   "generatedFrom": {
     "runDirectory": ".local/harness/2026-04-16/20260416-155000-credit-card",
     "sourceManifest": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
@@ -42,6 +42,12 @@
         "sliceId": "donation",
         "runDir": ".local/harness/2026-04-16/20260416-162250-donation",
         "approvedAt": "2026-04-16T16:30:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "insurance-premium-ext",
+        "runDir": ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
+        "approvedAt": "2026-04-16T16:29:26+09:00",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -360,8 +366,12 @@
       "ruleCode": "CREDIT_CARD_RATE_DEBIT_CASH_ZEROPAY_2025",
       "ruleCategory": "FORMULA",
       "parameters": {
-        "subTypes": ["DEBIT_CARD", "CASH_RECEIPT", "ZERO_PAY"],
-        "rate": 0.30
+        "subTypes": [
+          "DEBIT_CARD",
+          "CASH_RECEIPT",
+          "ZERO_PAY"
+        ],
+        "rate": 0.3
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
@@ -377,9 +387,18 @@
       "ruleCategory": "LIMIT",
       "parameters": {
         "tiers": [
-          { "maxSalary": 70000000, "limit": 3000000 },
-          { "maxSalary": 120000000, "limit": 2500000 },
-          { "maxSalary": null, "limit": 2000000 }
+          {
+            "maxSalary": 70000000,
+            "limit": 3000000
+          },
+          {
+            "maxSalary": 120000000,
+            "limit": 2500000
+          },
+          {
+            "maxSalary": null,
+            "limit": 2000000
+          }
         ]
       },
       "effectiveFrom": "2025-01-01",
@@ -430,7 +449,9 @@
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-76-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-76-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -441,13 +462,16 @@
       "parameters": {
         "incomeLimitRate": 1.0,
         "creditRateBelowThreshold": 0.15,
-        "creditRateAboveThreshold": 0.30,
+        "creditRateAboveThreshold": 0.3,
         "creditThresholdAmount": 10000000,
         "carryForwardYears": 10
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-34-2025-01-01", "law-income-tax-act-59-4-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-34-2025-01-01",
+        "law-income-tax-act-59-4-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -456,15 +480,18 @@
       "ruleCode": "DONATION_DESIGNATED_RELIGIOUS_LIMIT_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "incomeLimitRate": 0.10,
+        "incomeLimitRate": 0.1,
         "creditRateBelowThreshold": 0.15,
-        "creditRateAboveThreshold": 0.30,
+        "creditRateAboveThreshold": 0.3,
         "creditThresholdAmount": 10000000,
         "carryForwardYears": 10
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-34-2025-01-01", "law-income-tax-act-59-4-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-34-2025-01-01",
+        "law-income-tax-act-59-4-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -473,15 +500,18 @@
       "ruleCode": "DONATION_DESIGNATED_LIMIT_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "incomeLimitRate": 0.30,
+        "incomeLimitRate": 0.3,
         "creditRateBelowThreshold": 0.15,
-        "creditRateAboveThreshold": 0.30,
+        "creditRateAboveThreshold": 0.3,
         "creditThresholdAmount": 10000000,
         "carryForwardYears": 10
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-34-2025-01-01", "law-income-tax-act-59-4-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-34-2025-01-01",
+        "law-income-tax-act-59-4-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -490,13 +520,15 @@
       "ruleCode": "DONATION_EMPLOYEE_STOCK_LIMIT_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "incomeLimitRate": 0.30,
-        "creditRate": 0.30,
+        "incomeLimitRate": 0.3,
+        "creditRate": 0.3,
         "carryForwardYears": 10
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-tax-special-act-88-4-2025-01-01"],
+      "sourceRefs": [
+        "law-tax-special-act-88-4-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -505,14 +537,22 @@
       "ruleCode": "DONATION_AGGREGATE_FORMULA_2025",
       "ruleCategory": "FORMULA",
       "parameters": {
-        "calculationOrder": ["POLITICAL", "LEGAL", "EMPLOYEE_STOCK", "DESIGNATED", "DESIGNATED_RELIGIOUS"],
+        "calculationOrder": [
+          "POLITICAL",
+          "LEGAL",
+          "EMPLOYEE_STOCK",
+          "DESIGNATED",
+          "DESIGNATED_RELIGIOUS"
+        ],
         "incomeBasisField": "earnedIncomeAmount",
         "carryForwardDeferred": true,
         "floorAtZero": true
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -532,7 +572,87 @@
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "INSURANCE",
+      "subType": "STANDARD_LIMIT_RATE",
+      "ruleCode": "INSURANCE_PREMIUM_STANDARD_LIMIT_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "limitAmount": 1000000,
+        "creditRate": 0.12,
+        "maxCredit": 120000,
+        "subType": "INSURANCE_PREMIUM"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-insurance-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "INSURANCE",
+      "subType": "DISABILITY_LIMIT_RATE",
+      "ruleCode": "INSURANCE_PREMIUM_DISABILITY_LIMIT_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "limitAmount": 1000000,
+        "creditRate": 0.15,
+        "maxCredit": 150000,
+        "subType": "INSURANCE_PREMIUM_DISABILITY"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-insurance-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "INSURANCE",
+      "subType": "AGGREGATE_FORMULA",
+      "ruleCode": "INSURANCE_PREMIUM_AGGREGATE_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "formula": "standardCredit + disabilityCredit",
+        "subtypes": [
+          "INSURANCE_PREMIUM",
+          "INSURANCE_PREMIUM_DISABILITY"
+        ],
+        "independentLimitsPerSubtype": true,
+        "floorAtZero": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-insurance-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "INSURANCE",
+      "subType": "TRACE",
+      "ruleCode": "INSURANCE_PREMIUM_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "subType",
+          "amount",
+          "limitAmount",
+          "creditRate",
+          "taxCreditContribution"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-insurance-2025-01-01"
+      ],
       "confidence": "confirmed"
     }
   ]

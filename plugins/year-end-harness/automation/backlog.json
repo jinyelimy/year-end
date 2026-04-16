@@ -160,7 +160,11 @@
         "3-4-or-4-3"
       ],
       "notes": "보장성 보험료 기본 구현됨. 장애인전용보장성 등 subtype 분리 필요",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-16T07:41:21Z",
+      "doneRuns": [
+        ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext"
+      ]
     },
     {
       "id": "medical-ext",
@@ -225,6 +229,12 @@
       "runDir": ".local/harness/2026-04-16/20260416-162250-donation",
       "commitSha": null,
       "at": "2026-04-16T07:12:38Z"
+    },
+    {
+      "sliceId": "insurance-premium-ext",
+      "runDir": ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
+      "commitSha": null,
+      "at": "2026-04-16T07:41:21Z"
     }
   ]
 }
