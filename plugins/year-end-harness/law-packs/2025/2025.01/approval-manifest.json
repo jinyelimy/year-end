@@ -1,10 +1,28 @@
 {
-  "approvedAt": "2026-04-15T06:43:29Z",
-  "sourceRunDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+  "approvedAt": "2026-04-16T00:00:00Z",
+  "sourceRunDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
-  "ruleSetId": "2025@2025.01-personal-deduction-proposal",
+  "ruleSetId": "2025@2025.01-personal-and-pension-merged",
   "status": "PUBLISHED",
-  "approvedBy": "manual CLI approval"
+  "approvedBy": "manual CLI approval",
+  "approvalHistory": [
+    {
+      "approvedAt": "2026-04-15T06:43:29Z",
+      "sourceRunDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+      "ruleSetId": "2025@2025.01-personal-deduction-proposal",
+      "approvalCommand": "approve-phase1-reentry.py",
+      "approvedBy": "manual CLI approval",
+      "slices": ["personal-deduction"]
+    },
+    {
+      "approvedAt": "2026-04-16T00:00:00Z",
+      "sourceRunDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
+      "ruleSetId": "2025@2025.01-pension-insurance-premium-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["pension-insurance-premium"]
+    }
+  ]
 }

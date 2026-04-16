@@ -11,6 +11,7 @@ public record TaxCalculationOutcome(
     long earnedIncomeDeductionAmount,
     long earnedIncomeAmount,
     long personalDeductionAmount,
+    long pensionInsurancePremiumDeductionAmount,
     long totalDeductionAmount,
     long taxableIncomeAmount,
     long calculatedTaxAmount,

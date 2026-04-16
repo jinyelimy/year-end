@@ -20,6 +20,7 @@ class DefaultTaxCalculationServiceTest {
         DefaultTaxCalculationService service = new DefaultTaxCalculationService(
             new EarnedIncomeDeductionCalculator(new ObjectMapper()),
             new PersonalDeductionCalculator(new ObjectMapper()),
+            new PensionInsurancePremiumCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );
@@ -30,6 +31,7 @@ class DefaultTaxCalculationServiceTest {
             10_000_000L,
             0L,
             1_000_000L,
+            0L,
             List.of(),
             Map.of(),
             List.of(
@@ -45,6 +47,7 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.earnedIncomeAmount()).isEqualTo(4_500_000L);
         assertThat(outcome.totalIncomeAmount()).isEqualTo(4_500_000L);
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.totalDeductionAmount()).isEqualTo(2_500_000L);
         assertThat(outcome.taxableIncomeAmount()).isEqualTo(2_000_000L);
         assertThat(outcome.calculatedTaxAmount()).isEqualTo(120_000L);
@@ -58,6 +61,8 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.trace()).anyMatch(line -> line.contains("earnedIncomeTaxCreditAmount = 66000"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("PERSONAL_BASIC_DEDUCTION_AMOUNT_2025"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("personalDeductionAmount = 1500000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(PensionInsurancePremiumCalculator.AGGREGATE_CAP_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("pensionInsurancePremiumDeductionAmount = 0"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("INCOME_TAX_BASIC_BRACKETS_2025"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("effectiveFrom = 2025-01-01"));
     }
@@ -68,6 +73,7 @@ class DefaultTaxCalculationServiceTest {
         DefaultTaxCalculationService service = new DefaultTaxCalculationService(
             new EarnedIncomeDeductionCalculator(new ObjectMapper()),
             new PersonalDeductionCalculator(new ObjectMapper()),
+            new PensionInsurancePremiumCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );
@@ -78,6 +84,7 @@ class DefaultTaxCalculationServiceTest {
             0L,
             30_000_000L,
             5_000_000L,
+            0L,
             List.of(),
             Map.of(),
             List.of(),
@@ -87,6 +94,7 @@ class DefaultTaxCalculationServiceTest {
         TaxCalculationOutcome outcome = service.calculate(command);
 
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.taxableIncomeAmount()).isEqualTo(28_500_000L);
         assertThat(outcome.calculatedTaxAmount()).isEqualTo(3_015_000L);
         assertThat(outcome.earnedIncomeTaxCreditAmount()).isZero();
@@ -95,5 +103,73 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.trace()).anyMatch(line -> line.contains("incomeTaxAppliedBracket = 2"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("incomeTaxRate = 0.15"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("incomeTaxQuickDeductionAmount = 1260000"));
+    }
+
+    @Test
+    @DisplayName("deducts the reported public pension contribution amount under the aggregate income cap")
+    void deductsPensionInsurancePremium() {
+        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
+            new EarnedIncomeDeductionCalculator(new ObjectMapper()),
+            new PersonalDeductionCalculator(new ObjectMapper()),
+            new PensionInsurancePremiumCalculator(new ObjectMapper()),
+            new IncomeTaxRateTableCalculator(new ObjectMapper()),
+            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
+        );
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            0L,
+            0L,
+            0L,
+            30_000_000L,
+            0L,
+            1_350_000L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = service.calculate(command);
+
+        assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isEqualTo(1_350_000L);
+        assertThat(outcome.totalDeductionAmount()).isEqualTo(2_850_000L);
+        assertThat(outcome.taxableIncomeAmount()).isEqualTo(27_150_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(PensionInsurancePremiumCalculator.ELIGIBILITY_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(PensionInsurancePremiumCalculator.PAID_AMOUNT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("pensionEligiblePaidAmount = 1350000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("pensionInsurancePremiumDeductionAmount = 1350000"));
+    }
+
+    @Test
+    @DisplayName("caps pension insurance premium at zero when comprehensive income is already exhausted by personal deduction")
+    void capsPensionWhenPersonalDeductionExhaustsIncome() {
+        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
+            new EarnedIncomeDeductionCalculator(new ObjectMapper()),
+            new PersonalDeductionCalculator(new ObjectMapper()),
+            new PensionInsurancePremiumCalculator(new ObjectMapper()),
+            new IncomeTaxRateTableCalculator(new ObjectMapper()),
+            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
+        );
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            0L,
+            0L,
+            0L,
+            1_000_000L,
+            0L,
+            500_000L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = service.calculate(command);
+
+        assertThat(outcome.totalIncomeAmount()).isEqualTo(1_000_000L);
+        assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("pensionAggregateCapRemainingAmount = 0"));
     }
 }

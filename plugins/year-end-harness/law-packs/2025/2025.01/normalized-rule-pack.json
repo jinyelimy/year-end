@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-deduction-proposal",
+  "ruleSetId": "2025@2025.01-personal-and-pension-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -13,7 +13,20 @@
     "phase1Reentry": true,
     "approvedFromRunDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
     "approvedAt": "2026-04-15T06:43:29Z",
-    "approvalCommand": "approve-phase1-reentry.py"
+    "approvalCommand": "approve-phase1-reentry.py",
+    "mergedSlices": [
+      {
+        "sliceId": "personal-deduction",
+        "runDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+        "approvedAt": "2026-04-15T06:43:29Z"
+      },
+      {
+        "sliceId": "pension-insurance-premium",
+        "runDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
+        "approvedAt": "2026-04-16T00:00:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      }
+    ]
   },
   "rules": [
     {
@@ -140,10 +153,79 @@
         "law-income-tax-act-51-2025-10-01"
       ],
       "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PENSION_INSURANCE_PREMIUM",
+      "subType": "ELIGIBILITY",
+      "ruleCode": "PENSION_INSURANCE_PREMIUM_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "eligiblePaidAmountSource": "employeePublicPensionContributionAmount",
+        "excludeEmployerContribution": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-3-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PENSION_INSURANCE_PREMIUM",
+      "subType": "PAID_AMOUNT",
+      "ruleCode": "PENSION_INSURANCE_PREMIUM_PAID_AMOUNT_DEDUCTION_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "formula": "eligiblePaidAmount",
+        "floorAtZero": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-3-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PENSION_INSURANCE_PREMIUM",
+      "subType": "AGGREGATE_CAP",
+      "ruleCode": "PENSION_INSURANCE_PREMIUM_AGGREGATE_INCOME_CAP_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "capAmountSource": "comprehensiveIncomeAmount",
+        "includedDeductionFamilies": [
+          "PERSONAL_DEDUCTION",
+          "PENSION_INSURANCE_PREMIUM",
+          "REVERSE_MORTGAGE_INTEREST",
+          "SPECIAL_INCOME_DEDUCTION",
+          "TAX_SPECIAL_LAW_INCOME_DEDUCTION"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-3-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "PENSION_INSURANCE_PREMIUM",
+      "subType": "TRACE",
+      "ruleCode": "PENSION_INSURANCE_PREMIUM_TRACE_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "eligiblePaidAmount",
+          "appliedAmount",
+          "aggregateCapRemainingAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-51-3-2025-10-01"
+      ],
+      "confidence": "confirmed"
     }
-  ],
-  "implementationNotes": [
-    "This proposal must be promoted to a published law pack before runtime code should consume these rule codes.",
-    "Current repository audit found no published normalized-rule-pack.json under plugins/year-end-harness/law-packs."
   ]
 }

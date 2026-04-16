@@ -5,6 +5,8 @@ import com.example.yearend.calculation.domain.EarnedIncomeDeductionCalculator.Ea
 import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator.EarnedIncomeTaxCreditCalculation;
 import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator.EarnedIncomeTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator.IncomeTaxCalculation;
+import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator.PensionInsurancePremiumCalculation;
+import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator.PensionInsurancePremiumRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -17,17 +19,20 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
+    private final PensionInsurancePremiumCalculator pensionInsurancePremiumCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
         PersonalDeductionCalculator personalDeductionCalculator,
+        PensionInsurancePremiumCalculator pensionInsurancePremiumCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
         this.personalDeductionCalculator = personalDeductionCalculator;
+        this.pensionInsurancePremiumCalculator = pensionInsurancePremiumCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -57,7 +62,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             personalDeductionRuleSnapshot
         );
         long personalDeductionAmount = personalDeductionCalculation.totalPersonalDeductionAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount;
+        PensionInsurancePremiumRuleSnapshot pensionRuleSnapshot =
+            pensionInsurancePremiumCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        PensionInsurancePremiumCalculation pensionCalculation = pensionInsurancePremiumCalculator.calculate(
+            command.publicPensionContributionAmount(),
+            totalIncomeAmount,
+            personalDeductionAmount,
+            pensionRuleSnapshot
+        );
+        long pensionInsurancePremiumDeductionAmount = pensionCalculation.appliedAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -116,6 +130,17 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("personalSingleParentDeductionAmount = " + personalDeductionCalculation.singleParentDeductionAmount());
         trace.add("ruleCode " + personalDeductionRuleSnapshot.aggregationRule().ruleCode() + " applied");
         trace.add("personalDeductionAmount = " + personalDeductionAmount);
+        trace.add("ruleCode " + pensionRuleSnapshot.eligibilityRule().ruleCode() + " applied");
+        trace.add(pensionRuleSnapshot.eligibilityRule().ruleCode() + " effectiveFrom = " + pensionRuleSnapshot.eligibilityRule().effectiveFrom());
+        trace.add(pensionRuleSnapshot.eligibilityRule().ruleCode() + " effectiveTo = " + pensionRuleSnapshot.eligibilityRule().effectiveTo());
+        trace.add("pensionEligiblePaidAmount = " + pensionCalculation.eligiblePaidAmount());
+        trace.add("ruleCode " + pensionRuleSnapshot.paidAmountRule().ruleCode() + " applied");
+        trace.add(pensionRuleSnapshot.paidAmountRule().ruleCode() + " effectiveFrom = " + pensionRuleSnapshot.paidAmountRule().effectiveFrom());
+        trace.add(pensionRuleSnapshot.paidAmountRule().ruleCode() + " effectiveTo = " + pensionRuleSnapshot.paidAmountRule().effectiveTo());
+        trace.add("ruleCode " + pensionRuleSnapshot.aggregateCapRule().ruleCode() + " applied");
+        trace.add("pensionAggregateCapRemainingAmount = " + pensionCalculation.aggregateCapRemainingAmount());
+        trace.add("ruleCode " + pensionRuleSnapshot.traceRule().ruleCode() + " applied");
+        trace.add("pensionInsurancePremiumDeductionAmount = " + pensionInsurancePremiumDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -152,6 +177,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             earnedIncomeDeductionAmount,
             earnedIncomeAmount,
             personalDeductionAmount,
+            pensionInsurancePremiumDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,

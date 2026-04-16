@@ -2,8 +2,8 @@
 
 ## Context
 
-- As-of date: 2026-04-15
-- Run id: 20260415-152140-personal-deduction
+- As-of date: 2026-04-16
+- Run id: 20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium
 - Run directory: .local/harness/2026-04-15/20260415-152140-personal-deduction
 - Target law context: 2025 income / 2026 filing
 - Current rule version: 2025.01
@@ -13,13 +13,15 @@
 
 - `.local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json`
 - `.local/harness/2026-04-15/20260415-152140-personal-deduction/normalized-rule-pack.json`
-- first version because no published normalized rule pack exists under `plugins/year-end-harness/law-packs/`
+- `.local/harness/2026-04-15/20260415-160427-pension-insurance-premium/source-manifest.json`
+- `.local/harness/2026-04-15/20260415-160427-pension-insurance-premium/normalized-rule-pack.json`
+- first version because no published normalized rule pack existed under `plugins/year-end-harness/law-packs/` before 2025.01.
 
 ## Version Pair
 
-- Current rule set id: 2025@2025.01-personal-deduction-proposal
+- Current rule set id: 2025@2025.01-personal-and-pension-merged
 - Previous rule set id: first version
-- Change summary: first version of personal deduction rules for the automated Phase 1 re-entry.
+- Change summary: first version merging personal deduction and pension insurance premium rule codes under 2025.01.
 
 ## Added Rules
 
@@ -32,6 +34,10 @@
 | PERSONAL_ADDITIONAL_WOMAN_2025 | PERSONAL_DEDUCTION | amount=500000; maxComprehensiveIncomeAmount=30000000; requiresExplicitFilerFlag=True | law-income-tax-act-51-2025-10-01 |
 | PERSONAL_ADDITIONAL_SINGLE_PARENT_2025 | PERSONAL_DEDUCTION | amount=1000000; requiresNoSpouse=True; requiresBasicDeductionTargetChild=True | law-income-tax-act-51-2025-10-01 |
 | PERSONAL_DEDUCTION_AGGREGATION_FORMULA_2025 | PERSONAL_DEDUCTION | formula=basicAmount + seniorAmount + disabledAmount + max(singleParentAmount, womanAmount); singleParentOverridesWoman=True; floorAtZero=True | law-income-tax-act-50-2025-10-01, law-income-tax-act-51-2025-10-01 |
+| PENSION_INSURANCE_PREMIUM_ELIGIBILITY_2025 | PENSION_INSURANCE_PREMIUM | eligiblePaidAmountSource=employeePublicPensionContributionAmount; excludeEmployerContribution=True | law-income-tax-act-51-3-2025-10-01 |
+| PENSION_INSURANCE_PREMIUM_PAID_AMOUNT_DEDUCTION_2025 | PENSION_INSURANCE_PREMIUM | formula=eligiblePaidAmount; floorAtZero=True | law-income-tax-act-51-3-2025-10-01 |
+| PENSION_INSURANCE_PREMIUM_AGGREGATE_INCOME_CAP_2025 | PENSION_INSURANCE_PREMIUM | capAmountSource=comprehensiveIncomeAmount; includedDeductionFamilies=[PERSONAL_DEDUCTION, PENSION_INSURANCE_PREMIUM, REVERSE_MORTGAGE_INTEREST, SPECIAL_INCOME_DEDUCTION, TAX_SPECIAL_LAW_INCOME_DEDUCTION] | law-income-tax-act-51-3-2025-10-01 |
+| PENSION_INSURANCE_PREMIUM_TRACE_FORMULA_2025 | PENSION_INSURANCE_PREMIUM | traceFields=[eligiblePaidAmount, appliedAmount, aggregateCapRemainingAmount] | law-income-tax-act-51-3-2025-10-01 |
 
 ## Changed Rules
 
@@ -47,21 +53,22 @@
 
 ## Impact Summary
 
-- This is the first version of the personal deduction normalized rule pack for this repository.
-- Runtime implementation remains blocked until a human reviewer promotes or publishes the READY_FOR_REVIEW pack.
+- This is the first published version of the 2025.01 normalized rule pack for this repository.
+- It covers personal deduction (Articles 50 and 51) and pension insurance premium deduction (Article 51-3).
+- Runtime implementation for pension insurance premium is unblocked only after this merge; personal deduction implementation was already landed in commit cd90e4d.
 
 ## Files
 
-- `.local/harness/2026-04-15/20260415-152140-personal-deduction/diff-from-previous.md`
-- `.local/harness/2026-04-15/20260415-152140-personal-deduction/normalized-rule-pack.json`
+- `plugins/year-end-harness/law-packs/2025/2025.01/diff-from-previous.md`
+- `plugins/year-end-harness/law-packs/2025/2025.01/normalized-rule-pack.json`
 
 ## Validation
 
 ```text
 === HARNESS RESULT ===
 STATUS   : success
-SUMMARY  : Automated first version rule diff prepared for human review.
+SUMMARY  : First-version 2025.01 rule diff documented personal-deduction and pension-insurance-premium merge.
 ARTIFACTS: .local/harness/2026-04-15/20260415-152140-personal-deduction/diff-from-previous.md
-NEXT     : Review the READY_FOR_REVIEW normalized rule pack before runtime implementation resumes.
+NEXT     : Continue pension-insurance-premium implementation against the published rule codes.
 ======================
 ```

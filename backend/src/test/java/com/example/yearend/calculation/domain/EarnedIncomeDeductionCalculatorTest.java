@@ -186,6 +186,67 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.PENSION_INSURANCE_PREMIUM,
+                    PensionInsurancePremiumCalculator.ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    """
+                        {
+                          "eligiblePaidAmountSource": "employeePublicPensionContributionAmount",
+                          "excludeEmployerContribution": true
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_INSURANCE_PREMIUM,
+                    PensionInsurancePremiumCalculator.PAID_AMOUNT_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "formula": "eligiblePaidAmount",
+                          "floorAtZero": true
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_INSURANCE_PREMIUM,
+                    PensionInsurancePremiumCalculator.AGGREGATE_CAP_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    """
+                        {
+                          "capAmountSource": "comprehensiveIncomeAmount",
+                          "includedDeductionFamilies": [
+                            "PERSONAL_DEDUCTION",
+                            "PENSION_INSURANCE_PREMIUM",
+                            "REVERSE_MORTGAGE_INTEREST",
+                            "SPECIAL_INCOME_DEDUCTION",
+                            "TAX_SPECIAL_LAW_INCOME_DEDUCTION"
+                          ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_INSURANCE_PREMIUM,
+                    PensionInsurancePremiumCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "traceFields": [
+                            "eligiblePaidAmount",
+                            "appliedAmount",
+                            "aggregateCapRemainingAmount"
+                          ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.INCOME_TAX,
                     IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
                     RuleCategory.BRACKET,

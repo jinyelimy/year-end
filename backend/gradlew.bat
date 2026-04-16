@@ -37,6 +37,9 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+@rem Fix JDK 21 Unix Domain Socket path-length failure on Windows (nProtect/Fortinet environment).
+@rem JAVA_TOOL_OPTIONS propagates to all forked JVMs including the Gradle daemon.
+if not defined JAVA_TOOL_OPTIONS set "JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:/Temp"
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome

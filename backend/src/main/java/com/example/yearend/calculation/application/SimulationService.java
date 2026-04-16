@@ -4,6 +4,7 @@ import com.example.yearend.calculation.api.SimulationDtos;
 import com.example.yearend.calculation.domain.CalculationResult;
 import com.example.yearend.calculation.domain.EarnedIncomeTaxCreditCalculator;
 import com.example.yearend.calculation.domain.IncomeTaxRateTableCalculator;
+import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -67,6 +68,7 @@ public class SimulationService {
 
         TaxContext context = buildContext(email, session, ruleSetSnapshot);
         IncomeCalculationSummary incomeSummary = summarizeIncomeItems(context.incomeItems());
+        long publicPensionContributionAmount = summarizePublicPensionContributions(context.incomeItems());
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -76,6 +78,7 @@ public class SimulationService {
                 incomeSummary.taxableSalaryAmount(),
                 incomeSummary.otherTaxableIncomeAmount(),
                 incomeSummary.withholdingTaxAmount(),
+                publicPensionContributionAmount,
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -120,6 +123,7 @@ public class SimulationService {
             outcome.earnedIncomeDeductionAmount(),
             outcome.earnedIncomeAmount(),
             outcome.personalDeductionAmount(),
+            outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -242,6 +246,36 @@ public class SimulationService {
         );
     }
 
+    private long summarizePublicPensionContributions(List<IncomeItem> incomeItems) {
+        return incomeItems.stream()
+            .mapToLong(this::readPublicPensionContributionAmount)
+            .filter(amount -> amount > 0L)
+            .sum();
+    }
+
+    private long readPublicPensionContributionAmount(IncomeItem item) {
+        try {
+            Map<String, Object> attributes = objectMapper.readValue(
+                item.getAttributesJsonb() == null ? "{}" : item.getAttributesJsonb(),
+                ATTRIBUTES_TYPE
+            );
+            Object rawValue = attributes.get("employeePublicPensionContributionAmount");
+            if (rawValue == null) {
+                return 0L;
+            }
+            if (rawValue instanceof Number number) {
+                return number.longValue();
+            }
+            String text = rawValue.toString().trim();
+            if (text.isEmpty()) {
+                return 0L;
+            }
+            return Long.parseLong(text);
+        } catch (JsonProcessingException | NumberFormatException exception) {
+            return 0L;
+        }
+    }
+
     private boolean isEmploymentIncome(IncomeItem item) {
         String entryKind = readEntryKind(item);
         if ("OTHER_INCOME".equals(entryKind)) {
@@ -286,6 +320,7 @@ public class SimulationService {
             outcome.earnedIncomeDeductionAmount(),
             outcome.earnedIncomeAmount(),
             outcome.personalDeductionAmount(),
+            outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -307,6 +342,10 @@ public class SimulationService {
                 "PERSONAL_ADDITIONAL_WOMAN_2025",
                 "PERSONAL_ADDITIONAL_SINGLE_PARENT_2025",
                 "PERSONAL_DEDUCTION_AGGREGATION_FORMULA_2025",
+                PensionInsurancePremiumCalculator.ELIGIBILITY_RULE_CODE,
+                PensionInsurancePremiumCalculator.PAID_AMOUNT_RULE_CODE,
+                PensionInsurancePremiumCalculator.AGGREGATE_CAP_RULE_CODE,
+                PensionInsurancePremiumCalculator.TRACE_RULE_CODE,
                 "COMPREHENSIVE_INCOME_AMOUNT_FORMULA_2025",
                 IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE,
                 IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
@@ -388,6 +427,7 @@ public class SimulationService {
         long earnedIncomeDeductionAmount,
         long earnedIncomeAmount,
         long personalDeductionAmount,
+        long pensionInsurancePremiumDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

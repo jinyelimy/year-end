@@ -1,6 +1,6 @@
 {
-  "asOfDate": "2026-04-15",
-  "runId": "20260415-152140-personal-deduction",
+  "asOfDate": "2026-04-16",
+  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium",
   "runDirectory": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
   "taxYear": 2025,
   "filingYear": 2026,
@@ -30,6 +30,17 @@
       "notes": "Article 51 confirms senior, disabled, woman, and single-parent additional deduction amounts and the woman/single-parent precedence rule."
     },
     {
+      "sourceId": "law-income-tax-act-51-3-2025-10-01",
+      "sourceName": "Income Tax Act Article 51-3 pension insurance premium deduction",
+      "authority": "National Law Information Center",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=03&joNo=0051&lsiSeq=276127&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-10-01",
+      "checkedAt": "2026-04-15",
+      "contentType": "law-article",
+      "notes": "Article 51-3 confirms deduction for public pension-law contributions or personal burdens paid during the taxable period and the aggregate income cap rule."
+    },
+    {
       "sourceId": "nts-year-end-guide-238938",
       "sourceName": "National Tax Service year-end settlement guide",
       "authority": "National Tax Service",
@@ -48,6 +59,8 @@
     ".local/harness/2026-04-14/20260414-155945-income-tax-rate-table-audit",
     ".local/harness/2026-04-14/20260414-161036-income-tax-rate-table-design",
     ".local/harness/2026-04-15/20260415-112347-earned-income-tax-credit-audit",
-    ".local/harness/2026-04-15/20260415-130636-earned-income-tax-credit-design"
+    ".local/harness/2026-04-15/20260415-130636-earned-income-tax-credit-design",
+    ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+    ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium"
   ]
 }

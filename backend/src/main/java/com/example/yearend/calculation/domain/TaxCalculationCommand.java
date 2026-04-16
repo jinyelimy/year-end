@@ -16,6 +16,7 @@ public record TaxCalculationCommand(
     long taxableSalaryAmount,
     long otherTaxableIncomeAmount,
     long withholdingTax,
+    long publicPensionContributionAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

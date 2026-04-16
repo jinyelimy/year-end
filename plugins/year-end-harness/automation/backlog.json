@@ -1,7 +1,7 @@
 {
   "meta": {
     "schemaVersion": 1,
-    "updatedAt": "2026-04-15",
+    "updatedAt": "2026-04-16",
     "scope": "P0 remaining + P1",
     "timezone": "Asia/Seoul"
   },
@@ -89,7 +89,11 @@
         "4-3"
       ],
       "notes": "국민연금 등 급여/간소화 자료 기반",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-16T04:41:36Z",
+      "doneRuns": [
+        ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium"
+      ]
     },
     {
       "id": "social-insurance-special",
@@ -185,6 +189,12 @@
       "runDir": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
       "commitSha": null,
       "at": "2026-04-15T07:23:24Z"
+    },
+    {
+      "sliceId": "pension-insurance-premium",
+      "runDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
+      "commitSha": null,
+      "at": "2026-04-16T04:41:36Z"
     }
   ]
 }
