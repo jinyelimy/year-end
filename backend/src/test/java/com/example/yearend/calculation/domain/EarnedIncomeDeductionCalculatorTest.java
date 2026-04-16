@@ -247,6 +247,64 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.SOCIAL_INSURANCE_PREMIUM,
+                    SocialInsurancePremiumCalculator.HEALTH_ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    """
+                        {
+                          "eligiblePaidAmountSource": "employeeHealthInsurancePremiumAmount",
+                          "includesLongTermCare": true,
+                          "excludeEmployerContribution": true
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SOCIAL_INSURANCE_PREMIUM,
+                    SocialInsurancePremiumCalculator.EMPLOYMENT_ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    """
+                        {
+                          "eligiblePaidAmountSource": "employeeEmploymentInsurancePremiumAmount",
+                          "excludeEmployerContribution": true
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SOCIAL_INSURANCE_PREMIUM,
+                    SocialInsurancePremiumCalculator.AGGREGATE_CAP_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    """
+                        {
+                          "capSource": "comprehensiveIncomeAmount",
+                          "includedDeductionFamilies": ["인적공제", "연금보험료공제"]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SOCIAL_INSURANCE_PREMIUM,
+                    SocialInsurancePremiumCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    """
+                        {
+                          "traceFields": [
+                            "healthInsurancePremiumAmount",
+                            "employmentInsurancePremiumAmount",
+                            "totalEligibleAmount",
+                            "aggregateCapRemainingAmount",
+                            "appliedAmount"
+                          ]
+                        }
+                        """,
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.INCOME_TAX,
                     IncomeTaxRateTableCalculator.BRACKETS_RULE_CODE,
                     RuleCategory.BRACKET,

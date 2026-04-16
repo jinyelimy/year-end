@@ -109,7 +109,11 @@
         "건강보험료",
         "고용보험료"
       ],
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-16T05:32:22Z",
+      "doneRuns": [
+        ".local/harness/2026-04-16/20260416-134405-social-insurance-special"
+      ]
     },
     {
       "id": "credit-card",
@@ -195,6 +199,12 @@
       "runDir": ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
       "commitSha": null,
       "at": "2026-04-16T04:41:36Z"
+    },
+    {
+      "sliceId": "social-insurance-special",
+      "runDir": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
+      "commitSha": null,
+      "at": "2026-04-16T05:32:22Z"
     }
   ]
 }

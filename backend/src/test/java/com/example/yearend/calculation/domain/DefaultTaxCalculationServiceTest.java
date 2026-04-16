@@ -14,16 +14,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultTaxCalculationServiceTest {
 
-    @Test
-    @DisplayName("적용 가능한 공제만 반영해 예상 환급액을 계산한다")
-    void calculateRefund() {
-        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
+    private DefaultTaxCalculationService buildService() {
+        return new DefaultTaxCalculationService(
             new EarnedIncomeDeductionCalculator(new ObjectMapper()),
             new PersonalDeductionCalculator(new ObjectMapper()),
             new PensionInsurancePremiumCalculator(new ObjectMapper()),
+            new SocialInsurancePremiumCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );
+    }
+
+    @Test
+    @DisplayName("적용 가능한 공제만 반영해 예상 환급액을 계산한다")
+    void calculateRefund() {
         TaxCalculationCommand command = new TaxCalculationCommand(
             2025,
             10_000_000L,
@@ -31,6 +35,8 @@ class DefaultTaxCalculationServiceTest {
             10_000_000L,
             0L,
             1_000_000L,
+            0L,
+            0L,
             0L,
             List.of(),
             Map.of(),
@@ -41,13 +47,14 @@ class DefaultTaxCalculationServiceTest {
             EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
         );
 
-        TaxCalculationOutcome outcome = service.calculate(command);
+        TaxCalculationOutcome outcome = buildService().calculate(command);
 
         assertThat(outcome.earnedIncomeDeductionAmount()).isEqualTo(5_500_000L);
         assertThat(outcome.earnedIncomeAmount()).isEqualTo(4_500_000L);
         assertThat(outcome.totalIncomeAmount()).isEqualTo(4_500_000L);
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.totalDeductionAmount()).isEqualTo(2_500_000L);
         assertThat(outcome.taxableIncomeAmount()).isEqualTo(2_000_000L);
         assertThat(outcome.calculatedTaxAmount()).isEqualTo(120_000L);
@@ -70,13 +77,6 @@ class DefaultTaxCalculationServiceTest {
     @Test
     @DisplayName("applies the income tax rate table from the resolved rule snapshot")
     void appliesIncomeTaxRateTable() {
-        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
-            new EarnedIncomeDeductionCalculator(new ObjectMapper()),
-            new PersonalDeductionCalculator(new ObjectMapper()),
-            new PensionInsurancePremiumCalculator(new ObjectMapper()),
-            new IncomeTaxRateTableCalculator(new ObjectMapper()),
-            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
-        );
         TaxCalculationCommand command = new TaxCalculationCommand(
             2025,
             0L,
@@ -85,16 +85,19 @@ class DefaultTaxCalculationServiceTest {
             30_000_000L,
             5_000_000L,
             0L,
+            0L,
+            0L,
             List.of(),
             Map.of(),
             List.of(),
             EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
         );
 
-        TaxCalculationOutcome outcome = service.calculate(command);
+        TaxCalculationOutcome outcome = buildService().calculate(command);
 
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.taxableIncomeAmount()).isEqualTo(28_500_000L);
         assertThat(outcome.calculatedTaxAmount()).isEqualTo(3_015_000L);
         assertThat(outcome.earnedIncomeTaxCreditAmount()).isZero();
@@ -108,13 +111,6 @@ class DefaultTaxCalculationServiceTest {
     @Test
     @DisplayName("deducts the reported public pension contribution amount under the aggregate income cap")
     void deductsPensionInsurancePremium() {
-        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
-            new EarnedIncomeDeductionCalculator(new ObjectMapper()),
-            new PersonalDeductionCalculator(new ObjectMapper()),
-            new PensionInsurancePremiumCalculator(new ObjectMapper()),
-            new IncomeTaxRateTableCalculator(new ObjectMapper()),
-            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
-        );
         TaxCalculationCommand command = new TaxCalculationCommand(
             2025,
             0L,
@@ -123,16 +119,19 @@ class DefaultTaxCalculationServiceTest {
             30_000_000L,
             0L,
             1_350_000L,
+            0L,
+            0L,
             List.of(),
             Map.of(),
             List.of(),
             EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
         );
 
-        TaxCalculationOutcome outcome = service.calculate(command);
+        TaxCalculationOutcome outcome = buildService().calculate(command);
 
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isEqualTo(1_350_000L);
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.totalDeductionAmount()).isEqualTo(2_850_000L);
         assertThat(outcome.taxableIncomeAmount()).isEqualTo(27_150_000L);
         assertThat(outcome.trace()).anyMatch(line -> line.contains(PensionInsurancePremiumCalculator.ELIGIBILITY_RULE_CODE));
@@ -144,13 +143,6 @@ class DefaultTaxCalculationServiceTest {
     @Test
     @DisplayName("caps pension insurance premium at zero when comprehensive income is already exhausted by personal deduction")
     void capsPensionWhenPersonalDeductionExhaustsIncome() {
-        DefaultTaxCalculationService service = new DefaultTaxCalculationService(
-            new EarnedIncomeDeductionCalculator(new ObjectMapper()),
-            new PersonalDeductionCalculator(new ObjectMapper()),
-            new PensionInsurancePremiumCalculator(new ObjectMapper()),
-            new IncomeTaxRateTableCalculator(new ObjectMapper()),
-            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
-        );
         TaxCalculationCommand command = new TaxCalculationCommand(
             2025,
             0L,
@@ -159,17 +151,79 @@ class DefaultTaxCalculationServiceTest {
             1_000_000L,
             0L,
             500_000L,
+            0L,
+            0L,
             List.of(),
             Map.of(),
             List.of(),
             EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
         );
 
-        TaxCalculationOutcome outcome = service.calculate(command);
+        TaxCalculationOutcome outcome = buildService().calculate(command);
 
         assertThat(outcome.totalIncomeAmount()).isEqualTo(1_000_000L);
         assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
         assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
         assertThat(outcome.trace()).anyMatch(line -> line.contains("pensionAggregateCapRemainingAmount = 0"));
+    }
+
+    @Test
+    @DisplayName("deducts social insurance premiums (health + employment) after personal and pension deductions")
+    void deductsSocialInsurancePremium() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            0L,
+            0L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            1_200_000L,   // healthInsurancePremiumAmount
+            300_000L,     // employmentInsurancePremiumAmount
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // personalDeduction=1_500_000, pension=0, social=1_500_000
+        assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.pensionInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.totalDeductionAmount()).isEqualTo(3_000_000L);
+        assertThat(outcome.taxableIncomeAmount()).isEqualTo(27_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(SocialInsurancePremiumCalculator.HEALTH_ELIGIBILITY_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(SocialInsurancePremiumCalculator.EMPLOYMENT_ELIGIBILITY_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("socialInsurancePremiumDeductionAmount = 1500000"));
+    }
+
+    @Test
+    @DisplayName("caps social insurance premium when prior deductions exhaust comprehensive income")
+    void capsSocialInsuranceWhenPriorDeductionsExhaustIncome() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            0L,
+            0L,
+            0L,
+            1_000_000L,   // comprehensiveIncome=1_000_000
+            0L,
+            0L,
+            800_000L,     // health
+            200_000L,     // employment
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // personalDeduction=1_500_000 > income=1_000_000 → social capRemaining=0
+        assertThat(outcome.personalDeductionAmount()).isEqualTo(1_500_000L);
+        assertThat(outcome.socialInsurancePremiumDeductionAmount()).isZero();
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("socialInsuranceAggregateCapRemainingAmount = 0"));
     }
 }

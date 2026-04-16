@@ -1,11 +1,11 @@
 {
   "asOfDate": "2026-04-16",
-  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium",
-  "runDirectory": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+  "runId": "20260415-152140-personal-deduction+20260415-160427-pension-insurance-premium+20260416-134405-social-insurance-special",
+  "runDirectory": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
-  "generatedAt": "2026-04-15T15:21:40+09:00",
+  "generatedAt": "2026-04-16T13:44:05+09:00",
   "sources": [
     {
       "sourceId": "law-income-tax-act-50-2025-10-01",
@@ -61,6 +61,7 @@
     ".local/harness/2026-04-15/20260415-112347-earned-income-tax-credit-audit",
     ".local/harness/2026-04-15/20260415-130636-earned-income-tax-credit-design",
     ".local/harness/2026-04-15/20260415-152140-personal-deduction",
-    ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium"
+    ".local/harness/2026-04-15/20260415-160427-pension-insurance-premium",
+    ".local/harness/2026-04-16/20260416-134405-social-insurance-special"
   ]
 }

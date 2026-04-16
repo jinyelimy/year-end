@@ -1,12 +1,12 @@
 {
-  "ruleSetId": "2025@2025.01-personal-and-pension-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
   "status": "PUBLISHED",
-  "generatedAt": "2026-04-15T15:21:40+09:00",
+  "generatedAt": "2026-04-16T13:44:05+09:00",
   "generatedFrom": {
-    "runDirectory": ".local/harness/2026-04-15/20260415-152140-personal-deduction",
+    "runDirectory": ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
     "sourceManifest": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
     "sourceManifestPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/source-manifest.json",
     "proposalPath": ".local/harness/2026-04-15/20260415-152140-personal-deduction/normalized-rule-pack-proposal.json",
@@ -224,6 +224,84 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-51-3-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SOCIAL_INSURANCE_PREMIUM",
+      "subType": "ELIGIBILITY",
+      "ruleCode": "SOCIAL_INSURANCE_PREMIUM_HEALTH_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "eligiblePaidAmountSource": "employeeHealthInsurancePremiumAmount",
+        "description": "직장가입자 건강보험료 + 장기요양보험료 근로자 부담분 전액 공제 (국민건강보험법 제69조)",
+        "includesLongTermCare": true,
+        "excludeEmployerContribution": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-52-2025-10-01",
+        "law-national-health-insurance-act-69-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SOCIAL_INSURANCE_PREMIUM",
+      "subType": "ELIGIBILITY",
+      "ruleCode": "SOCIAL_INSURANCE_PREMIUM_EMPLOYMENT_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "eligiblePaidAmountSource": "employeeEmploymentInsurancePremiumAmount",
+        "description": "고용보험료 근로자 부담분 전액 공제 (고용보험법 제49조)",
+        "excludeEmployerContribution": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-52-2025-10-01",
+        "law-employment-insurance-act-49-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SOCIAL_INSURANCE_PREMIUM",
+      "subType": "AGGREGATE_CAP",
+      "ruleCode": "SOCIAL_INSURANCE_PREMIUM_AGGREGATE_CAP_2025",
+      "ruleCategory": "AGGREGATE_CAP",
+      "parameters": {
+        "capSource": "comprehensiveIncomeAmount",
+        "description": "특별소득공제 합계는 종합소득금액 초과 불가 (소득세법 제52조 제4항); prior deduction families 차감 후 잔여 한도 사용",
+        "includedDeductionFamilies": [
+          "인적공제",
+          "연금보험료공제"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-52-2025-10-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SOCIAL_INSURANCE_PREMIUM",
+      "subType": "TRACE",
+      "ruleCode": "SOCIAL_INSURANCE_PREMIUM_TRACE_FORMULA_2025",
+      "ruleCategory": "TRACE",
+      "parameters": {
+        "traceFields": [
+          "healthInsurancePremiumAmount",
+          "employmentInsurancePremiumAmount",
+          "totalEligibleAmount",
+          "aggregateCapRemainingAmount",
+          "appliedAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-52-2025-10-01"
       ],
       "confidence": "confirmed"
     }

@@ -34,6 +34,7 @@ public final class SimulationDtos {
         long earnedIncomeAmount,
         long personalDeductionAmount,
         long pensionInsurancePremiumDeductionAmount,
+        long socialInsurancePremiumDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,
