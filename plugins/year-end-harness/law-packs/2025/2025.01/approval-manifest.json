@@ -1,10 +1,10 @@
 {
-  "approvedAt": "2026-04-16T16:50:00Z",
-  "sourceRunDir": ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
+  "approvedAt": "2026-04-17T03:35:03Z",
+  "sourceRunDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-merged",
+  "ruleSetId": "2025@2025.01-p0-p1-p2-all-merged",
   "status": "PUBLISHED",
   "approvedBy": "manual CLI approval",
   "approvalHistory": [
@@ -79,6 +79,46 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["child-tax-credit"]
+    },
+    {
+      "approvedAt": "2026-04-17T02:53:27Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-040000-pension-account-tax-credit",
+      "ruleSetId": "2025@pension-account-tax-credit",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["pension-account-tax-credit"]
+    },
+    {
+      "approvedAt": "2026-04-17T03:02:32Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-050000-monthly-rent-tax-credit",
+      "ruleSetId": "2025@monthly-rent-tax-credit",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["monthly-rent-tax-credit"]
+    },
+    {
+      "approvedAt": "2026-04-17T03:17:42Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
+      "ruleSetId": "2025@housing-loan-principal-interest",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["housing-loan-principal-interest"]
+    },
+    {
+      "approvedAt": "2026-04-17T03:25:14Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
+      "ruleSetId": "2025@long-term-mortgage-interest",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["long-term-mortgage-interest"]
+    },
+    {
+      "approvedAt": "2026-04-17T03:35:03Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
+      "ruleSetId": "2025@housing-savings-deduction",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["housing-savings-deduction"]
     }
   ]
 }
