@@ -55,6 +55,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["insurance-premium-ext"]
+    },
+    {
+      "approvedAt": "2026-04-17T01:00:00Z",
+      "sourceRunDir": ".local/harness/2026-04-16/20260416-165000-medical-ext",
+      "ruleSetId": "2025@medical-ext",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["medical-ext"]
     }
   ]
 }

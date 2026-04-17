@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -48,6 +48,12 @@
         "sliceId": "insurance-premium-ext",
         "runDir": ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
         "approvedAt": "2026-04-16T16:29:26+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "medical-ext",
+        "runDir": ".local/harness/2026-04-16/20260416-165000-medical-ext",
+        "approvedAt": "2026-04-17T01:00:00Z",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -575,6 +581,113 @@
       "sourceRefs": [
         "law-income-tax-act-59-4-2025-01-01"
       ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "THRESHOLD_RATE",
+      "ruleCode": "MEDICAL_EXPENSE_THRESHOLD_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "thresholdRate": 0.03,
+        "description": "총급여 3% 초과분이 공제 대상"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "GENERAL_LIMIT_RATE",
+      "ruleCode": "MEDICAL_EXPENSE_GENERAL_LIMIT_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "subTypes": ["MEDICAL_GENERAL", "MEDICAL_TOTAL"],
+        "thresholdRate": 0.03,
+        "creditRate": 0.15,
+        "limitAmount": 7000000,
+        "hasLimit": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "SPECIAL_RATE",
+      "ruleCode": "MEDICAL_EXPENSE_SPECIAL_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "subTypes": ["MEDICAL_DISABILITY", "MEDICAL_SENIOR", "MEDICAL_SERIOUS_ILLNESS"],
+        "thresholdRate": 0.03,
+        "creditRate": 0.15,
+        "hasLimit": false
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "INFERTILITY_RATE",
+      "ruleCode": "MEDICAL_EXPENSE_INFERTILITY_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "subTypes": ["MEDICAL_INFERTILITY"],
+        "thresholdRate": 0.03,
+        "creditRate": 0.30,
+        "hasLimit": false
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "PREMATURE_RATE",
+      "ruleCode": "MEDICAL_EXPENSE_PREMATURE_RATE_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "subTypes": ["MEDICAL_PREMATURE"],
+        "thresholdRate": 0.03,
+        "creditRate": 0.20,
+        "hasLimit": false
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "AGGREGATE_FORMULA",
+      "ruleCode": "MEDICAL_EXPENSE_AGGREGATE_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "formula": "sum(generalCredit, specialCredit, infertilityCredit, prematureCredit)",
+        "subtypes": ["MEDICAL_GENERAL", "MEDICAL_TOTAL", "MEDICAL_DISABILITY", "MEDICAL_SENIOR", "MEDICAL_SERIOUS_ILLNESS", "MEDICAL_INFERTILITY", "MEDICAL_PREMATURE"],
+        "thresholdApplied": "per-item"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "MEDICAL_EXPENSE",
+      "subType": "TRACE",
+      "ruleCode": "MEDICAL_EXPENSE_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": ["subType", "amount", "threshold", "eligibleAmount", "creditRate", "limitAmount", "taxCreditContribution"]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
       "confidence": "confirmed"
     },
     {

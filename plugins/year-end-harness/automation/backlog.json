@@ -1,7 +1,7 @@
 {
   "meta": {
     "schemaVersion": 1,
-    "updatedAt": "2026-04-16",
+    "updatedAt": "2026-04-17",
     "scope": "P0 remaining + P1",
     "timezone": "Asia/Seoul"
   },
@@ -177,7 +177,11 @@
         "3-4-or-4-3"
       ],
       "notes": "기본 의료비 정책 구현됨. 난임시술비, 미숙아/선천성이상아, 장애인/고령자 세부요건 확장",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T01:54:05Z",
+      "doneRuns": [
+        ".local/harness/2026-04-16/20260416-165000-medical-ext"
+      ]
     },
     {
       "id": "education-ext",
@@ -235,6 +239,12 @@
       "runDir": ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
       "commitSha": null,
       "at": "2026-04-16T07:41:21Z"
+    },
+    {
+      "sliceId": "medical-ext",
+      "runDir": ".local/harness/2026-04-16/20260416-165000-medical-ext",
+      "commitSha": null,
+      "at": "2026-04-17T01:54:05Z"
     }
   ]
 }
