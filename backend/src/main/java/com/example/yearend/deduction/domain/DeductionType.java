@@ -10,5 +10,6 @@ public enum DeductionType {
     EDUCATION_EXPENSE,
     INSURANCE,
     DONATION,
-    CREDIT_CARD
+    CREDIT_CARD,
+    CHILD_TAX_CREDIT
 }

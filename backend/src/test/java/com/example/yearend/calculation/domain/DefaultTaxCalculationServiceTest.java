@@ -22,6 +22,7 @@ class DefaultTaxCalculationServiceTest {
             new SocialInsurancePremiumCalculator(new ObjectMapper()),
             new CreditCardDeductionCalculator(new ObjectMapper()),
             new DonationTaxCreditCalculator(new ObjectMapper()),
+            new ChildTaxCreditCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
             new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
         );

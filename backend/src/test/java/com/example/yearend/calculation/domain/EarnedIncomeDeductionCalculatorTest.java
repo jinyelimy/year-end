@@ -503,6 +503,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     "{\"traceFields\":[\"subType\",\"amount\",\"limitAmount\",\"creditRate\",\"taxCreditContribution\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CHILD_TAX_CREDIT,
+                    ChildTaxCreditCalculator.AMOUNT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"minAge\":8,\"firstChildAmount\":150000,\"secondChildAmount\":300000,\"additionalChildAmount\":300000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CHILD_TAX_CREDIT,
+                    ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"firstChildAmount\":300000,\"secondChildAmount\":500000,\"thirdOrMoreChildAmount\":700000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.CHILD_TAX_CREDIT,
+                    ChildTaxCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"eligibleChildCount\",\"basicChildCreditAmount\",\"birthAdoptionChildCount\",\"birthAdoptionCreditAmount\",\"childTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
                 )
             )
         );

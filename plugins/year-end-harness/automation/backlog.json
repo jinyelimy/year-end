@@ -2,7 +2,7 @@
   "meta": {
     "schemaVersion": 1,
     "updatedAt": "2026-04-17",
-    "scope": "P0 remaining + P1",
+    "scope": "P0 remaining + P1 + P2",
     "timezone": "Asia/Seoul"
   },
   "slices": [
@@ -198,10 +198,91 @@
       ],
       "notes": "기본 교육비 정책과 subtype 한도 구현됨. 국외교육비, 학자금대출, 취학 전 아동, 교복구입비 세부 검증 확장",
       "status": "done",
-      "doneAt": "2026-04-17T02:11:50Z",
+      "doneAt": "2026-04-17T02:12:17Z",
       "doneRuns": [
         ".local/harness/2026-04-17/20260417-020000-education-ext"
+      ],
+      "doneCommits": [
+        "e20f208"
       ]
+    },
+    {
+      "id": "child-tax-credit",
+      "name": "자녀세액공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 부양가족 정보와 강하게 연결. 8세 이상 자녀 인원수 기반 세액공제.",
+      "status": "pending"
+    },
+    {
+      "id": "pension-account-tax-credit",
+      "name": "연금계좌 세액공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 연금저축, 퇴직연금(IRP), ISA 만기 전환 포함. 총급여별 공제율 12%/15% 분기.",
+      "status": "pending"
+    },
+    {
+      "id": "monthly-rent-tax-credit",
+      "name": "월세액 세액공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 무주택 세대주/세대원, 총급여 8천만원 이하, 주택 규모 요건. 공제율 17%/15%.",
+      "status": "pending"
+    },
+    {
+      "id": "housing-loan-principal-interest",
+      "name": "주택임차차입금 원리금상환액 공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 무주택 세대주 요건. 금융기관/대주 차입 구분. 한도 400만원(소득공제).",
+      "status": "pending"
+    },
+    {
+      "id": "long-term-mortgage-interest",
+      "name": "장기주택저당차입금 이자상환액 공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 1주택 세대주 요건. 상환 방식/고정금리 여부에 따라 한도 600~2000만원(소득공제).",
+      "status": "pending"
+    },
+    {
+      "id": "housing-savings-deduction",
+      "name": "주택마련저축 소득공제",
+      "priority": "P2",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 청약저축/주택청약종합저축. 무주택 세대주 요건. 납입액 40% 소득공제, 한도 300만원.",
+      "status": "pending"
     }
   ],
   "runHistory": [
@@ -264,6 +345,12 @@
       "runDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
       "commitSha": null,
       "at": "2026-04-17T02:11:50Z"
+    },
+    {
+      "sliceId": "education-ext",
+      "runDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
+      "commitSha": "e20f208",
+      "at": "2026-04-17T02:12:17Z"
     }
   ]
 }

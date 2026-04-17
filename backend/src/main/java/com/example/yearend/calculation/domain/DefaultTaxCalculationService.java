@@ -13,6 +13,8 @@ import com.example.yearend.calculation.domain.CreditCardDeductionCalculator.Cred
 import com.example.yearend.calculation.domain.CreditCardDeductionCalculator.CreditCardRuleSnapshot;
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator.DonationCalculation;
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator.DonationRuleSnapshot;
+import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxCreditCalculation;
+import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -23,12 +25,16 @@ import java.util.List;
 @Service
 public class DefaultTaxCalculationService implements TaxCalculationService {
 
+    private static final String CHILD_TAX_CREDIT_AMOUNT_CODE        = ChildTaxCreditCalculator.AMOUNT_RULE_CODE;
+    private static final String CHILD_TAX_CREDIT_BIRTH_ADOPTION_CODE = ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE;
+
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
     private final PensionInsurancePremiumCalculator pensionInsurancePremiumCalculator;
     private final SocialInsurancePremiumCalculator socialInsurancePremiumCalculator;
     private final CreditCardDeductionCalculator creditCardDeductionCalculator;
     private final DonationTaxCreditCalculator donationTaxCreditCalculator;
+    private final ChildTaxCreditCalculator childTaxCreditCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
@@ -39,6 +45,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         SocialInsurancePremiumCalculator socialInsurancePremiumCalculator,
         CreditCardDeductionCalculator creditCardDeductionCalculator,
         DonationTaxCreditCalculator donationTaxCreditCalculator,
+        ChildTaxCreditCalculator childTaxCreditCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
@@ -48,6 +55,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.socialInsurancePremiumCalculator = socialInsurancePremiumCalculator;
         this.creditCardDeductionCalculator = creditCardDeductionCalculator;
         this.donationTaxCreditCalculator = donationTaxCreditCalculator;
+        this.childTaxCreditCalculator = childTaxCreditCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -134,11 +142,20 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             donationRuleSnapshot
         );
         long donationTaxCreditAmount = donationCalculation.totalCreditAmount();
+        ChildTaxCreditRuleSnapshot childTaxCreditRuleSnapshot =
+            childTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        ChildTaxCreditCalculation childTaxCreditCalculation = childTaxCreditCalculator.calculate(
+            command.taxYear(),
+            command.dependents(),
+            command.basicInfoAttributes(),
+            childTaxCreditRuleSnapshot
+        );
+        long childTaxCreditAmount = childTaxCreditCalculation.totalCreditAmount();
         long otherTaxCreditAmount = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .mapToLong(DeductionDecision::taxCreditContribution)
             .sum();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + otherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + otherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -257,6 +274,13 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("ruleCode " + donationRuleSnapshot.aggregateFormulaRule().ruleCode() + " applied");
         trace.add("ruleCode " + donationRuleSnapshot.traceRule().ruleCode() + " applied");
         trace.add("donationTaxCreditAmount = " + donationTaxCreditAmount);
+        trace.add("ruleCode " + CHILD_TAX_CREDIT_AMOUNT_CODE + " applied");
+        trace.add("eligibleChildCount = " + childTaxCreditCalculation.eligibleChildCount());
+        trace.add("basicChildCreditAmount = " + childTaxCreditCalculation.basicChildCreditAmount());
+        trace.add("ruleCode " + CHILD_TAX_CREDIT_BIRTH_ADOPTION_CODE + " applied");
+        trace.add("birthAdoptionChildCount = " + childTaxCreditCalculation.birthAdoptionChildCount());
+        trace.add("birthAdoptionCreditAmount = " + childTaxCreditCalculation.birthAdoptionCreditAmount());
+        trace.add("childTaxCreditAmount = " + childTaxCreditAmount);
         trace.add("otherTaxCreditAmount = " + otherTaxCreditAmount);
         trace.add("taxCreditAmount = " + taxCreditAmount);
         trace.add("expectedRefundAmount = " + expectedRefundAmount);
@@ -278,6 +302,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             calculatedTaxAmount,
             earnedIncomeTaxCreditAmount,
             donationTaxCreditAmount,
+            childTaxCreditAmount,
             otherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

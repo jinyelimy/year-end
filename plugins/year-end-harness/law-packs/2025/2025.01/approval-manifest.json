@@ -71,6 +71,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["education-ext"]
+    },
+    {
+      "approvedAt": "2026-04-17T03:00:00Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-030000-child-tax-credit",
+      "ruleSetId": "2025@child-tax-credit",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["child-tax-credit"]
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -876,6 +876,64 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-59-4-insurance-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CHILD_TAX_CREDIT",
+      "subType": "AMOUNT",
+      "ruleCode": "CHILD_TAX_CREDIT_AMOUNT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "minAge": 8,
+        "firstChildAmount": 150000,
+        "secondChildAmount": 300000,
+        "additionalChildAmount": 300000,
+        "description": "기본공제 대상 자녀 8세 이상 인원수 기반 세액공제"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-1-child-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CHILD_TAX_CREDIT",
+      "subType": "BIRTH_ADOPTION",
+      "ruleCode": "CHILD_TAX_CREDIT_BIRTH_ADOPTION_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "firstChildAmount": 300000,
+        "secondChildAmount": 500000,
+        "thirdOrMoreChildAmount": 700000,
+        "description": "해당 과세기간 출생·입양 자녀 세액공제"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-1-child-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "CHILD_TAX_CREDIT",
+      "subType": "TRACE",
+      "ruleCode": "CHILD_TAX_CREDIT_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "eligibleChildCount",
+          "basicChildCreditAmount",
+          "birthAdoptionChildCount",
+          "birthAdoptionCreditAmount",
+          "childTaxCreditAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-1-child-2025-01-01"
       ],
       "confidence": "confirmed"
     }

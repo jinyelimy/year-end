@@ -8,6 +8,7 @@ import com.example.yearend.calculation.domain.PensionInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.CreditCardDeductionCalculator;
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator;
+import com.example.yearend.calculation.domain.ChildTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -149,6 +150,7 @@ public class SimulationService {
             outcome.calculatedTaxAmount(),
             outcome.earnedIncomeTaxCreditAmount(),
             outcome.donationTaxCreditAmount(),
+            outcome.childTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -400,6 +402,7 @@ public class SimulationService {
             outcome.calculatedTaxAmount(),
             outcome.earnedIncomeTaxCreditAmount(),
             outcome.donationTaxCreditAmount(),
+            outcome.childTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -443,7 +446,10 @@ public class SimulationService {
                 DonationTaxCreditCalculator.DESIGNATED_RULE_CODE,
                 DonationTaxCreditCalculator.EMPLOYEE_STOCK_RULE_CODE,
                 DonationTaxCreditCalculator.AGGREGATE_FORMULA_RULE_CODE,
-                DonationTaxCreditCalculator.TRACE_RULE_CODE
+                DonationTaxCreditCalculator.TRACE_RULE_CODE,
+                ChildTaxCreditCalculator.AMOUNT_RULE_CODE,
+                ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE,
+                ChildTaxCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -543,6 +549,7 @@ public class SimulationService {
         long calculatedTaxAmount,
         long earnedIncomeTaxCreditAmount,
         long donationTaxCreditAmount,
+        long childTaxCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,
