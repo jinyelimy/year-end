@@ -16,7 +16,8 @@ public class EducationInstitutionChecker implements EligibilityChecker {
         "SCHOOL",
         "UNIVERSITY",
         "ACADEMY",
-        "SELF_EDUCATION"
+        "SELF_EDUCATION",
+        "UNIFORM"
     );
 
     @Override

@@ -178,9 +178,12 @@
       ],
       "notes": "기본 의료비 정책 구현됨. 난임시술비, 미숙아/선천성이상아, 장애인/고령자 세부요건 확장",
       "status": "done",
-      "doneAt": "2026-04-17T01:54:05Z",
+      "doneAt": "2026-04-17T01:55:41Z",
       "doneRuns": [
         ".local/harness/2026-04-16/20260416-165000-medical-ext"
+      ],
+      "doneCommits": [
+        "f877c30"
       ]
     },
     {
@@ -194,7 +197,11 @@
         "3-4-or-4-3"
       ],
       "notes": "기본 교육비 정책과 subtype 한도 구현됨. 국외교육비, 학자금대출, 취학 전 아동, 교복구입비 세부 검증 확장",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T02:11:50Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-020000-education-ext"
+      ]
     }
   ],
   "runHistory": [
@@ -245,6 +252,18 @@
       "runDir": ".local/harness/2026-04-16/20260416-165000-medical-ext",
       "commitSha": null,
       "at": "2026-04-17T01:54:05Z"
+    },
+    {
+      "sliceId": "medical-ext",
+      "runDir": ".local/harness/2026-04-16/20260416-165000-medical-ext",
+      "commitSha": "f877c30",
+      "at": "2026-04-17T01:55:41Z"
+    },
+    {
+      "sliceId": "education-ext",
+      "runDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
+      "commitSha": null,
+      "at": "2026-04-17T02:11:50Z"
     }
   ]
 }

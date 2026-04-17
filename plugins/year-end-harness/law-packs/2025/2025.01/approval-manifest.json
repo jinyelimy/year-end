@@ -63,6 +63,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["medical-ext"]
+    },
+    {
+      "approvedAt": "2026-04-17T02:00:00Z",
+      "sourceRunDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
+      "ruleSetId": "2025@education-ext",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["education-ext"]
     }
   ]
 }
