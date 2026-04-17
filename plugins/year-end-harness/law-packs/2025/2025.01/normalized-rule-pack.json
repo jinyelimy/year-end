@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-housing-loan-long-term-mortgage-merged",
+  "ruleSetId": "2025@2025.01-...-long-term-mortgage-housing-savings-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -72,6 +72,12 @@
         "sliceId": "long-term-mortgage-interest",
         "runDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
         "approvedAt": "2026-04-17T07:00:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "housing-savings-deduction",
+        "runDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
+        "approvedAt": "2026-04-17T08:00:00Z",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -1235,6 +1241,55 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-87-2-long-term-mortgage-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_SAVINGS",
+      "subType": "LIMIT",
+      "ruleCode": "HOUSING_SAVINGS_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "annualDeductionLimit": 3000000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-3-housing-savings-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_SAVINGS",
+      "subType": "RATE",
+      "ruleCode": "HOUSING_SAVINGS_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "deductionRate": 0.4
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-3-housing-savings-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_SAVINGS",
+      "subType": "TRACE",
+      "ruleCode": "HOUSING_SAVINGS_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "housingSavingsContributionAmount",
+          "deductionBeforeLimitAmount",
+          "housingSavingsDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-3-housing-savings-2025-01-01"
       ],
       "confidence": "confirmed"
     }

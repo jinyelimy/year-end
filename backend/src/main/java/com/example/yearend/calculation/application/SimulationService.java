@@ -13,6 +13,7 @@ import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
 import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator;
 import com.example.yearend.calculation.domain.LongTermMortgageDeductionCalculator;
+import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -85,6 +86,7 @@ public class SimulationService {
         long annualRentAmount = summarizeMonthlyRentItems(deductionItems);
         HousingLoanRepaymentSummary housingLoanSummary = summarizeHousingLoanItems(deductionItems);
         LongTermMortgageSummary longTermMortgageSummary = summarizeLongTermMortgageItems(deductionItems);
+        HousingSavingsSummary housingSavingsSummary = summarizeHousingSavingsItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -114,6 +116,7 @@ public class SimulationService {
                 housingLoanSummary.individualRepaymentAmount(),
                 longTermMortgageSummary.interestAmount(),
                 longTermMortgageSummary.repaymentType(),
+                housingSavingsSummary.contributionAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -163,6 +166,7 @@ public class SimulationService {
             outcome.creditCardDeductionAmount(),
             outcome.housingLoanDeductionAmount(),
             outcome.longTermMortgageDeductionAmount(),
+            outcome.housingSavingsDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -360,6 +364,14 @@ public class SimulationService {
         return new LongTermMortgageSummary(interestAmount, repaymentType);
     }
 
+    private HousingSavingsSummary summarizeHousingSavingsItems(List<DeductionItem> deductionItems) {
+        long contributionAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_SAVINGS)
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        return new HousingSavingsSummary(contributionAmount);
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -469,6 +481,7 @@ public class SimulationService {
             outcome.creditCardDeductionAmount(),
             outcome.housingLoanDeductionAmount(),
             outcome.longTermMortgageDeductionAmount(),
+            outcome.housingSavingsDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -534,7 +547,10 @@ public class SimulationService {
                 HousingLoanDeductionCalculator.RATE_RULE_CODE,
                 HousingLoanDeductionCalculator.TRACE_RULE_CODE,
                 LongTermMortgageDeductionCalculator.LIMIT_RULE_CODE,
-                LongTermMortgageDeductionCalculator.TRACE_RULE_CODE
+                LongTermMortgageDeductionCalculator.TRACE_RULE_CODE,
+                HousingSavingsDeductionCalculator.LIMIT_RULE_CODE,
+                HousingSavingsDeductionCalculator.RATE_RULE_CODE,
+                HousingSavingsDeductionCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -612,6 +628,11 @@ public class SimulationService {
     ) {
     }
 
+    private record HousingSavingsSummary(
+        long contributionAmount
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -650,6 +671,7 @@ public class SimulationService {
         long creditCardDeductionAmount,
         long housingLoanDeductionAmount,
         long longTermMortgageDeductionAmount,
+        long housingSavingsDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

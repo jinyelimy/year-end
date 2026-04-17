@@ -300,9 +300,12 @@
       ],
       "notes": "미구현. 1주택 세대주 요건. 상환 방식/고정금리 여부에 따라 한도 600~2000만원(소득공제).",
       "status": "done",
-      "doneAt": "2026-04-17T03:24:53Z",
+      "doneAt": "2026-04-17T03:25:14Z",
       "doneRuns": [
         ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest"
+      ],
+      "doneCommits": [
+        "e9df28b"
       ]
     },
     {
@@ -316,7 +319,11 @@
         "4-3"
       ],
       "notes": "미구현. 청약저축/주택청약종합저축. 무주택 세대주 요건. 납입액 40% 소득공제, 한도 300만원.",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T03:35:03Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction"
+      ]
     }
   ],
   "runHistory": [
@@ -433,6 +440,18 @@
       "runDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
       "commitSha": null,
       "at": "2026-04-17T03:24:53Z"
+    },
+    {
+      "sliceId": "long-term-mortgage-interest",
+      "runDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
+      "commitSha": "e9df28b",
+      "at": "2026-04-17T03:25:14Z"
+    },
+    {
+      "sliceId": "housing-savings-deduction",
+      "runDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
+      "commitSha": null,
+      "at": "2026-04-17T03:35:03Z"
     }
   ]
 }

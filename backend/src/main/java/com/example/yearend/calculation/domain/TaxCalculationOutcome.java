@@ -16,6 +16,7 @@ public record TaxCalculationOutcome(
     long creditCardDeductionAmount,
     long housingLoanDeductionAmount,
     long longTermMortgageDeductionAmount,
+    long housingSavingsDeductionAmount,
     long totalDeductionAmount,
     long taxableIncomeAmount,
     long calculatedTaxAmount,
