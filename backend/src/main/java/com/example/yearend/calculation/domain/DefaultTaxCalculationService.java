@@ -17,6 +17,8 @@ import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxC
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.PensionAccountCalculation;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.PensionAccountRuleSnapshot;
+import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator.MonthlyRentCalculation;
+import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator.MonthlyRentRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String CHILD_TAX_CREDIT_BIRTH_ADOPTION_CODE = ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE;
     private static final String PENSION_ACCOUNT_LIMIT_CODE           = PensionAccountTaxCreditCalculator.LIMIT_RULE_CODE;
     private static final String PENSION_ACCOUNT_RATE_CODE            = PensionAccountTaxCreditCalculator.RATE_RULE_CODE;
+    private static final String MONTHLY_RENT_LIMIT_CODE              = MonthlyRentTaxCreditCalculator.LIMIT_RULE_CODE;
+    private static final String MONTHLY_RENT_RATE_CODE               = MonthlyRentTaxCreditCalculator.RATE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -40,6 +44,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final DonationTaxCreditCalculator donationTaxCreditCalculator;
     private final ChildTaxCreditCalculator childTaxCreditCalculator;
     private final PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator;
+    private final MonthlyRentTaxCreditCalculator monthlyRentTaxCreditCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
@@ -52,6 +57,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         DonationTaxCreditCalculator donationTaxCreditCalculator,
         ChildTaxCreditCalculator childTaxCreditCalculator,
         PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator,
+        MonthlyRentTaxCreditCalculator monthlyRentTaxCreditCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
@@ -63,6 +69,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.donationTaxCreditCalculator = donationTaxCreditCalculator;
         this.childTaxCreditCalculator = childTaxCreditCalculator;
         this.pensionAccountTaxCreditCalculator = pensionAccountTaxCreditCalculator;
+        this.monthlyRentTaxCreditCalculator = monthlyRentTaxCreditCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -168,11 +175,19 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             pensionAccountRuleSnapshot
         );
         long pensionAccountTaxCreditAmount = pensionAccountCalculation.totalCreditAmount();
+        MonthlyRentRuleSnapshot monthlyRentRuleSnapshot =
+            monthlyRentTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        MonthlyRentCalculation monthlyRentCalculation = monthlyRentTaxCreditCalculator.calculate(
+            command.annualRentAmount(),
+            command.totalGrossSalaryAmount(),
+            monthlyRentRuleSnapshot
+        );
+        long monthlyRentTaxCreditAmount = monthlyRentCalculation.totalCreditAmount();
         long otherTaxCreditAmount = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .mapToLong(DeductionDecision::taxCreditContribution)
             .sum();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + otherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + otherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -309,6 +324,12 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("totalApplicableAmount = " + pensionAccountCalculation.totalApplicableAmount());
         trace.add("pensionAccountCreditRate = " + pensionAccountCalculation.creditRate());
         trace.add("pensionAccountTaxCreditAmount = " + pensionAccountTaxCreditAmount);
+        trace.add("ruleCode " + MONTHLY_RENT_LIMIT_CODE + " applied");
+        trace.add("annualRentAmount = " + monthlyRentCalculation.annualRentAmount());
+        trace.add("eligibleRentAmount = " + monthlyRentCalculation.eligibleRentAmount());
+        trace.add("ruleCode " + MONTHLY_RENT_RATE_CODE + " applied");
+        trace.add("monthlyRentCreditRate = " + monthlyRentCalculation.creditRate());
+        trace.add("monthlyRentTaxCreditAmount = " + monthlyRentTaxCreditAmount);
         trace.add("otherTaxCreditAmount = " + otherTaxCreditAmount);
         trace.add("taxCreditAmount = " + taxCreditAmount);
         trace.add("expectedRefundAmount = " + expectedRefundAmount);
@@ -332,6 +353,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             donationTaxCreditAmount,
             childTaxCreditAmount,
             pensionAccountTaxCreditAmount,
+            monthlyRentTaxCreditAmount,
             otherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

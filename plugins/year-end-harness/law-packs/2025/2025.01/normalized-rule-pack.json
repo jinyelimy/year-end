@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -991,6 +991,56 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-59-4-4-pension-account-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "MONTHLY_RENT_LIMIT_2025",
+      "deductionType": "MONTHLY_RENT",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "annualRentLimit": 12000000,
+        "grossSalaryEligibilityLimit": 80000000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-2-monthly-rent-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "MONTHLY_RENT_RATE_2025",
+      "deductionType": "MONTHLY_RENT",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "grossSalaryThreshold": 55000000,
+        "highRate": 0.17,
+        "lowRate": 0.15
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-2-monthly-rent-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "MONTHLY_RENT_TRACE_2025",
+      "deductionType": "MONTHLY_RENT",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "annualRentAmount",
+          "eligibleRentAmount",
+          "creditRate",
+          "monthlyRentTaxCreditAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-2-monthly-rent-2025-01-01"
       ],
       "confidence": "confirmed"
     }

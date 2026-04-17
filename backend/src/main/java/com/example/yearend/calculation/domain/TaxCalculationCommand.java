@@ -31,6 +31,7 @@ public record TaxCalculationCommand(
     long pensionSavingsAmount,
     long irpAmount,
     long isaMaturityTransferAmount,
+    long annualRentAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

@@ -10,6 +10,7 @@ import com.example.yearend.calculation.domain.CreditCardDeductionCalculator;
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator;
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
+import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -79,6 +80,7 @@ public class SimulationService {
         CreditCardUsageSummary creditCardSummary = summarizeCreditCardItems(deductionItems);
         DonationSummary donationSummary = summarizeDonationItems(deductionItems);
         PensionAccountSummary pensionAccountSummary = summarizePensionAccountItems(deductionItems);
+        long annualRentAmount = summarizeMonthlyRentItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -103,6 +105,7 @@ public class SimulationService {
                 pensionAccountSummary.pensionSavingsAmount(),
                 pensionAccountSummary.irpAmount(),
                 pensionAccountSummary.isaMaturityTransferAmount(),
+                annualRentAmount,
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -157,6 +160,7 @@ public class SimulationService {
             outcome.donationTaxCreditAmount(),
             outcome.childTaxCreditAmount(),
             outcome.pensionAccountTaxCreditAmount(),
+            outcome.monthlyRentTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -325,6 +329,13 @@ public class SimulationService {
         return new DonationSummary(political, legal, employeeStock, designated, designatedReligious);
     }
 
+    private long summarizeMonthlyRentItems(List<DeductionItem> deductionItems) {
+        return deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.MONTHLY_RENT)
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+    }
+
     private PensionAccountSummary summarizePensionAccountItems(List<DeductionItem> deductionItems) {
         long pensionSavings = sumPensionAccountSubType(deductionItems, "PENSION_SAVINGS");
         long irp = sumPensionAccountSubType(deductionItems, "IRP");
@@ -425,6 +436,7 @@ public class SimulationService {
             outcome.donationTaxCreditAmount(),
             outcome.childTaxCreditAmount(),
             outcome.pensionAccountTaxCreditAmount(),
+            outcome.monthlyRentTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -474,7 +486,10 @@ public class SimulationService {
                 ChildTaxCreditCalculator.TRACE_RULE_CODE,
                 PensionAccountTaxCreditCalculator.LIMIT_RULE_CODE,
                 PensionAccountTaxCreditCalculator.RATE_RULE_CODE,
-                PensionAccountTaxCreditCalculator.TRACE_RULE_CODE
+                PensionAccountTaxCreditCalculator.TRACE_RULE_CODE,
+                MonthlyRentTaxCreditCalculator.LIMIT_RULE_CODE,
+                MonthlyRentTaxCreditCalculator.RATE_RULE_CODE,
+                MonthlyRentTaxCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -583,6 +598,7 @@ public class SimulationService {
         long donationTaxCreditAmount,
         long childTaxCreditAmount,
         long pensionAccountTaxCreditAmount,
+        long monthlyRentTaxCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

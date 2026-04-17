@@ -7,6 +7,7 @@ import com.example.yearend.deduction.domain.RuleCategory;
 import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.deduction.infrastructure.InsurancePremiumDeductionPolicy;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
+import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -542,6 +543,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     PensionAccountTaxCreditCalculator.RATE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"grossSalaryThreshold\":55000000,\"highRate\":0.15,\"lowRate\":0.12}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.MONTHLY_RENT,
+                    MonthlyRentTaxCreditCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"annualRentLimit\":12000000,\"grossSalaryEligibilityLimit\":80000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.MONTHLY_RENT,
+                    MonthlyRentTaxCreditCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"grossSalaryThreshold\":55000000,\"highRate\":0.17,\"lowRate\":0.15}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.MONTHLY_RENT,
+                    MonthlyRentTaxCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"annualRentAmount\",\"eligibleRentAmount\",\"creditRate\",\"monthlyRentTaxCreditAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 ),

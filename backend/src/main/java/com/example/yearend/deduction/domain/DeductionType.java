@@ -12,5 +12,6 @@ public enum DeductionType {
     DONATION,
     CREDIT_CARD,
     CHILD_TAX_CREDIT,
-    PENSION_ACCOUNT
+    PENSION_ACCOUNT,
+    MONTHLY_RENT
 }
