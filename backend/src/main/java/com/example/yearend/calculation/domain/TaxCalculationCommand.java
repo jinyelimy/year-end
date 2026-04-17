@@ -32,6 +32,8 @@ public record TaxCalculationCommand(
     long irpAmount,
     long isaMaturityTransferAmount,
     long annualRentAmount,
+    long housingLoanBankRepaymentAmount,
+    long housingLoanIndividualRepaymentAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

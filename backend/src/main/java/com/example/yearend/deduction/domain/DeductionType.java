@@ -13,5 +13,6 @@ public enum DeductionType {
     CREDIT_CARD,
     CHILD_TAX_CREDIT,
     PENSION_ACCOUNT,
-    MONTHLY_RENT
+    MONTHLY_RENT,
+    HOUSING_LOAN
 }

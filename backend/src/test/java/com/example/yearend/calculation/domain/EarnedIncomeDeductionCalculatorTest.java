@@ -8,6 +8,7 @@ import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.deduction.infrastructure.InsurancePremiumDeductionPolicy;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
+import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -575,6 +576,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     PensionAccountTaxCreditCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"pensionSavingsAmount\",\"irpAmount\",\"applicablePensionSavingsAmount\",\"applicableCombinedAmount\",\"isaMaturityTransferAmount\",\"isaAdditionalAmount\",\"totalApplicableAmount\",\"creditRate\",\"pensionAccountTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.HOUSING_LOAN,
+                    HousingLoanDeductionCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"annualDeductionLimit\":4000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.HOUSING_LOAN,
+                    HousingLoanDeductionCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"deductionRate\":0.40}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.HOUSING_LOAN,
+                    HousingLoanDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"housingLoanBankRepaymentAmount\",\"housingLoanIndividualRepaymentAmount\",\"totalRepaymentAmount\",\"deductionBeforeLimitAmount\",\"housingLoanDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 )

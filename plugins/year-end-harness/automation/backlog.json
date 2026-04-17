@@ -259,12 +259,13 @@
       ],
       "notes": "미구현. 무주택 세대주/세대원, 총급여 8천만원 이하, 주택 규모 요건. 공제율 17%/15%.",
       "status": "done",
-      "doneAt": "2026-04-17T03:02:23Z",
+      "doneAt": "2026-04-17T03:02:32Z",
       "doneRuns": [
         ".local/harness/2026-04-17/20260417-050000-monthly-rent-tax-credit"
       ],
       "doneCommits": [
-        "TBD"
+        "TBD",
+        "8d4f46b"
       ]
     },
     {
@@ -278,7 +279,11 @@
         "4-3"
       ],
       "notes": "미구현. 무주택 세대주 요건. 금융기관/대주 차입 구분. 한도 400만원(소득공제).",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T03:17:03Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest"
+      ]
     },
     {
       "id": "long-term-mortgage-interest",
@@ -397,6 +402,18 @@
       "runDir": ".local/harness/2026-04-17/20260417-050000-monthly-rent-tax-credit",
       "commitSha": "TBD",
       "at": "2026-04-17T03:02:23Z"
+    },
+    {
+      "sliceId": "monthly-rent-tax-credit",
+      "runDir": ".local/harness/2026-04-17/20260417-050000-monthly-rent-tax-credit",
+      "commitSha": "8d4f46b",
+      "at": "2026-04-17T03:02:32Z"
+    },
+    {
+      "sliceId": "housing-loan-principal-interest",
+      "runDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
+      "commitSha": null,
+      "at": "2026-04-17T03:17:03Z"
     }
   ]
 }

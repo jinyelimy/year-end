@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-housing-loan-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -60,6 +60,12 @@
         "sliceId": "education-ext",
         "runDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
         "approvedAt": "2026-04-17T02:00:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "housing-loan-principal-interest",
+        "runDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
+        "approvedAt": "2026-04-17T06:00:00Z",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -600,7 +606,9 @@
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -609,13 +617,17 @@
       "ruleCode": "EDUCATION_EXPENSE_SELF_LIMIT_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["SELF_EDUCATION"],
+        "subTypes": [
+          "SELF_EDUCATION"
+        ],
         "hasLimit": false,
         "description": "본인 교육비 한도없음 (대학원 포함)"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -624,14 +636,18 @@
       "ruleCode": "EDUCATION_EXPENSE_UNIVERSITY_LIMIT_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["UNIVERSITY"],
+        "subTypes": [
+          "UNIVERSITY"
+        ],
         "limitAmount": 9000000,
         "hasLimit": true,
         "description": "대학/전문대 교육비 900만원 한도"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -640,14 +656,20 @@
       "ruleCode": "EDUCATION_EXPENSE_SCHOOL_LIMIT_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["PRESCHOOL", "SCHOOL", "ACADEMY"],
+        "subTypes": [
+          "PRESCHOOL",
+          "SCHOOL",
+          "ACADEMY"
+        ],
         "limitAmount": 3000000,
         "hasLimit": true,
         "description": "초중고/취학전아동 300만원 한도 (학원비 포함)"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -656,14 +678,18 @@
       "ruleCode": "EDUCATION_EXPENSE_UNIFORM_LIMIT_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["UNIFORM"],
+        "subTypes": [
+          "UNIFORM"
+        ],
         "limitAmount": 500000,
         "hasLimit": true,
         "description": "교복구입비 50만원 한도 (초중고 재학생)"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -673,12 +699,21 @@
       "ruleCategory": "FORMULA",
       "parameters": {
         "formula": "sum(perItemCredit)",
-        "subtypes": ["SELF_EDUCATION", "UNIVERSITY", "PRESCHOOL", "SCHOOL", "ACADEMY", "UNIFORM"],
+        "subtypes": [
+          "SELF_EDUCATION",
+          "UNIVERSITY",
+          "PRESCHOOL",
+          "SCHOOL",
+          "ACADEMY",
+          "UNIFORM"
+        ],
         "limitApplied": "per-item"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -687,11 +722,20 @@
       "ruleCode": "EDUCATION_EXPENSE_TRACE_2025",
       "ruleCategory": "FORMULA",
       "parameters": {
-        "traceFields": ["subType", "amount", "limitAmount", "cappedAmount", "creditRate", "taxCreditContribution"]
+        "traceFields": [
+          "subType",
+          "amount",
+          "limitAmount",
+          "cappedAmount",
+          "creditRate",
+          "taxCreditContribution"
+        ]
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-education-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-education-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -705,7 +749,9 @@
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -714,7 +760,10 @@
       "ruleCode": "MEDICAL_EXPENSE_GENERAL_LIMIT_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["MEDICAL_GENERAL", "MEDICAL_TOTAL"],
+        "subTypes": [
+          "MEDICAL_GENERAL",
+          "MEDICAL_TOTAL"
+        ],
         "thresholdRate": 0.03,
         "creditRate": 0.15,
         "limitAmount": 7000000,
@@ -722,7 +771,9 @@
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -731,14 +782,20 @@
       "ruleCode": "MEDICAL_EXPENSE_SPECIAL_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["MEDICAL_DISABILITY", "MEDICAL_SENIOR", "MEDICAL_SERIOUS_ILLNESS"],
+        "subTypes": [
+          "MEDICAL_DISABILITY",
+          "MEDICAL_SENIOR",
+          "MEDICAL_SERIOUS_ILLNESS"
+        ],
         "thresholdRate": 0.03,
         "creditRate": 0.15,
         "hasLimit": false
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -747,14 +804,18 @@
       "ruleCode": "MEDICAL_EXPENSE_INFERTILITY_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["MEDICAL_INFERTILITY"],
+        "subTypes": [
+          "MEDICAL_INFERTILITY"
+        ],
         "thresholdRate": 0.03,
-        "creditRate": 0.30,
+        "creditRate": 0.3,
         "hasLimit": false
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -763,14 +824,18 @@
       "ruleCode": "MEDICAL_EXPENSE_PREMATURE_RATE_2025",
       "ruleCategory": "LIMIT",
       "parameters": {
-        "subTypes": ["MEDICAL_PREMATURE"],
+        "subTypes": [
+          "MEDICAL_PREMATURE"
+        ],
         "thresholdRate": 0.03,
-        "creditRate": 0.20,
+        "creditRate": 0.2,
         "hasLimit": false
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -780,12 +845,22 @@
       "ruleCategory": "FORMULA",
       "parameters": {
         "formula": "sum(generalCredit, specialCredit, infertilityCredit, prematureCredit)",
-        "subtypes": ["MEDICAL_GENERAL", "MEDICAL_TOTAL", "MEDICAL_DISABILITY", "MEDICAL_SENIOR", "MEDICAL_SERIOUS_ILLNESS", "MEDICAL_INFERTILITY", "MEDICAL_PREMATURE"],
+        "subtypes": [
+          "MEDICAL_GENERAL",
+          "MEDICAL_TOTAL",
+          "MEDICAL_DISABILITY",
+          "MEDICAL_SENIOR",
+          "MEDICAL_SERIOUS_ILLNESS",
+          "MEDICAL_INFERTILITY",
+          "MEDICAL_PREMATURE"
+        ],
         "thresholdApplied": "per-item"
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -794,11 +869,21 @@
       "ruleCode": "MEDICAL_EXPENSE_TRACE_2025",
       "ruleCategory": "FORMULA",
       "parameters": {
-        "traceFields": ["subType", "amount", "threshold", "eligibleAmount", "creditRate", "limitAmount", "taxCreditContribution"]
+        "traceFields": [
+          "subType",
+          "amount",
+          "threshold",
+          "eligibleAmount",
+          "creditRate",
+          "limitAmount",
+          "taxCreditContribution"
+        ]
       },
       "effectiveFrom": "2025-01-01",
       "effectiveTo": "2025-12-31",
-      "sourceRefs": ["law-income-tax-act-59-4-medical-2025-01-01"],
+      "sourceRefs": [
+        "law-income-tax-act-59-4-medical-2025-01-01"
+      ],
       "confidence": "confirmed"
     },
     {
@@ -944,7 +1029,7 @@
       "parameters": {
         "pensionSavingsLimit": 6000000,
         "combinedPensionLimit": 9000000,
-        "isaAdditionalRate": 0.10,
+        "isaAdditionalRate": 0.1,
         "isaAdditionalMaxLimit": 3000000
       },
       "effectiveFrom": "2025-01-01",
@@ -1041,6 +1126,57 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-59-4-2-monthly-rent-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_LOAN",
+      "subType": "LIMIT",
+      "ruleCode": "HOUSING_LOAN_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "annualDeductionLimit": 4000000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-1-1-housing-loan-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_LOAN",
+      "subType": "RATE",
+      "ruleCode": "HOUSING_LOAN_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "deductionRate": 0.4
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-1-1-housing-loan-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "HOUSING_LOAN",
+      "subType": "TRACE",
+      "ruleCode": "HOUSING_LOAN_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "housingLoanBankRepaymentAmount",
+          "housingLoanIndividualRepaymentAmount",
+          "totalRepaymentAmount",
+          "deductionBeforeLimitAmount",
+          "housingLoanDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-1-1-housing-loan-2025-01-01"
       ],
       "confidence": "confirmed"
     }

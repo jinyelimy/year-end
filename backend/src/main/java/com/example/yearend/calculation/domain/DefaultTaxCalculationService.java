@@ -19,6 +19,8 @@ import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.PensionAccountRuleSnapshot;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator.MonthlyRentCalculation;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator.MonthlyRentRuleSnapshot;
+import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator.HousingLoanCalculation;
+import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator.HousingLoanRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String PENSION_ACCOUNT_RATE_CODE            = PensionAccountTaxCreditCalculator.RATE_RULE_CODE;
     private static final String MONTHLY_RENT_LIMIT_CODE              = MonthlyRentTaxCreditCalculator.LIMIT_RULE_CODE;
     private static final String MONTHLY_RENT_RATE_CODE               = MonthlyRentTaxCreditCalculator.RATE_RULE_CODE;
+    private static final String HOUSING_LOAN_LIMIT_CODE              = HousingLoanDeductionCalculator.LIMIT_RULE_CODE;
+    private static final String HOUSING_LOAN_RATE_CODE               = HousingLoanDeductionCalculator.RATE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -45,6 +49,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final ChildTaxCreditCalculator childTaxCreditCalculator;
     private final PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator;
     private final MonthlyRentTaxCreditCalculator monthlyRentTaxCreditCalculator;
+    private final HousingLoanDeductionCalculator housingLoanDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
@@ -58,6 +63,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         ChildTaxCreditCalculator childTaxCreditCalculator,
         PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator,
         MonthlyRentTaxCreditCalculator monthlyRentTaxCreditCalculator,
+        HousingLoanDeductionCalculator housingLoanDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
@@ -70,6 +76,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.childTaxCreditCalculator = childTaxCreditCalculator;
         this.pensionAccountTaxCreditCalculator = pensionAccountTaxCreditCalculator;
         this.monthlyRentTaxCreditCalculator = monthlyRentTaxCreditCalculator;
+        this.housingLoanDeductionCalculator = housingLoanDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -129,7 +136,15 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             creditCardRuleSnapshot
         );
         long creditCardDeductionAmount = creditCardCalculation.appliedAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount;
+        HousingLoanRuleSnapshot housingLoanRuleSnapshot =
+            housingLoanDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        HousingLoanCalculation housingLoanCalculation = housingLoanDeductionCalculator.calculate(
+            command.housingLoanBankRepaymentAmount(),
+            command.housingLoanIndividualRepaymentAmount(),
+            housingLoanRuleSnapshot
+        );
+        long housingLoanDeductionAmount = housingLoanCalculation.housingLoanDeductionAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -265,6 +280,13 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("creditCardBasicLimitAmount = " + creditCardCalculation.basicLimitAmount());
         trace.add("ruleCode " + creditCardRuleSnapshot.traceRule().ruleCode() + " applied");
         trace.add("creditCardDeductionAmount = " + creditCardDeductionAmount);
+        trace.add("ruleCode " + HOUSING_LOAN_LIMIT_CODE + " applied");
+        trace.add("housingLoanBankRepaymentAmount = " + housingLoanCalculation.housingLoanBankRepaymentAmount());
+        trace.add("housingLoanIndividualRepaymentAmount = " + housingLoanCalculation.housingLoanIndividualRepaymentAmount());
+        trace.add("housingLoanTotalRepaymentAmount = " + housingLoanCalculation.totalRepaymentAmount());
+        trace.add("ruleCode " + HOUSING_LOAN_RATE_CODE + " applied");
+        trace.add("housingLoanDeductionBeforeLimitAmount = " + housingLoanCalculation.deductionBeforeLimitAmount());
+        trace.add("housingLoanDeductionAmount = " + housingLoanDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -346,6 +368,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             pensionInsurancePremiumDeductionAmount,
             socialInsurancePremiumDeductionAmount,
             creditCardDeductionAmount,
+            housingLoanDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,

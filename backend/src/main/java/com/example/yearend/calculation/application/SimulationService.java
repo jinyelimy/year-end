@@ -11,6 +11,7 @@ import com.example.yearend.calculation.domain.DonationTaxCreditCalculator;
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator;
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
+import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -81,6 +82,7 @@ public class SimulationService {
         DonationSummary donationSummary = summarizeDonationItems(deductionItems);
         PensionAccountSummary pensionAccountSummary = summarizePensionAccountItems(deductionItems);
         long annualRentAmount = summarizeMonthlyRentItems(deductionItems);
+        HousingLoanRepaymentSummary housingLoanSummary = summarizeHousingLoanItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -106,6 +108,8 @@ public class SimulationService {
                 pensionAccountSummary.irpAmount(),
                 pensionAccountSummary.isaMaturityTransferAmount(),
                 annualRentAmount,
+                housingLoanSummary.bankRepaymentAmount(),
+                housingLoanSummary.individualRepaymentAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -153,6 +157,7 @@ public class SimulationService {
             outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.socialInsurancePremiumDeductionAmount(),
             outcome.creditCardDeductionAmount(),
+            outcome.housingLoanDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -336,6 +341,20 @@ public class SimulationService {
             .sum();
     }
 
+    private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
+        long bankRepayment = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
+                && "BANK".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        long individualRepayment = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
+                && "INDIVIDUAL".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        return new HousingLoanRepaymentSummary(bankRepayment, individualRepayment);
+    }
+
     private PensionAccountSummary summarizePensionAccountItems(List<DeductionItem> deductionItems) {
         long pensionSavings = sumPensionAccountSubType(deductionItems, "PENSION_SAVINGS");
         long irp = sumPensionAccountSubType(deductionItems, "IRP");
@@ -429,6 +448,7 @@ public class SimulationService {
             outcome.pensionInsurancePremiumDeductionAmount(),
             outcome.socialInsurancePremiumDeductionAmount(),
             outcome.creditCardDeductionAmount(),
+            outcome.housingLoanDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -489,7 +509,10 @@ public class SimulationService {
                 PensionAccountTaxCreditCalculator.TRACE_RULE_CODE,
                 MonthlyRentTaxCreditCalculator.LIMIT_RULE_CODE,
                 MonthlyRentTaxCreditCalculator.RATE_RULE_CODE,
-                MonthlyRentTaxCreditCalculator.TRACE_RULE_CODE
+                MonthlyRentTaxCreditCalculator.TRACE_RULE_CODE,
+                HousingLoanDeductionCalculator.LIMIT_RULE_CODE,
+                HousingLoanDeductionCalculator.RATE_RULE_CODE,
+                HousingLoanDeductionCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -561,6 +584,12 @@ public class SimulationService {
     ) {
     }
 
+    private record HousingLoanRepaymentSummary(
+        long bankRepaymentAmount,
+        long individualRepaymentAmount
+    ) {
+    }
+
     private record DonationSummary(
         long politicalAmount,
         long legalAmount,
@@ -591,6 +620,7 @@ public class SimulationService {
         long pensionInsurancePremiumDeductionAmount,
         long socialInsurancePremiumDeductionAmount,
         long creditCardDeductionAmount,
+        long housingLoanDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,
