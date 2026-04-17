@@ -9,6 +9,7 @@ import com.example.yearend.deduction.infrastructure.InsurancePremiumDeductionPol
 import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
 import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator;
+import com.example.yearend.calculation.domain.LongTermMortgageDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -600,6 +601,22 @@ class EarnedIncomeDeductionCalculatorTest {
                     HousingLoanDeductionCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"housingLoanBankRepaymentAmount\",\"housingLoanIndividualRepaymentAmount\",\"totalRepaymentAmount\",\"deductionBeforeLimitAmount\",\"housingLoanDeductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.LONG_TERM_MORTGAGE,
+                    LongTermMortgageDeductionCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"tiers\":[{\"repaymentType\":\"NON_INSTALLMENT_FIXED\",\"limitAmount\":20000000},{\"repaymentType\":\"NON_INSTALLMENT_OR_FIXED\",\"limitAmount\":18000000},{\"repaymentType\":\"OTHER_15Y\",\"limitAmount\":8000000},{\"repaymentType\":\"UNDER_15Y\",\"limitAmount\":6000000}]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.LONG_TERM_MORTGAGE,
+                    LongTermMortgageDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"longTermMortgageInterestAmount\",\"longTermMortgageRepaymentType\",\"longTermMortgageLimitAmount\",\"longTermMortgageDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 )

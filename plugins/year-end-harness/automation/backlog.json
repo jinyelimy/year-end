@@ -280,9 +280,12 @@
       ],
       "notes": "미구현. 무주택 세대주 요건. 금융기관/대주 차입 구분. 한도 400만원(소득공제).",
       "status": "done",
-      "doneAt": "2026-04-17T03:17:03Z",
+      "doneAt": "2026-04-17T03:17:42Z",
       "doneRuns": [
         ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest"
+      ],
+      "doneCommits": [
+        "7f71ee7"
       ]
     },
     {
@@ -296,7 +299,11 @@
         "4-3"
       ],
       "notes": "미구현. 1주택 세대주 요건. 상환 방식/고정금리 여부에 따라 한도 600~2000만원(소득공제).",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T03:24:53Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest"
+      ]
     },
     {
       "id": "housing-savings-deduction",
@@ -414,6 +421,18 @@
       "runDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
       "commitSha": null,
       "at": "2026-04-17T03:17:03Z"
+    },
+    {
+      "sliceId": "housing-loan-principal-interest",
+      "runDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
+      "commitSha": "7f71ee7",
+      "at": "2026-04-17T03:17:42Z"
+    },
+    {
+      "sliceId": "long-term-mortgage-interest",
+      "runDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
+      "commitSha": null,
+      "at": "2026-04-17T03:24:53Z"
     }
   ]
 }

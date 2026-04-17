@@ -14,5 +14,6 @@ public enum DeductionType {
     CHILD_TAX_CREDIT,
     PENSION_ACCOUNT,
     MONTHLY_RENT,
-    HOUSING_LOAN
+    HOUSING_LOAN,
+    LONG_TERM_MORTGAGE
 }

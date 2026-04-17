@@ -37,6 +37,7 @@ public final class SimulationDtos {
         long socialInsurancePremiumDeductionAmount,
         long creditCardDeductionAmount,
         long housingLoanDeductionAmount,
+        long longTermMortgageDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

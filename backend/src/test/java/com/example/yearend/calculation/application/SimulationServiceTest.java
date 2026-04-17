@@ -137,6 +137,7 @@ class SimulationServiceTest {
                 0L,  // socialInsurancePremiumDeductionAmount
                 0L,  // creditCardDeductionAmount
                 0L,  // housingLoanDeductionAmount
+                0L,  // longTermMortgageDeductionAmount
                 480_000L,
                 37_270_000L,
                 2_236_200L,

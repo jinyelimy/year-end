@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-housing-loan-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-monthly-rent-housing-loan-long-term-mortgage-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -66,6 +66,12 @@
         "sliceId": "housing-loan-principal-interest",
         "runDir": ".local/harness/2026-04-17/20260417-060000-housing-loan-principal-interest",
         "approvedAt": "2026-04-17T06:00:00Z",
+        "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "long-term-mortgage-interest",
+        "runDir": ".local/harness/2026-04-17/20260417-070000-long-term-mortgage-interest",
+        "approvedAt": "2026-04-17T07:00:00Z",
         "mergeMethod": "manual-append-to-2025.01"
       }
     ]
@@ -1177,6 +1183,58 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-87-1-1-housing-loan-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "LONG_TERM_MORTGAGE",
+      "subType": "LIMIT",
+      "ruleCode": "LONG_TERM_MORTGAGE_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "tiers": [
+          {
+            "repaymentType": "NON_INSTALLMENT_FIXED",
+            "limitAmount": 20000000
+          },
+          {
+            "repaymentType": "NON_INSTALLMENT_OR_FIXED",
+            "limitAmount": 18000000
+          },
+          {
+            "repaymentType": "OTHER_15Y",
+            "limitAmount": 8000000
+          },
+          {
+            "repaymentType": "UNDER_15Y",
+            "limitAmount": 6000000
+          }
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-2-long-term-mortgage-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "LONG_TERM_MORTGAGE",
+      "subType": "TRACE",
+      "ruleCode": "LONG_TERM_MORTGAGE_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "longTermMortgageInterestAmount",
+          "longTermMortgageRepaymentType",
+          "longTermMortgageLimitAmount",
+          "longTermMortgageDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-87-2-long-term-mortgage-2025-01-01"
       ],
       "confidence": "confirmed"
     }

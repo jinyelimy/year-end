@@ -15,6 +15,7 @@ public record TaxCalculationOutcome(
     long socialInsurancePremiumDeductionAmount,
     long creditCardDeductionAmount,
     long housingLoanDeductionAmount,
+    long longTermMortgageDeductionAmount,
     long totalDeductionAmount,
     long taxableIncomeAmount,
     long calculatedTaxAmount,
