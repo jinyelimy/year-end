@@ -1,5 +1,5 @@
 {
-  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-merged",
+  "ruleSetId": "2025@2025.01-personal-pension-social-creditcard-donation-insurance-medical-education-child-pension-account-merged",
   "taxYear": 2025,
   "filingYear": 2026,
   "ruleVersion": "2025.01",
@@ -934,6 +934,63 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-59-4-1-child-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "PENSION_ACCOUNT_LIMIT_2025",
+      "deductionType": "PENSION_ACCOUNT",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "pensionSavingsLimit": 6000000,
+        "combinedPensionLimit": 9000000,
+        "isaAdditionalRate": 0.10,
+        "isaAdditionalMaxLimit": 3000000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-4-pension-account-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "PENSION_ACCOUNT_RATE_2025",
+      "deductionType": "PENSION_ACCOUNT",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "grossSalaryThreshold": 55000000,
+        "highRate": 0.15,
+        "lowRate": 0.12
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-4-pension-account-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "ruleCode": "PENSION_ACCOUNT_TRACE_2025",
+      "deductionType": "PENSION_ACCOUNT",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "pensionSavingsAmount",
+          "irpAmount",
+          "applicablePensionSavingsAmount",
+          "applicableCombinedAmount",
+          "isaMaturityTransferAmount",
+          "isaAdditionalAmount",
+          "totalApplicableAmount",
+          "creditRate",
+          "pensionAccountTaxCreditAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-4-pension-account-2025-01-01"
       ],
       "confidence": "confirmed"
     }

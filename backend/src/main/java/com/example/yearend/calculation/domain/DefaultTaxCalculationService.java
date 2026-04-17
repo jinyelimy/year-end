@@ -15,6 +15,8 @@ import com.example.yearend.calculation.domain.DonationTaxCreditCalculator.Donati
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator.DonationRuleSnapshot;
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxCreditCalculation;
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator.ChildTaxCreditRuleSnapshot;
+import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.PensionAccountCalculation;
+import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator.PensionAccountRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
 
     private static final String CHILD_TAX_CREDIT_AMOUNT_CODE        = ChildTaxCreditCalculator.AMOUNT_RULE_CODE;
     private static final String CHILD_TAX_CREDIT_BIRTH_ADOPTION_CODE = ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE;
+    private static final String PENSION_ACCOUNT_LIMIT_CODE           = PensionAccountTaxCreditCalculator.LIMIT_RULE_CODE;
+    private static final String PENSION_ACCOUNT_RATE_CODE            = PensionAccountTaxCreditCalculator.RATE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -35,6 +39,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final CreditCardDeductionCalculator creditCardDeductionCalculator;
     private final DonationTaxCreditCalculator donationTaxCreditCalculator;
     private final ChildTaxCreditCalculator childTaxCreditCalculator;
+    private final PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
 
@@ -46,6 +51,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         CreditCardDeductionCalculator creditCardDeductionCalculator,
         DonationTaxCreditCalculator donationTaxCreditCalculator,
         ChildTaxCreditCalculator childTaxCreditCalculator,
+        PensionAccountTaxCreditCalculator pensionAccountTaxCreditCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
     ) {
@@ -56,6 +62,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.creditCardDeductionCalculator = creditCardDeductionCalculator;
         this.donationTaxCreditCalculator = donationTaxCreditCalculator;
         this.childTaxCreditCalculator = childTaxCreditCalculator;
+        this.pensionAccountTaxCreditCalculator = pensionAccountTaxCreditCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
     }
@@ -151,11 +158,21 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             childTaxCreditRuleSnapshot
         );
         long childTaxCreditAmount = childTaxCreditCalculation.totalCreditAmount();
+        PensionAccountRuleSnapshot pensionAccountRuleSnapshot =
+            pensionAccountTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        PensionAccountCalculation pensionAccountCalculation = pensionAccountTaxCreditCalculator.calculate(
+            command.pensionSavingsAmount(),
+            command.irpAmount(),
+            command.isaMaturityTransferAmount(),
+            command.totalGrossSalaryAmount(),
+            pensionAccountRuleSnapshot
+        );
+        long pensionAccountTaxCreditAmount = pensionAccountCalculation.totalCreditAmount();
         long otherTaxCreditAmount = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .mapToLong(DeductionDecision::taxCreditContribution)
             .sum();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + otherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + otherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -281,6 +298,17 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("birthAdoptionChildCount = " + childTaxCreditCalculation.birthAdoptionChildCount());
         trace.add("birthAdoptionCreditAmount = " + childTaxCreditCalculation.birthAdoptionCreditAmount());
         trace.add("childTaxCreditAmount = " + childTaxCreditAmount);
+        trace.add("ruleCode " + PENSION_ACCOUNT_LIMIT_CODE + " applied");
+        trace.add("pensionSavingsAmount = " + pensionAccountCalculation.pensionSavingsAmount());
+        trace.add("irpAmount = " + pensionAccountCalculation.irpAmount());
+        trace.add("applicablePensionSavingsAmount = " + pensionAccountCalculation.applicablePensionSavingsAmount());
+        trace.add("applicableCombinedAmount = " + pensionAccountCalculation.applicableCombinedAmount());
+        trace.add("ruleCode " + PENSION_ACCOUNT_RATE_CODE + " applied");
+        trace.add("isaMaturityTransferAmount = " + pensionAccountCalculation.isaMaturityTransferAmount());
+        trace.add("isaAdditionalAmount = " + pensionAccountCalculation.isaAdditionalAmount());
+        trace.add("totalApplicableAmount = " + pensionAccountCalculation.totalApplicableAmount());
+        trace.add("pensionAccountCreditRate = " + pensionAccountCalculation.creditRate());
+        trace.add("pensionAccountTaxCreditAmount = " + pensionAccountTaxCreditAmount);
         trace.add("otherTaxCreditAmount = " + otherTaxCreditAmount);
         trace.add("taxCreditAmount = " + taxCreditAmount);
         trace.add("expectedRefundAmount = " + expectedRefundAmount);
@@ -303,6 +331,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             earnedIncomeTaxCreditAmount,
             donationTaxCreditAmount,
             childTaxCreditAmount,
+            pensionAccountTaxCreditAmount,
             otherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

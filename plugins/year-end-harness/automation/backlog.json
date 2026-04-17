@@ -217,7 +217,14 @@
         "4-3"
       ],
       "notes": "미구현. 부양가족 정보와 강하게 연결. 8세 이상 자녀 인원수 기반 세액공제.",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T02:34:34Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-030000-child-tax-credit"
+      ],
+      "doneCommits": [
+        "a1bb34a"
+      ]
     },
     {
       "id": "pension-account-tax-credit",
@@ -230,7 +237,14 @@
         "4-3"
       ],
       "notes": "미구현. 연금저축, 퇴직연금(IRP), ISA 만기 전환 포함. 총급여별 공제율 12%/15% 분기.",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-17T02:52:51Z",
+      "doneRuns": [
+        ".local/harness/2026-04-17/20260417-040000-pension-account-tax-credit"
+      ],
+      "doneCommits": [
+        "TBD"
+      ]
     },
     {
       "id": "monthly-rent-tax-credit",
@@ -351,6 +365,18 @@
       "runDir": ".local/harness/2026-04-17/20260417-020000-education-ext",
       "commitSha": "e20f208",
       "at": "2026-04-17T02:12:17Z"
+    },
+    {
+      "sliceId": "child-tax-credit",
+      "runDir": ".local/harness/2026-04-17/20260417-030000-child-tax-credit",
+      "commitSha": "a1bb34a",
+      "at": "2026-04-17T02:34:34Z"
+    },
+    {
+      "sliceId": "pension-account-tax-credit",
+      "runDir": ".local/harness/2026-04-17/20260417-040000-pension-account-tax-credit",
+      "commitSha": "TBD",
+      "at": "2026-04-17T02:52:51Z"
     }
   ]
 }

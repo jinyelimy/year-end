@@ -6,6 +6,7 @@ import com.example.yearend.deduction.domain.DeductionType;
 import com.example.yearend.deduction.domain.RuleCategory;
 import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.deduction.infrastructure.InsurancePremiumDeductionPolicy;
+import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -525,6 +526,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     ChildTaxCreditCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"eligibleChildCount\",\"basicChildCreditAmount\",\"birthAdoptionChildCount\",\"birthAdoptionCreditAmount\",\"childTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_ACCOUNT,
+                    PensionAccountTaxCreditCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"pensionSavingsLimit\":6000000,\"combinedPensionLimit\":9000000,\"isaAdditionalRate\":0.10,\"isaAdditionalMaxLimit\":3000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_ACCOUNT,
+                    PensionAccountTaxCreditCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"grossSalaryThreshold\":55000000,\"highRate\":0.15,\"lowRate\":0.12}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.PENSION_ACCOUNT,
+                    PensionAccountTaxCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"pensionSavingsAmount\",\"irpAmount\",\"applicablePensionSavingsAmount\",\"applicableCombinedAmount\",\"isaMaturityTransferAmount\",\"isaAdditionalAmount\",\"totalApplicableAmount\",\"creditRate\",\"pensionAccountTaxCreditAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 )

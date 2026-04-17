@@ -142,6 +142,7 @@ class SimulationServiceTest {
                 660_000L,
                 0L,  // donationTaxCreditAmount
                 0L,  // childTaxCreditAmount
+                0L,  // pensionAccountTaxCreditAmount
                 120_000L,
                 780_000L,
                 1_456_200L,

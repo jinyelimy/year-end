@@ -9,6 +9,7 @@ import com.example.yearend.calculation.domain.SocialInsurancePremiumCalculator;
 import com.example.yearend.calculation.domain.CreditCardDeductionCalculator;
 import com.example.yearend.calculation.domain.DonationTaxCreditCalculator;
 import com.example.yearend.calculation.domain.ChildTaxCreditCalculator;
+import com.example.yearend.calculation.domain.PensionAccountTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -77,6 +78,7 @@ public class SimulationService {
         long employmentInsurancePremiumAmount = summarizeEmploymentInsurancePremiums(context.incomeItems());
         CreditCardUsageSummary creditCardSummary = summarizeCreditCardItems(deductionItems);
         DonationSummary donationSummary = summarizeDonationItems(deductionItems);
+        PensionAccountSummary pensionAccountSummary = summarizePensionAccountItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -98,6 +100,9 @@ public class SimulationService {
                 donationSummary.employeeStockAmount(),
                 donationSummary.designatedAmount(),
                 donationSummary.designatedReligiousAmount(),
+                pensionAccountSummary.pensionSavingsAmount(),
+                pensionAccountSummary.irpAmount(),
+                pensionAccountSummary.isaMaturityTransferAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -151,6 +156,7 @@ public class SimulationService {
             outcome.earnedIncomeTaxCreditAmount(),
             outcome.donationTaxCreditAmount(),
             outcome.childTaxCreditAmount(),
+            outcome.pensionAccountTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -319,6 +325,21 @@ public class SimulationService {
         return new DonationSummary(political, legal, employeeStock, designated, designatedReligious);
     }
 
+    private PensionAccountSummary summarizePensionAccountItems(List<DeductionItem> deductionItems) {
+        long pensionSavings = sumPensionAccountSubType(deductionItems, "PENSION_SAVINGS");
+        long irp = sumPensionAccountSubType(deductionItems, "IRP");
+        long isaMaturity = sumPensionAccountSubType(deductionItems, "ISA_MATURITY_TRANSFER");
+        return new PensionAccountSummary(pensionSavings, irp, isaMaturity);
+    }
+
+    private long sumPensionAccountSubType(List<DeductionItem> deductionItems, String subType) {
+        return deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.PENSION_ACCOUNT
+                && subType.equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+    }
+
     private long sumDonationSubType(List<DeductionItem> deductionItems, String subType) {
         return deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.DONATION
@@ -403,6 +424,7 @@ public class SimulationService {
             outcome.earnedIncomeTaxCreditAmount(),
             outcome.donationTaxCreditAmount(),
             outcome.childTaxCreditAmount(),
+            outcome.pensionAccountTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -449,7 +471,10 @@ public class SimulationService {
                 DonationTaxCreditCalculator.TRACE_RULE_CODE,
                 ChildTaxCreditCalculator.AMOUNT_RULE_CODE,
                 ChildTaxCreditCalculator.BIRTH_ADOPTION_RULE_CODE,
-                ChildTaxCreditCalculator.TRACE_RULE_CODE
+                ChildTaxCreditCalculator.TRACE_RULE_CODE,
+                PensionAccountTaxCreditCalculator.LIMIT_RULE_CODE,
+                PensionAccountTaxCreditCalculator.RATE_RULE_CODE,
+                PensionAccountTaxCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -514,6 +539,13 @@ public class SimulationService {
     ) {
     }
 
+    private record PensionAccountSummary(
+        long pensionSavingsAmount,
+        long irpAmount,
+        long isaMaturityTransferAmount
+    ) {
+    }
+
     private record DonationSummary(
         long politicalAmount,
         long legalAmount,
@@ -550,6 +582,7 @@ public class SimulationService {
         long earnedIncomeTaxCreditAmount,
         long donationTaxCreditAmount,
         long childTaxCreditAmount,
+        long pensionAccountTaxCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

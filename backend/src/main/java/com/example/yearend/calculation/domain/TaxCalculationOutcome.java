@@ -20,6 +20,7 @@ public record TaxCalculationOutcome(
     long earnedIncomeTaxCreditAmount,
     long donationTaxCreditAmount,
     long childTaxCreditAmount,
+    long pensionAccountTaxCreditAmount,
     long otherTaxCreditAmount,
     long taxCreditAmount,
     long finalTaxAmount,
