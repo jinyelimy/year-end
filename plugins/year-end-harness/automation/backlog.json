@@ -392,8 +392,12 @@
         "4-2",
         "4-3"
       ],
-      "notes": "미구현. 노란우산공제. 대상자는 소기업·소상공인 대표자 중심으로 제한적이나 신고서 항목에 포함. 소득금액별 한도 200~500만원.",
-      "status": "pending"
+      "notes": "노란우산공제. 소득금액별 한도 200~500만원 (tier by businessIncome). 공제율 100%.",
+      "status": "done",
+      "doneAt": "2026-04-20T13:05:00+09:00",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid"
+      ]
     },
     {
       "id": "venture-investment",

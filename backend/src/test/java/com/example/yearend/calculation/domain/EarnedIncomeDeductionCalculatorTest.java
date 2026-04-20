@@ -13,6 +13,7 @@ import com.example.yearend.calculation.domain.LongTermMortgageDeductionCalculato
 import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator;
 import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator;
+import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -692,6 +693,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     YouthLongTermCollectiveInvestmentDeductionCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"youthLongTermCollectiveInvestmentContributionAmount\",\"youthLongTermCollectiveInvestmentDeductionBeforeLimitAmount\",\"youthLongTermCollectiveInvestmentDeductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_MUTUAL_AID,
+                    SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"tiers\":[{\"maxBusinessIncomeAmount\":40000000,\"annualDeductionLimit\":5000000},{\"maxBusinessIncomeAmount\":100000000,\"annualDeductionLimit\":3000000},{\"maxBusinessIncomeAmount\":null,\"annualDeductionLimit\":2000000}],\"eligibleRole\":\"SME_REPRESENTATIVE\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_MUTUAL_AID,
+                    SmeMutualAidDeductionCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"deductionRate\":1.00}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_MUTUAL_AID,
+                    SmeMutualAidDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"smeMutualAidContributionAmount\",\"smeMutualAidIncomeBasisAmount\",\"smeMutualAidAppliedTierLimit\",\"smeMutualAidDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 ),

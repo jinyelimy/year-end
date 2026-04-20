@@ -97,6 +97,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
         "approvedAt": "2026-04-20T12:50:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "sme-mutual-aid",
+        "runDir": ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
+        "approvedAt": "2026-04-20T13:10:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1476,6 +1482,61 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-stra-91-20-youth-long-term-collective-investment-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_MUTUAL_AID",
+      "subType": "RATE",
+      "ruleCode": "SME_MUTUAL_AID_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "deductionRate": 1.00
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-86-3-sme-mutual-aid-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_MUTUAL_AID",
+      "subType": "TIERED_LIMIT",
+      "ruleCode": "SME_MUTUAL_AID_TIERED_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "tiers": [
+          {"maxBusinessIncomeAmount": 40000000, "annualDeductionLimit": 5000000},
+          {"maxBusinessIncomeAmount": 100000000, "annualDeductionLimit": 3000000},
+          {"maxBusinessIncomeAmount": null, "annualDeductionLimit": 2000000}
+        ],
+        "eligibleRole": "SME_REPRESENTATIVE"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-86-3-sme-mutual-aid-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_MUTUAL_AID",
+      "subType": "TRACE",
+      "ruleCode": "SME_MUTUAL_AID_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "smeMutualAidContributionAmount",
+          "smeMutualAidIncomeBasisAmount",
+          "smeMutualAidAppliedTierLimit",
+          "smeMutualAidDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-86-3-sme-mutual-aid-2025-01-01"
       ],
       "confidence": "confirmed"
     }

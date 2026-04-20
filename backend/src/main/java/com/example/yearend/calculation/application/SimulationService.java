@@ -16,6 +16,7 @@ import com.example.yearend.calculation.domain.LongTermMortgageDeductionCalculato
 import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator;
 import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator;
+import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -91,6 +92,7 @@ public class SimulationService {
         HousingSavingsSummary housingSavingsSummary = summarizeHousingSavingsItems(deductionItems);
         LongTermCollectiveInvestmentSummary longTermCollectiveInvestmentSummary = summarizeLongTermCollectiveInvestmentItems(deductionItems);
         YouthLongTermCollectiveInvestmentSummary youthLongTermCollectiveInvestmentSummary = summarizeYouthLongTermCollectiveInvestmentItems(deductionItems);
+        SmeMutualAidSummary smeMutualAidSummary = summarizeSmeMutualAidItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -123,6 +125,8 @@ public class SimulationService {
                 housingSavingsSummary.contributionAmount(),
                 longTermCollectiveInvestmentSummary.contributionAmount(),
                 youthLongTermCollectiveInvestmentSummary.contributionAmount(),
+                smeMutualAidSummary.contributionAmount(),
+                smeMutualAidSummary.incomeBasisAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -175,6 +179,7 @@ public class SimulationService {
             outcome.housingSavingsDeductionAmount(),
             outcome.longTermCollectiveInvestmentDeductionAmount(),
             outcome.youthLongTermCollectiveInvestmentDeductionAmount(),
+            outcome.smeMutualAidDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -396,6 +401,20 @@ public class SimulationService {
         return new YouthLongTermCollectiveInvestmentSummary(contributionAmount);
     }
 
+    private SmeMutualAidSummary summarizeSmeMutualAidItems(List<DeductionItem> deductionItems) {
+        long contributionAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_MUTUAL_AID
+                && "CONTRIBUTION".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        long incomeBasisAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_MUTUAL_AID
+                && "INCOME_BASIS".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        return new SmeMutualAidSummary(contributionAmount, incomeBasisAmount);
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -508,6 +527,7 @@ public class SimulationService {
             outcome.housingSavingsDeductionAmount(),
             outcome.longTermCollectiveInvestmentDeductionAmount(),
             outcome.youthLongTermCollectiveInvestmentDeductionAmount(),
+            outcome.smeMutualAidDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -582,7 +602,10 @@ public class SimulationService {
                 LongTermCollectiveInvestmentDeductionCalculator.TRACE_RULE_CODE,
                 YouthLongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE,
                 YouthLongTermCollectiveInvestmentDeductionCalculator.RATE_RULE_CODE,
-                YouthLongTermCollectiveInvestmentDeductionCalculator.TRACE_RULE_CODE
+                YouthLongTermCollectiveInvestmentDeductionCalculator.TRACE_RULE_CODE,
+                SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE,
+                SmeMutualAidDeductionCalculator.RATE_RULE_CODE,
+                SmeMutualAidDeductionCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -675,6 +698,12 @@ public class SimulationService {
     ) {
     }
 
+    private record SmeMutualAidSummary(
+        long contributionAmount,
+        long incomeBasisAmount
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -716,6 +745,7 @@ public class SimulationService {
         long housingSavingsDeductionAmount,
         long longTermCollectiveInvestmentDeductionAmount,
         long youthLongTermCollectiveInvestmentDeductionAmount,
+        long smeMutualAidDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

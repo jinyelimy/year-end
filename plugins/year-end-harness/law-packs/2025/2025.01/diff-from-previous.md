@@ -58,6 +58,9 @@
 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_RATE_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | deductionRate=0.40 | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | annualDeductionLimit=2400000; maxAnnualContributionAmount=6000000; maxGrossSalaryAtEnrollmentAmount=50000000; youthMinAge=19; youthMaxAge=34; militaryServiceDeductionMaxYears=6; contractEnrollmentDeadline=2025-12-31; minimumContractYears=3; maximumContractYears=5 | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_TRACE_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | traceFields=[youthLongTermCollectiveInvestmentContributionAmount, youthLongTermCollectiveInvestmentDeductionBeforeLimitAmount, youthLongTermCollectiveInvestmentDeductionAmount] | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
+| SME_MUTUAL_AID_RATE_2025 | SME_MUTUAL_AID | deductionRate=1.00 (납입액 100% 공제) | law-stra-86-3-sme-mutual-aid-2025-01-01 |
+| SME_MUTUAL_AID_TIERED_LIMIT_2025 | SME_MUTUAL_AID | tiers=[{max:40M,limit:5M},{max:100M,limit:3M},{max:null,limit:2M}]; eligibleRole=SME_REPRESENTATIVE | law-stra-86-3-sme-mutual-aid-2025-01-01 |
+| SME_MUTUAL_AID_TRACE_2025 | SME_MUTUAL_AID | traceFields=[smeMutualAidContributionAmount, smeMutualAidIncomeBasisAmount, smeMutualAidAppliedTierLimit, smeMutualAidDeductionAmount] | law-stra-86-3-sme-mutual-aid-2025-01-01 |
 
 ## Changed Rules
 

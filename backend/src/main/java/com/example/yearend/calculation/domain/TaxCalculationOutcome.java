@@ -19,6 +19,7 @@ public record TaxCalculationOutcome(
     long housingSavingsDeductionAmount,
     long longTermCollectiveInvestmentDeductionAmount,
     long youthLongTermCollectiveInvestmentDeductionAmount,
+    long smeMutualAidDeductionAmount,
     long totalDeductionAmount,
     long taxableIncomeAmount,
     long calculatedTaxAmount,

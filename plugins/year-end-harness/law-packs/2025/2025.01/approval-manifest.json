@@ -1,6 +1,6 @@
 {
-  "approvedAt": "2026-04-17T03:35:03Z",
-  "sourceRunDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
+  "approvedAt": "2026-04-20T13:10:00+09:00",
+  "sourceRunDir": ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
@@ -143,6 +143,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["youth-long-term-collective-investment"]
+    },
+    {
+      "approvedAt": "2026-04-20T13:10:00+09:00",
+      "sourceRunDir": ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
+      "ruleSetId": "2025@2025.01-sme-mutual-aid-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["sme-mutual-aid"]
     }
   ]
 }

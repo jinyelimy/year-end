@@ -94,6 +94,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-article",
       "notes": "조세특례제한법 제91조의20. 가입 당시 나이 19세 이상 34세 이하(병역이행기간 최대 6년 차감) 청년, 가입 당시 총급여 5천만원 이하 근로자, 2025-12-31까지 가입, 계약기간 3년 이상 5년 이하. 납입액의 40%를 근로소득금액에서 공제, 연 240만원 한도 (=600만원 납입한도 × 40%)."
+    },
+    {
+      "sourceId": "law-stra-86-3-sme-mutual-aid-2025-01-01",
+      "sourceName": "조세특례제한법 제86조의3 (소기업·소상공인 공제부금에 대한 소득공제, 노란우산공제)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0086_03&lsiSeq=263042&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2024-12-31",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "조세특례제한법 제86조의3. 소기업·소상공인 대표자의 공제부금(노란우산공제) 납입액 전액(100%)을 사업소득금액(근로소득자 대표의 경우 근로소득금액) 계산 시 소득공제. 사업소득(또는 근로소득) 4천만원 이하 연 500만원, 4천만원 초과 1억원 이하 연 300만원, 1억원 초과 연 200만원 한도."
     }
   ],
   "previousRuns": [
@@ -111,6 +122,7 @@
     ".local/harness/2026-04-16/20260416-162250-donation",
     ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
     ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
-    ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment"
+    ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
+    ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid"
   ]
 }

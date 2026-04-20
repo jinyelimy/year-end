@@ -29,6 +29,8 @@ import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeduct
 import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeductionCalculator.LongTermCollectiveInvestmentRuleSnapshot;
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator.YouthLongTermCollectiveInvestmentCalculation;
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator.YouthLongTermCollectiveInvestmentRuleSnapshot;
+import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.SmeMutualAidCalculation;
+import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.SmeMutualAidRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -57,6 +59,9 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String LONG_TERM_COLLECTIVE_INVESTMENT_RATE_CODE  = LongTermCollectiveInvestmentDeductionCalculator.RATE_RULE_CODE;
     private static final String YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_CODE = YouthLongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE;
     private static final String YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_RATE_CODE  = YouthLongTermCollectiveInvestmentDeductionCalculator.RATE_RULE_CODE;
+    private static final String SME_MUTUAL_AID_TIERED_LIMIT_CODE = SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE;
+    private static final String SME_MUTUAL_AID_RATE_CODE         = SmeMutualAidDeductionCalculator.RATE_RULE_CODE;
+    private static final String SME_MUTUAL_AID_TRACE_CODE        = SmeMutualAidDeductionCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -72,6 +77,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final HousingSavingsDeductionCalculator housingSavingsDeductionCalculator;
     private final LongTermCollectiveInvestmentDeductionCalculator longTermCollectiveInvestmentDeductionCalculator;
     private final YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator;
+    private final SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
@@ -91,6 +97,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         HousingSavingsDeductionCalculator housingSavingsDeductionCalculator,
         LongTermCollectiveInvestmentDeductionCalculator longTermCollectiveInvestmentDeductionCalculator,
         YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator,
+        SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
         StandardTaxCreditCalculator standardTaxCreditCalculator
@@ -109,6 +116,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.housingSavingsDeductionCalculator = housingSavingsDeductionCalculator;
         this.longTermCollectiveInvestmentDeductionCalculator = longTermCollectiveInvestmentDeductionCalculator;
         this.youthLongTermCollectiveInvestmentDeductionCalculator = youthLongTermCollectiveInvestmentDeductionCalculator;
+        this.smeMutualAidDeductionCalculator = smeMutualAidDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
@@ -210,7 +218,15 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             );
         long youthLongTermCollectiveInvestmentDeductionAmount =
             youthLongTermCollectiveInvestmentCalculation.youthLongTermCollectiveInvestmentDeductionAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount;
+        SmeMutualAidRuleSnapshot smeMutualAidRuleSnapshot =
+            smeMutualAidDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        SmeMutualAidCalculation smeMutualAidCalculation = smeMutualAidDeductionCalculator.calculate(
+            command.smeMutualAidContributionAmount(),
+            command.smeMutualAidIncomeBasisAmount(),
+            smeMutualAidRuleSnapshot
+        );
+        long smeMutualAidDeductionAmount = smeMutualAidCalculation.smeMutualAidDeductionAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount + smeMutualAidDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -393,6 +409,13 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("ruleCode " + YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_RATE_CODE + " applied");
         trace.add("youthLongTermCollectiveInvestmentDeductionBeforeLimitAmount = " + youthLongTermCollectiveInvestmentCalculation.deductionBeforeLimitAmount());
         trace.add("youthLongTermCollectiveInvestmentDeductionAmount = " + youthLongTermCollectiveInvestmentDeductionAmount);
+        trace.add("ruleCode " + SME_MUTUAL_AID_RATE_CODE + " applied");
+        trace.add("smeMutualAidContributionAmount = " + smeMutualAidCalculation.smeMutualAidContributionAmount());
+        trace.add("smeMutualAidIncomeBasisAmount = " + smeMutualAidCalculation.smeMutualAidIncomeBasisAmount());
+        trace.add("ruleCode " + SME_MUTUAL_AID_TIERED_LIMIT_CODE + " applied");
+        trace.add("smeMutualAidAppliedTierLimit = " + smeMutualAidCalculation.smeMutualAidAppliedTierLimit());
+        trace.add("ruleCode " + SME_MUTUAL_AID_TRACE_CODE + " applied");
+        trace.add("smeMutualAidDeductionAmount = " + smeMutualAidDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -485,6 +508,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             housingSavingsDeductionAmount,
             longTermCollectiveInvestmentDeductionAmount,
             youthLongTermCollectiveInvestmentDeductionAmount,
+            smeMutualAidDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,
