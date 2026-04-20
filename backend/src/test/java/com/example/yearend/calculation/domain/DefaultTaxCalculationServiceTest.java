@@ -29,7 +29,8 @@ class DefaultTaxCalculationServiceTest {
             new LongTermMortgageDeductionCalculator(new ObjectMapper()),
             new HousingSavingsDeductionCalculator(new ObjectMapper()),
             new IncomeTaxRateTableCalculator(new ObjectMapper()),
-            new EarnedIncomeTaxCreditCalculator(new ObjectMapper())
+            new EarnedIncomeTaxCreditCalculator(new ObjectMapper()),
+            new StandardTaxCreditCalculator(new ObjectMapper())
         );
     }
 
@@ -75,9 +76,11 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.calculatedTaxAmount()).isEqualTo(120_000L);
         assertThat(outcome.earnedIncomeTaxCreditAmount()).isEqualTo(66_000L);
         assertThat(outcome.otherTaxCreditAmount()).isZero();
-        assertThat(outcome.taxCreditAmount()).isEqualTo(66_000L);
-        assertThat(outcome.finalTaxAmount()).isEqualTo(54_000L);
-        assertThat(outcome.expectedRefundAmount()).isEqualTo(946_000L);
+        assertThat(outcome.taxCreditAmount()).isEqualTo(196_000L);
+        assertThat(outcome.finalTaxAmount()).isZero();
+        assertThat(outcome.expectedRefundAmount()).isEqualTo(1_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("standardTaxCreditChosenVariant = STANDARD"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("standardTaxCreditAppliedAmount = 130000"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("EARNED_INCOME_DEDUCTION_BRACKETS"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("EARNED_INCOME_TAX_CREDIT_BASE_FORMULA_2025"));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("earnedIncomeTaxCreditAmount = 66000"));

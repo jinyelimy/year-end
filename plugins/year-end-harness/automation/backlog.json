@@ -1,8 +1,8 @@
 {
   "meta": {
     "schemaVersion": 1,
-    "updatedAt": "2026-04-17",
-    "scope": "P0 remaining + P1 + P2",
+    "updatedAt": "2026-04-20",
+    "scope": "P0 remaining + P1 + P2 + P3 공제",
     "timezone": "Asia/Seoul"
   },
   "slices": [
@@ -324,6 +324,114 @@
       "doneRuns": [
         ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction"
       ]
+    },
+    {
+      "id": "standard-tax-credit",
+      "name": "표준세액공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 특별세액공제(보험료/의료비/교육비/기부금)와의 선택/대체 관계. 근로자 13만원 정액. 공제 항목 선택 로직 필요.",
+      "status": "done",
+      "doneAt": "2026-04-20T02:54:03Z",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-110743-standard-tax-credit"
+      ]
+    },
+    {
+      "id": "long-term-collective-investment",
+      "name": "장기집합투자증권저축 소득공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 금융기관 자료 기반. 납입액 40% 소득공제, 한도 240만원. 가입기간/총급여 요건.",
+      "status": "pending"
+    },
+    {
+      "id": "youth-long-term-collective-investment",
+      "name": "청년형 장기집합투자증권저축 소득공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 만 19~34세, 총급여 5천만원 이하. 납입액 40% 소득공제, 한도 240만원. 나이/소득 요건 검증 필요.",
+      "status": "pending"
+    },
+    {
+      "id": "sme-mutual-aid",
+      "name": "소기업·소상공인 공제부금 소득공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 노란우산공제. 대상자는 소기업·소상공인 대표자 중심으로 제한적이나 신고서 항목에 포함. 소득금액별 한도 200~500만원.",
+      "status": "pending"
+    },
+    {
+      "id": "venture-investment",
+      "name": "투자조합 출자 등 소득공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 벤처투자조합/중소기업창업투자조합/벤처기업 직접투자. 투자 유형별 공제율(10/30/50/100%)과 한도 분리 필요.",
+      "status": "pending"
+    },
+    {
+      "id": "employee-stock-ownership",
+      "name": "우리사주조합 출연금 소득공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 우리사주조합원 출연금. 한도 400만원(벤처기업 1500만원). 회사/조합 자료 연계 필요.",
+      "status": "pending"
+    },
+    {
+      "id": "foreign-tax-credit",
+      "name": "외국납부세액공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 국외 원천소득에 대한 외국납부세액. 공제 한도는 국외원천소득에 비례. 증빙과 환율 기준 별도 검토 필요. 특수 케이스.",
+      "status": "pending"
+    },
+    {
+      "id": "tax-payer-association-credit",
+      "name": "납세조합공제",
+      "priority": "P3",
+      "category": "공제 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "미구현. 납세조합 가입 근로자에 대한 세액공제. 산출세액의 5%. 특수 케이스, 실무 빈도 낮음.",
+      "status": "pending"
     }
   ],
   "runHistory": [
@@ -452,6 +560,12 @@
       "runDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
       "commitSha": null,
       "at": "2026-04-17T03:35:03Z"
+    },
+    {
+      "sliceId": "standard-tax-credit",
+      "runDir": ".local/harness/2026-04-20/20260420-110743-standard-tax-credit",
+      "commitSha": null,
+      "at": "2026-04-20T02:54:03Z"
     }
   ]
 }

@@ -27,6 +27,9 @@ import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator.
 import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator.HousingSavingsRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
+import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
+import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditRuleSnapshot;
+import com.example.yearend.deduction.domain.DeductionType;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,6 +64,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final HousingSavingsDeductionCalculator housingSavingsDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
+    private final StandardTaxCreditCalculator standardTaxCreditCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
@@ -76,7 +80,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         LongTermMortgageDeductionCalculator longTermMortgageDeductionCalculator,
         HousingSavingsDeductionCalculator housingSavingsDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
-        EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator
+        EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
+        StandardTaxCreditCalculator standardTaxCreditCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
         this.personalDeductionCalculator = personalDeductionCalculator;
@@ -92,6 +97,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.housingSavingsDeductionCalculator = housingSavingsDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
+        this.standardTaxCreditCalculator = standardTaxCreditCalculator;
     }
 
     @Override
@@ -226,11 +232,31 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             monthlyRentRuleSnapshot
         );
         long monthlyRentTaxCreditAmount = monthlyRentCalculation.totalCreditAmount();
-        long otherTaxCreditAmount = command.deductionDecisions().stream()
+        long specialTaxCreditFromDecisions = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
+            .filter(d -> d.deductionType() == DeductionType.INSURANCE
+                || d.deductionType() == DeductionType.MEDICAL_EXPENSE
+                || d.deductionType() == DeductionType.EDUCATION_EXPENSE)
             .mapToLong(DeductionDecision::taxCreditContribution)
             .sum();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + donationTaxCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + otherTaxCreditAmount;
+        long nonSpecialOtherTaxCreditAmount = command.deductionDecisions().stream()
+            .filter(DeductionDecision::eligible)
+            .filter(d -> d.deductionType() != DeductionType.INSURANCE
+                && d.deductionType() != DeductionType.MEDICAL_EXPENSE
+                && d.deductionType() != DeductionType.EDUCATION_EXPENSE)
+            .mapToLong(DeductionDecision::taxCreditContribution)
+            .sum();
+        long specialTaxCreditGrandTotal = specialTaxCreditFromDecisions + donationTaxCreditAmount;
+        boolean hasEarnedIncome = command.totalGrossSalaryAmount() > 0L;
+        StandardTaxCreditRuleSnapshot standardTaxCreditRuleSnapshot =
+            standardTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        StandardTaxCreditCalculation standardTaxCreditCalculation = standardTaxCreditCalculator.calculate(
+            specialTaxCreditGrandTotal,
+            hasEarnedIncome,
+            standardTaxCreditRuleSnapshot
+        );
+        long chosenSpecialOrStandardCreditAmount = standardTaxCreditCalculation.appliedAmount();
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + nonSpecialOtherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -390,7 +416,13 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("ruleCode " + MONTHLY_RENT_RATE_CODE + " applied");
         trace.add("monthlyRentCreditRate = " + monthlyRentCalculation.creditRate());
         trace.add("monthlyRentTaxCreditAmount = " + monthlyRentTaxCreditAmount);
-        trace.add("otherTaxCreditAmount = " + otherTaxCreditAmount);
+        trace.add("ruleCode " + StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE + " applied");
+        trace.add("ruleCode " + StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE + " applied");
+        trace.add("specialTaxCreditTotal = " + standardTaxCreditCalculation.specialTaxCreditTotal());
+        trace.add("standardFlatAmount = " + standardTaxCreditCalculation.standardFlatAmount());
+        trace.add("standardTaxCreditChosenVariant = " + standardTaxCreditCalculation.chosenVariant());
+        trace.add("standardTaxCreditAppliedAmount = " + standardTaxCreditCalculation.appliedAmount());
+        trace.add("nonSpecialOtherTaxCreditAmount = " + nonSpecialOtherTaxCreditAmount);
         trace.add("taxCreditAmount = " + taxCreditAmount);
         trace.add("expectedRefundAmount = " + expectedRefundAmount);
 
@@ -417,7 +449,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             childTaxCreditAmount,
             pensionAccountTaxCreditAmount,
             monthlyRentTaxCreditAmount,
-            otherTaxCreditAmount,
+            nonSpecialOtherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,
             command.withholdingTax(),

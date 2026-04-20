@@ -119,6 +119,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["housing-savings-deduction"]
+    },
+    {
+      "approvedAt": "2026-04-20T02:45:00Z",
+      "sourceRunDir": ".local/harness/2026-04-20/20260420-110743-standard-tax-credit",
+      "ruleSetId": "2025@2025.01-standard-tax-credit-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["standard-tax-credit"]
     }
   ]
 }

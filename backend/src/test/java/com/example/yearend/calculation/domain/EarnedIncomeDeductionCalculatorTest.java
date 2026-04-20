@@ -644,6 +644,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     "{\"traceFields\":[\"housingSavingsContributionAmount\",\"deductionBeforeLimitAmount\",\"housingSavingsDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.STANDARD_TAX_CREDIT,
+                    StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"amountPerPerson\":130000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.STANDARD_TAX_CREDIT,
+                    StandardTaxCreditCalculator.WORKER_ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    "{\"requiresEarnedIncome\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.STANDARD_TAX_CREDIT,
+                    StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"method\":\"max\",\"competingSubTypes\":[\"INSURANCE_PREMIUM\",\"MEDICAL_EXPENSE\",\"EDUCATION_EXPENSE\",\"DONATION\"],\"tieBreakPreference\":\"STANDARD\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
                 )
             )
         );

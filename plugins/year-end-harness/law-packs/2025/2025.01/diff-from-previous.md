@@ -49,6 +49,9 @@
 | CREDIT_CARD_RATE_DEBIT_CASH_ZEROPAY_2025 | CREDIT_CARD | subTypes=[DEBIT_CARD,CASH_RECEIPT,ZERO_PAY]; rate=0.30 | law-income-tax-act-126-2-2025-10-01 |
 | CREDIT_CARD_BASIC_LIMIT_2025 | CREDIT_CARD | tiers=[{max:70M,limit:3M},{max:120M,limit:2.5M},{max:null,limit:2M}] | law-income-tax-act-126-2-2025-10-01 |
 | CREDIT_CARD_TRACE_FORMULA_2025 | CREDIT_CARD | traceFields=[creditCardAmount,...,appliedAmount] | law-income-tax-act-126-2-2025-10-01 |
+| STANDARD_TAX_CREDIT_FLAT_AMOUNT_2025 | STANDARD_TAX_CREDIT | amountPerPerson=130000 (근로자 연 13만원) | law-income-tax-act-59-4-9-2025 |
+| STANDARD_TAX_CREDIT_WORKER_ELIGIBILITY_2025 | STANDARD_TAX_CREDIT | requiresEarnedIncome=True | law-income-tax-act-59-4-9-2025 |
+| STANDARD_TAX_CREDIT_VS_SPECIAL_CHOICE_FORMULA_2025 | STANDARD_TAX_CREDIT | method=max; competingSubTypes=[INSURANCE_PREMIUM,MEDICAL_EXPENSE,EDUCATION_EXPENSE,DONATION]; tieBreakPreference=STANDARD | law-income-tax-act-59-4-9-2025 |
 
 ## Changed Rules
 

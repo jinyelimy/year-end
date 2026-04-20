@@ -61,6 +61,17 @@
       "checkedAt": "2026-04-15",
       "contentType": "guide-index",
       "notes": "Official NTS year-end settlement guide index used as the administrative source registry entry for this slice."
+    },
+    {
+      "sourceId": "law-income-tax-act-59-4-9-2025",
+      "sourceName": "소득세법 제59조의4 제9항 (표준세액공제)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsInfoP.do?lsId=001565&ancYnChk=0",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-act",
+      "notes": "소득세법 제59조의4 제9항. 근로소득자 연 13만원, 성실사업자 연 12만원, 그 외 종합소득자 연 7만원. 특별소득공제·특별세액공제·월세액세액공제 신청을 하지 아니한 경우 적용. 2025-10-01 타법개정 시행 (법률 제21065호)."
     }
   ],
   "previousRuns": [

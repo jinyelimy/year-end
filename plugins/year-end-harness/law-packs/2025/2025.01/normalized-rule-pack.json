@@ -79,6 +79,12 @@
         "runDir": ".local/harness/2026-04-17/20260417-080000-housing-savings-deduction",
         "approvedAt": "2026-04-17T08:00:00Z",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "standard-tax-credit",
+        "runDir": ".local/harness/2026-04-20/20260420-110743-standard-tax-credit",
+        "approvedAt": "2026-04-20T11:45:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1037,6 +1043,7 @@
     {
       "ruleCode": "PENSION_ACCOUNT_LIMIT_2025",
       "deductionType": "PENSION_ACCOUNT",
+      "subType": "LIMIT",
       "ruleCategory": "LIMIT",
       "parameters": {
         "pensionSavingsLimit": 6000000,
@@ -1054,6 +1061,7 @@
     {
       "ruleCode": "PENSION_ACCOUNT_RATE_2025",
       "deductionType": "PENSION_ACCOUNT",
+      "subType": "RATE",
       "ruleCategory": "FORMULA",
       "parameters": {
         "grossSalaryThreshold": 55000000,
@@ -1070,6 +1078,7 @@
     {
       "ruleCode": "PENSION_ACCOUNT_TRACE_2025",
       "deductionType": "PENSION_ACCOUNT",
+      "subType": "TRACE",
       "ruleCategory": "FORMULA",
       "parameters": {
         "traceFields": [
@@ -1094,6 +1103,7 @@
     {
       "ruleCode": "MONTHLY_RENT_LIMIT_2025",
       "deductionType": "MONTHLY_RENT",
+      "subType": "LIMIT",
       "ruleCategory": "LIMIT",
       "parameters": {
         "annualRentLimit": 12000000,
@@ -1109,6 +1119,7 @@
     {
       "ruleCode": "MONTHLY_RENT_RATE_2025",
       "deductionType": "MONTHLY_RENT",
+      "subType": "RATE",
       "ruleCategory": "FORMULA",
       "parameters": {
         "grossSalaryThreshold": 55000000,
@@ -1125,6 +1136,7 @@
     {
       "ruleCode": "MONTHLY_RENT_TRACE_2025",
       "deductionType": "MONTHLY_RENT",
+      "subType": "TRACE",
       "ruleCategory": "FORMULA",
       "parameters": {
         "traceFields": [
@@ -1290,6 +1302,58 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-87-3-housing-savings-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "STANDARD_TAX_CREDIT",
+      "subType": "FLAT_AMOUNT",
+      "ruleCode": "STANDARD_TAX_CREDIT_FLAT_AMOUNT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "amountPerPerson": 130000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-9-2025"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "STANDARD_TAX_CREDIT",
+      "subType": "WORKER",
+      "ruleCode": "STANDARD_TAX_CREDIT_WORKER_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "requiresEarnedIncome": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-9-2025"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "STANDARD_TAX_CREDIT",
+      "subType": "CHOICE",
+      "ruleCode": "STANDARD_TAX_CREDIT_VS_SPECIAL_CHOICE_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "method": "max",
+        "competingSubTypes": [
+          "INSURANCE_PREMIUM",
+          "MEDICAL_EXPENSE",
+          "EDUCATION_EXPENSE",
+          "DONATION"
+        ],
+        "tieBreakPreference": "STANDARD"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-59-4-9-2025"
       ],
       "confidence": "confirmed"
     }
