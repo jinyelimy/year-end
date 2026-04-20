@@ -350,7 +350,7 @@ Phase 0부터 5까지 수행해줘.
 | P3 | 소기업·소상공인 공제부금 | backlog 등록 (`sme-mutual-aid`) | `4-1 -> 4-2 -> 4-3` | 대상자는 제한적이나 신고서 항목에 포함 |
 | P3 | 투자조합 출자 등 투자 관련 공제 | backlog 등록 (`venture-investment`) | `4-1 -> 4-2 -> 4-3` | 투자 유형별 한도와 증빙 분리 필요 |
 | P3 | 우리사주조합 출연금 | backlog 등록 (`employee-stock-ownership`) | `4-1 -> 4-2 -> 4-3` | 회사/조합 자료 연계 가능성 확인 필요 |
-| ★ P3 | 장기집합투자증권저축 | 구현 완료 | `4-1 -> 4-2 -> 4-3` | commit pending (이 커밋) |
+| ★ P3 | 장기집합투자증권저축 | 구현 완료 | `4-1 -> 4-2 -> 4-3` | commit 82e0533 |
 | P3 | 청년형 장기집합투자증권저축 | backlog 등록 (`youth-long-term-collective-investment`) | `4-1 -> 4-2 -> 4-3` | 나이/소득 요건 검증 필요 |
 | P3 | 외국납부세액공제 | backlog 등록 (`foreign-tax-credit`) | `4-1 -> 4-2 -> 4-3` | 특수 케이스, 증빙과 환율 기준 확인 필요 |
 | P3 | 납세조합공제 | backlog 등록 (`tax-payer-association-credit`) | `4-1 -> 4-2 -> 4-3` | 특수 케이스 |
