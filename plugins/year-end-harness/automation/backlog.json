@@ -437,6 +437,9 @@
       "doneAt": "2026-04-20T13:50:00+09:00",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership"
+      ],
+      "doneCommits": [
+        "fa90b7d"
       ]
     },
     {
