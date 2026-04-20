@@ -477,6 +477,9 @@
       "doneAt": "2026-04-20T14:35:00+09:00",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit"
+      ],
+      "doneCommits": [
+        "5522cb8"
       ]
     }
   ],
