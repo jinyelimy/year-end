@@ -30,6 +30,7 @@ public record TaxCalculationOutcome(
     long childTaxCreditAmount,
     long pensionAccountTaxCreditAmount,
     long monthlyRentTaxCreditAmount,
+    long foreignTaxCreditAmount,
     long otherTaxCreditAmount,
     long taxCreditAmount,
     long finalTaxAmount,

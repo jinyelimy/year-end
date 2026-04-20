@@ -68,6 +68,9 @@
 | EMPLOYEE_STOCK_OWNERSHIP_RATE_2025 | EMPLOYEE_STOCK_OWNERSHIP | deductionRate=1.00 (출연금 100% 공제) | law-stra-88-4-employee-stock-ownership-2025-01-01 |
 | EMPLOYEE_STOCK_OWNERSHIP_LIMIT_2025 | EMPLOYEE_STOCK_OWNERSHIP | regularAnnualDeductionLimit=4000000 (일반 기업 연 400만원); ventureAnnualDeductionLimit=15000000 (벤처기업 연 1,500만원) | law-stra-88-4-employee-stock-ownership-2025-01-01 |
 | EMPLOYEE_STOCK_OWNERSHIP_TRACE_2025 | EMPLOYEE_STOCK_OWNERSHIP | traceFields=[employeeStockOwnershipContributionAmount, employeeStockOwnershipAppliedLimitAmount, employeeStockOwnershipDeductionAmount] | law-stra-88-4-employee-stock-ownership-2025-01-01 |
+| FOREIGN_TAX_CREDIT_RATE_2025 | FOREIGN_TAX_CREDIT | creditRate=1.00 (외국납부세액 전액 세액공제) | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
+| FOREIGN_TAX_CREDIT_LIMIT_FORMULA_2025 | FOREIGN_TAX_CREDIT | formula=domesticCalculatedTax * (foreignSourceIncomeAmount / comprehensiveIncomeAmount); zeroDivisionPolicy=return_zero_when_denominator_zero | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
+| FOREIGN_TAX_CREDIT_TRACE_2025 | FOREIGN_TAX_CREDIT | traceFields=[foreignTaxPaidAmount, foreignSourceIncomeAmount, comprehensiveIncomeAmount, domesticCalculatedTaxAmount, foreignTaxCreditLimitAmount, foreignTaxCreditAmount] | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
 
 ## Changed Rules
 

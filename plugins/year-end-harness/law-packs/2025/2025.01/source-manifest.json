@@ -127,6 +127,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-article",
       "notes": "조세특례제한법 제88조의4 제1항. 우리사주조합원이 조합에 출연한 금액의 100%를 소득공제. 일반 기업 연 400만원 한도, 벤처기업 연 1,500만원 한도. 3개 rule code: EMPLOYEE_STOCK_OWNERSHIP_RATE_2025 / EMPLOYEE_STOCK_OWNERSHIP_LIMIT_2025 / EMPLOYEE_STOCK_OWNERSHIP_TRACE_2025."
+    },
+    {
+      "sourceId": "law-income-tax-act-57-foreign-tax-credit-2025-01-01",
+      "sourceName": "소득세법 제57조 (외국납부세액공제)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0057&lsiSeq=276127&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2025-10-01",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "소득세법 제57조. 거주자의 종합소득금액에 국외원천소득이 포함된 경우 해당 국외원천소득에 대해 외국정부에 납부한 세액을 산출세액에서 공제. 공제 한도 = 산출세액 × (국외원천소득금액 / 종합소득금액). 3개 rule code: FOREIGN_TAX_CREDIT_RATE_2025 / FOREIGN_TAX_CREDIT_LIMIT_FORMULA_2025 / FOREIGN_TAX_CREDIT_TRACE_2025."
     }
   ],
   "previousRuns": [
@@ -147,6 +158,7 @@
     ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
     ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
     ".local/harness/2026-04-20/20260420-131000-venture-investment",
-    ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership"
+    ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership",
+    ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit"
   ]
 }

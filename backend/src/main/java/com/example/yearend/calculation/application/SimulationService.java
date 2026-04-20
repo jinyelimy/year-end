@@ -19,6 +19,7 @@ import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentD
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator;
+import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -97,6 +98,7 @@ public class SimulationService {
         SmeMutualAidSummary smeMutualAidSummary = summarizeSmeMutualAidItems(deductionItems);
         VentureInvestmentSummary ventureInvestmentSummary = summarizeVentureInvestmentItems(deductionItems);
         EmployeeStockOwnershipSummary employeeStockOwnershipSummary = summarizeEmployeeStockOwnershipItems(deductionItems);
+        ForeignTaxCreditSummary foreignTaxCreditSummary = summarizeForeignTaxCreditItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -135,6 +137,8 @@ public class SimulationService {
                 ventureInvestmentSummary.fundInvestmentAmount(),
                 employeeStockOwnershipSummary.contributionAmount(),
                 employeeStockOwnershipSummary.isVentureEmployer(),
+                foreignTaxCreditSummary.foreignTaxPaidAmount(),
+                foreignTaxCreditSummary.foreignSourceIncomeAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -198,6 +202,7 @@ public class SimulationService {
             outcome.childTaxCreditAmount(),
             outcome.pensionAccountTaxCreditAmount(),
             outcome.monthlyRentTaxCreditAmount(),
+            outcome.foreignTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -452,6 +457,20 @@ public class SimulationService {
         return new EmployeeStockOwnershipSummary(contributionAmount, isVentureEmployer);
     }
 
+    private ForeignTaxCreditSummary summarizeForeignTaxCreditItems(List<DeductionItem> deductionItems) {
+        long foreignTaxPaidAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.FOREIGN_TAX_CREDIT
+                && "FOREIGN_TAX_PAID".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        long foreignSourceIncomeAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.FOREIGN_TAX_CREDIT
+                && "FOREIGN_SOURCE_INCOME".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        return new ForeignTaxCreditSummary(foreignTaxPaidAmount, foreignSourceIncomeAmount);
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -575,6 +594,7 @@ public class SimulationService {
             outcome.childTaxCreditAmount(),
             outcome.pensionAccountTaxCreditAmount(),
             outcome.monthlyRentTaxCreditAmount(),
+            outcome.foreignTaxCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -651,7 +671,10 @@ public class SimulationService {
                 VentureInvestmentDeductionCalculator.TRACE_RULE_CODE,
                 EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE,
                 EmployeeStockOwnershipDeductionCalculator.LIMIT_RULE_CODE,
-                EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE
+                EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE,
+                ForeignTaxCreditCalculator.RATE_RULE_CODE,
+                ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE,
+                ForeignTaxCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -762,6 +785,12 @@ public class SimulationService {
     ) {
     }
 
+    private record ForeignTaxCreditSummary(
+        long foreignTaxPaidAmount,
+        long foreignSourceIncomeAmount
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -814,6 +843,7 @@ public class SimulationService {
         long childTaxCreditAmount,
         long pensionAccountTaxCreditAmount,
         long monthlyRentTaxCreditAmount,
+        long foreignTaxCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

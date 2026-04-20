@@ -115,6 +115,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership",
         "approvedAt": "2026-04-20T13:50:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "foreign-tax-credit",
+        "runDir": ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit",
+        "approvedAt": "2026-04-20T14:10:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1675,6 +1681,61 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-stra-88-4-employee-stock-ownership-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "FOREIGN_TAX_CREDIT",
+      "subType": "RATE",
+      "ruleCode": "FOREIGN_TAX_CREDIT_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "description": "소득세법 제57조 외국납부세액 전액을 세액공제 (100%)",
+        "creditRate": 1.00
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-57-foreign-tax-credit-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "FOREIGN_TAX_CREDIT",
+      "subType": "LIMIT_FORMULA",
+      "ruleCode": "FOREIGN_TAX_CREDIT_LIMIT_FORMULA_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "description": "한도 = 산출세액 × (국외원천소득금액 / 종합소득금액)",
+        "formula": "domesticCalculatedTax * (foreignSourceIncomeAmount / comprehensiveIncomeAmount)",
+        "zeroDivisionPolicy": "return_zero_when_denominator_zero"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-57-foreign-tax-credit-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "FOREIGN_TAX_CREDIT",
+      "subType": "TRACE",
+      "ruleCode": "FOREIGN_TAX_CREDIT_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "foreignTaxPaidAmount",
+          "foreignSourceIncomeAmount",
+          "comprehensiveIncomeAmount",
+          "domesticCalculatedTaxAmount",
+          "foreignTaxCreditLimitAmount",
+          "foreignTaxCreditAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-57-foreign-tax-credit-2025-01-01"
       ],
       "confidence": "confirmed"
     }

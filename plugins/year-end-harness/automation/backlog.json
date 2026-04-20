@@ -452,8 +452,12 @@
         "4-2",
         "4-3"
       ],
-      "notes": "미구현. 국외 원천소득에 대한 외국납부세액. 공제 한도는 국외원천소득에 비례. 증빙과 환율 기준 별도 검토 필요. 특수 케이스.",
-      "status": "pending"
+      "notes": "소득세법 제57조. 세액공제. 한도=산출세액×(국외원천소득/종합소득).",
+      "status": "done",
+      "doneAt": "2026-04-20T14:10:00+09:00",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit"
+      ]
     },
     {
       "id": "tax-payer-association-credit",

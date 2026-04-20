@@ -35,6 +35,8 @@ import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculat
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator.VentureInvestmentRuleSnapshot;
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator.EmployeeStockOwnershipCalculation;
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator.EmployeeStockOwnershipRuleSnapshot;
+import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.ForeignTaxCreditCalculation;
+import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.ForeignTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -73,6 +75,9 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String EMPLOYEE_STOCK_OWNERSHIP_RATE_CODE  = EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE;
     private static final String EMPLOYEE_STOCK_OWNERSHIP_LIMIT_CODE = EmployeeStockOwnershipDeductionCalculator.LIMIT_RULE_CODE;
     private static final String EMPLOYEE_STOCK_OWNERSHIP_TRACE_CODE = EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE;
+    private static final String FOREIGN_TAX_CREDIT_RATE_CODE          = ForeignTaxCreditCalculator.RATE_RULE_CODE;
+    private static final String FOREIGN_TAX_CREDIT_LIMIT_FORMULA_CODE = ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE;
+    private static final String FOREIGN_TAX_CREDIT_TRACE_CODE         = ForeignTaxCreditCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -94,6 +99,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
+    private final ForeignTaxCreditCalculator foreignTaxCreditCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
@@ -115,7 +121,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         EmployeeStockOwnershipDeductionCalculator employeeStockOwnershipDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
-        StandardTaxCreditCalculator standardTaxCreditCalculator
+        StandardTaxCreditCalculator standardTaxCreditCalculator,
+        ForeignTaxCreditCalculator foreignTaxCreditCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
         this.personalDeductionCalculator = personalDeductionCalculator;
@@ -137,6 +144,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
+        this.foreignTaxCreditCalculator = foreignTaxCreditCalculator;
     }
 
     @Override
@@ -314,6 +322,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             monthlyRentRuleSnapshot
         );
         long monthlyRentTaxCreditAmount = monthlyRentCalculation.totalCreditAmount();
+        ForeignTaxCreditRuleSnapshot foreignTaxCreditRuleSnapshot =
+            foreignTaxCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        ForeignTaxCreditCalculation foreignTaxCreditCalculation = foreignTaxCreditCalculator.calculate(
+            command.foreignTaxPaidAmount(),
+            command.foreignSourceIncomeAmount(),
+            totalIncomeAmount,
+            calculatedTaxAmount,
+            foreignTaxCreditRuleSnapshot
+        );
+        long foreignTaxCreditAmount = foreignTaxCreditCalculation.foreignTaxCreditAmount();
         long specialTaxCreditFromDecisions = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .filter(d -> d.deductionType() == DeductionType.INSURANCE
@@ -338,7 +356,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             standardTaxCreditRuleSnapshot
         );
         long chosenSpecialOrStandardCreditAmount = standardTaxCreditCalculation.appliedAmount();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + nonSpecialOtherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + foreignTaxCreditAmount + nonSpecialOtherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -531,6 +549,13 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("ruleCode " + MONTHLY_RENT_RATE_CODE + " applied");
         trace.add("monthlyRentCreditRate = " + monthlyRentCalculation.creditRate());
         trace.add("monthlyRentTaxCreditAmount = " + monthlyRentTaxCreditAmount);
+        trace.add("ruleCode " + FOREIGN_TAX_CREDIT_RATE_CODE + " applied");
+        trace.add("foreignTaxPaidAmount = " + foreignTaxCreditCalculation.foreignTaxPaidAmount());
+        trace.add("foreignSourceIncomeAmount = " + foreignTaxCreditCalculation.foreignSourceIncomeAmount());
+        trace.add("ruleCode " + FOREIGN_TAX_CREDIT_LIMIT_FORMULA_CODE + " applied");
+        trace.add("foreignTaxCreditLimitAmount = " + foreignTaxCreditCalculation.foreignTaxCreditLimitAmount());
+        trace.add("ruleCode " + FOREIGN_TAX_CREDIT_TRACE_CODE + " applied");
+        trace.add("foreignTaxCreditAmount = " + foreignTaxCreditAmount);
         trace.add("ruleCode " + StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE + " applied");
         trace.add("ruleCode " + StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE + " applied");
         trace.add("specialTaxCreditTotal = " + standardTaxCreditCalculation.specialTaxCreditTotal());
@@ -569,6 +594,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             childTaxCreditAmount,
             pensionAccountTaxCreditAmount,
             monthlyRentTaxCreditAmount,
+            foreignTaxCreditAmount,
             nonSpecialOtherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

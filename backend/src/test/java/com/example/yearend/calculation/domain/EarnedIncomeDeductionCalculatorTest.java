@@ -779,6 +779,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.FOREIGN_TAX_CREDIT,
+                    ForeignTaxCreditCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"creditRate\":1.00}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.FOREIGN_TAX_CREDIT,
+                    ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"formula\":\"calculatedTax * (foreignSourceIncome / comprehensiveIncome)\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.FOREIGN_TAX_CREDIT,
+                    ForeignTaxCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"foreignTaxPaidAmount\",\"foreignSourceIncomeAmount\",\"foreignTaxCreditLimitAmount\",\"foreignTaxCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.STANDARD_TAX_CREDIT,
                     StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE,
                     RuleCategory.LIMIT,
