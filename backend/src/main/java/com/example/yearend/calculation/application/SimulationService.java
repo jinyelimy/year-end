@@ -21,6 +21,7 @@ import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculat
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator;
 import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator;
 import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator;
+import com.example.yearend.calculation.domain.SmeYouthEmployeeTaxReductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -101,6 +102,7 @@ public class SimulationService {
         EmployeeStockOwnershipSummary employeeStockOwnershipSummary = summarizeEmployeeStockOwnershipItems(deductionItems);
         ForeignTaxCreditSummary foreignTaxCreditSummary = summarizeForeignTaxCreditItems(deductionItems);
         TaxPayerAssociationCreditSummary taxPayerAssociationCreditSummary = summarizeTaxPayerAssociationCreditItems(deductionItems);
+        SmeYouthEmployeeTaxReductionSummary smeYouthEmployeeTaxReductionSummary = summarizeSmeYouthEmployeeTaxReductionItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -142,6 +144,8 @@ public class SimulationService {
                 foreignTaxCreditSummary.foreignTaxPaidAmount(),
                 foreignTaxCreditSummary.foreignSourceIncomeAmount(),
                 taxPayerAssociationCreditSummary.incomeAmount(),
+                smeYouthEmployeeTaxReductionSummary.category(),
+                smeYouthEmployeeTaxReductionSummary.employerIncomeAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -207,6 +211,7 @@ public class SimulationService {
             outcome.monthlyRentTaxCreditAmount(),
             outcome.foreignTaxCreditAmount(),
             outcome.taxPayerAssociationCreditAmount(),
+            outcome.smeYouthEmployeeTaxReductionAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -483,6 +488,32 @@ public class SimulationService {
         return new TaxPayerAssociationCreditSummary(incomeAmount);
     }
 
+    private SmeYouthEmployeeTaxReductionSummary summarizeSmeYouthEmployeeTaxReductionItems(List<DeductionItem> deductionItems) {
+        long employerIncomeAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
+                && "EMPLOYER_INCOME".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        String category = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
+                && "CATEGORY".equals(item.getSubType()))
+            .map(item -> item.getAmount() == null ? null : categoryFromCode(item.getAmount()))
+            .filter(value -> value != null)
+            .findFirst()
+            .orElse("NONE");
+        return new SmeYouthEmployeeTaxReductionSummary(category, employerIncomeAmount);
+    }
+
+    private String categoryFromCode(long code) {
+        return switch ((int) code) {
+            case 1 -> "YOUTH";
+            case 2 -> "SENIOR";
+            case 3 -> "DISABLED";
+            case 4 -> "CAREER_INTERRUPTED_WOMAN";
+            default -> "NONE";
+        };
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -608,6 +639,7 @@ public class SimulationService {
             outcome.monthlyRentTaxCreditAmount(),
             outcome.foreignTaxCreditAmount(),
             outcome.taxPayerAssociationCreditAmount(),
+            outcome.smeYouthEmployeeTaxReductionAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -690,7 +722,11 @@ public class SimulationService {
                 ForeignTaxCreditCalculator.TRACE_RULE_CODE,
                 TaxPayerAssociationCreditCalculator.RATE_RULE_CODE,
                 TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE,
-                TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE
+                TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE,
+                SmeYouthEmployeeTaxReductionCalculator.RATE_RULE_CODE,
+                SmeYouthEmployeeTaxReductionCalculator.LIMIT_RULE_CODE,
+                SmeYouthEmployeeTaxReductionCalculator.ELIGIBILITY_RULE_CODE,
+                SmeYouthEmployeeTaxReductionCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -812,6 +848,12 @@ public class SimulationService {
     ) {
     }
 
+    private record SmeYouthEmployeeTaxReductionSummary(
+        String category,
+        long employerIncomeAmount
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -866,6 +908,7 @@ public class SimulationService {
         long monthlyRentTaxCreditAmount,
         long foreignTaxCreditAmount,
         long taxPayerAssociationCreditAmount,
+        long smeYouthEmployeeTaxReductionAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

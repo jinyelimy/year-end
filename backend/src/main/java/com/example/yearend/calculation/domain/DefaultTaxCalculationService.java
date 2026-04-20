@@ -39,6 +39,8 @@ import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.Foreign
 import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.ForeignTaxCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator.TaxPayerAssociationCreditCalculation;
 import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator.TaxPayerAssociationCreditRuleSnapshot;
+import com.example.yearend.calculation.domain.SmeYouthEmployeeTaxReductionCalculator.SmeYouthEmployeeTaxReductionCalculation;
+import com.example.yearend.calculation.domain.SmeYouthEmployeeTaxReductionCalculator.SmeYouthEmployeeTaxReductionRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -83,6 +85,10 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String TAX_PAYER_ASSOCIATION_CREDIT_RATE_CODE    = TaxPayerAssociationCreditCalculator.RATE_RULE_CODE;
     private static final String TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_CODE = TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE;
     private static final String TAX_PAYER_ASSOCIATION_CREDIT_TRACE_CODE   = TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE;
+    private static final String SME_YOUTH_EMPLOYEE_TAX_REDUCTION_RATE_CODE        = SmeYouthEmployeeTaxReductionCalculator.RATE_RULE_CODE;
+    private static final String SME_YOUTH_EMPLOYEE_TAX_REDUCTION_LIMIT_CODE       = SmeYouthEmployeeTaxReductionCalculator.LIMIT_RULE_CODE;
+    private static final String SME_YOUTH_EMPLOYEE_TAX_REDUCTION_ELIGIBILITY_CODE = SmeYouthEmployeeTaxReductionCalculator.ELIGIBILITY_RULE_CODE;
+    private static final String SME_YOUTH_EMPLOYEE_TAX_REDUCTION_TRACE_CODE       = SmeYouthEmployeeTaxReductionCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -106,6 +112,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
     private final ForeignTaxCreditCalculator foreignTaxCreditCalculator;
     private final TaxPayerAssociationCreditCalculator taxPayerAssociationCreditCalculator;
+    private final SmeYouthEmployeeTaxReductionCalculator smeYouthEmployeeTaxReductionCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
@@ -129,7 +136,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
         StandardTaxCreditCalculator standardTaxCreditCalculator,
         ForeignTaxCreditCalculator foreignTaxCreditCalculator,
-        TaxPayerAssociationCreditCalculator taxPayerAssociationCreditCalculator
+        TaxPayerAssociationCreditCalculator taxPayerAssociationCreditCalculator,
+        SmeYouthEmployeeTaxReductionCalculator smeYouthEmployeeTaxReductionCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
         this.personalDeductionCalculator = personalDeductionCalculator;
@@ -153,6 +161,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
         this.foreignTaxCreditCalculator = foreignTaxCreditCalculator;
         this.taxPayerAssociationCreditCalculator = taxPayerAssociationCreditCalculator;
+        this.smeYouthEmployeeTaxReductionCalculator = smeYouthEmployeeTaxReductionCalculator;
     }
 
     @Override
@@ -349,6 +358,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             taxPayerAssociationCreditRuleSnapshot
         );
         long taxPayerAssociationCreditAmount = taxPayerAssociationCreditCalculation.taxPayerAssociationCreditAmount();
+        SmeYouthEmployeeTaxReductionRuleSnapshot smeYouthEmployeeTaxReductionRuleSnapshot =
+            smeYouthEmployeeTaxReductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        SmeYouthEmployeeTaxReductionCalculation smeYouthEmployeeTaxReductionCalculation = smeYouthEmployeeTaxReductionCalculator.calculate(
+            command.smeYouthCategory(),
+            command.smeYouthEmployerIncomeAmount(),
+            earnedIncomeAmount,
+            calculatedTaxAmount,
+            smeYouthEmployeeTaxReductionRuleSnapshot
+        );
+        long smeYouthEmployeeTaxReductionAmount = smeYouthEmployeeTaxReductionCalculation.smeYouthEmployeeTaxReductionAmount();
         long specialTaxCreditFromDecisions = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .filter(d -> d.deductionType() == DeductionType.INSURANCE
@@ -373,7 +392,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             standardTaxCreditRuleSnapshot
         );
         long chosenSpecialOrStandardCreditAmount = standardTaxCreditCalculation.appliedAmount();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + foreignTaxCreditAmount + taxPayerAssociationCreditAmount + nonSpecialOtherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + foreignTaxCreditAmount + taxPayerAssociationCreditAmount + smeYouthEmployeeTaxReductionAmount + nonSpecialOtherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -581,6 +600,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("taxPayerAssociationAllocatedTaxAmount = " + taxPayerAssociationCreditCalculation.taxPayerAssociationAllocatedTaxAmount());
         trace.add("ruleCode " + TAX_PAYER_ASSOCIATION_CREDIT_TRACE_CODE + " applied");
         trace.add("taxPayerAssociationCreditAmount = " + taxPayerAssociationCreditAmount);
+        trace.add("ruleCode " + SME_YOUTH_EMPLOYEE_TAX_REDUCTION_ELIGIBILITY_CODE + " applied");
+        trace.add("smeYouthCategory = " + smeYouthEmployeeTaxReductionCalculation.smeYouthCategory());
+        trace.add("smeYouthEmployerIncomeAmount = " + smeYouthEmployeeTaxReductionCalculation.smeYouthEmployerIncomeAmount());
+        trace.add("ruleCode " + SME_YOUTH_EMPLOYEE_TAX_REDUCTION_RATE_CODE + " applied");
+        trace.add("smeYouthAllocatedTaxAmount = " + smeYouthEmployeeTaxReductionCalculation.smeYouthAllocatedTaxAmount());
+        trace.add("smeYouthReductionRate = " + smeYouthEmployeeTaxReductionCalculation.smeYouthReductionRate());
+        trace.add("ruleCode " + SME_YOUTH_EMPLOYEE_TAX_REDUCTION_LIMIT_CODE + " applied");
+        trace.add("smeYouthAnnualLimitAmount = " + smeYouthEmployeeTaxReductionCalculation.smeYouthAnnualLimitAmount());
+        trace.add("ruleCode " + SME_YOUTH_EMPLOYEE_TAX_REDUCTION_TRACE_CODE + " applied");
+        trace.add("smeYouthEmployeeTaxReductionAmount = " + smeYouthEmployeeTaxReductionAmount);
         trace.add("ruleCode " + StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE + " applied");
         trace.add("ruleCode " + StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE + " applied");
         trace.add("specialTaxCreditTotal = " + standardTaxCreditCalculation.specialTaxCreditTotal());
@@ -621,6 +650,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             monthlyRentTaxCreditAmount,
             foreignTaxCreditAmount,
             taxPayerAssociationCreditAmount,
+            smeYouthEmployeeTaxReductionAmount,
             nonSpecialOtherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

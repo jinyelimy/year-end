@@ -48,6 +48,8 @@ public record TaxCalculationCommand(
     long foreignTaxPaidAmount,
     long foreignSourceIncomeAmount,
     long taxPayerAssociationIncomeAmount,
+    String smeYouthCategory,
+    long smeYouthEmployerIncomeAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

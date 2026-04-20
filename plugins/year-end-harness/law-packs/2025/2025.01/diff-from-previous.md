@@ -74,6 +74,10 @@
 | TAX_PAYER_ASSOCIATION_CREDIT_RATE_2025 | TAX_PAYER_ASSOCIATION_CREDIT | creditRate=0.05 (납세조합 징수 근로소득 산출세액의 5% 세액공제) | law-income-tax-act-150-tax-payer-association-2025-01-01 |
 | TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_2025 | TAX_PAYER_ASSOCIATION_CREDIT | formula=domesticCalculatedTax * (taxPayerAssociationIncomeAmount / earnedIncomeAmount) * creditRate; zeroDivisionPolicy=return_zero_when_denominator_zero; eligibleIncomeType=EARNED_INCOME | law-income-tax-act-150-tax-payer-association-2025-01-01 |
 | TAX_PAYER_ASSOCIATION_CREDIT_TRACE_2025 | TAX_PAYER_ASSOCIATION_CREDIT | traceFields=[taxPayerAssociationIncomeAmount, earnedIncomeAmount, domesticCalculatedTaxAmount, taxPayerAssociationAllocatedTaxAmount, taxPayerAssociationCreditAmount] | law-income-tax-act-150-tax-payer-association-2025-01-01 |
+| SME_YOUTH_EMPLOYEE_TAX_REDUCTION_RATE_2025 | SME_YOUTH_EMPLOYEE_TAX_REDUCTION | rateByCategory={YOUTH:0.90, SENIOR:0.70, DISABLED:0.70, CAREER_INTERRUPTED_WOMAN:0.70} (대상유형별 감면율) | law-stra-30-sme-youth-employee-tax-reduction-2025-01-01 |
+| SME_YOUTH_EMPLOYEE_TAX_REDUCTION_LIMIT_2025 | SME_YOUTH_EMPLOYEE_TAX_REDUCTION | annualLimitByCategory={YOUTH:2000000, SENIOR:1500000, DISABLED:1500000, CAREER_INTERRUPTED_WOMAN:1500000} (대상유형별 연간 감면한도) | law-stra-30-sme-youth-employee-tax-reduction-2025-01-01 |
+| SME_YOUTH_EMPLOYEE_TAX_REDUCTION_ELIGIBILITY_2025 | SME_YOUTH_EMPLOYEE_TAX_REDUCTION | youthMinAge=15, youthMaxAge=34, seniorMinAge=60, reductionYearsByCategory={YOUTH:5, SENIOR:3, DISABLED:3, CAREER_INTERRUPTED_WOMAN:3}, militaryServiceDeductionMaxYears=6, requiresSmeEmployer=true | law-stra-30-sme-youth-employee-tax-reduction-2025-01-01 |
+| SME_YOUTH_EMPLOYEE_TAX_REDUCTION_TRACE_2025 | SME_YOUTH_EMPLOYEE_TAX_REDUCTION | traceFields=[smeYouthCategory, smeYouthEmployerIncomeAmount, smeYouthAllocatedTaxAmount, smeYouthReductionRate, smeYouthAnnualLimitAmount, smeYouthEmployeeTaxReductionAmount] | law-stra-30-sme-youth-employee-tax-reduction-2025-01-01 |
 
 ## Changed Rules
 

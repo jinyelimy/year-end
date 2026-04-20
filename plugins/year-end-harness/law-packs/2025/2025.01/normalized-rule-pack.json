@@ -127,6 +127,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit",
         "approvedAt": "2026-04-20T14:35:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "sme-youth-employee-tax-reduction",
+        "runDir": ".local/harness/2026-04-20/20260420-150000-sme-youth-employee-tax-reduction",
+        "approvedAt": "2026-04-20T15:10:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1797,6 +1803,96 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-150-tax-payer-association-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION",
+      "subType": "RATE",
+      "ruleCode": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "description": "대상 유형별 감면율. 청년 90%, 그 외(60세 이상/장애인/경력단절여성) 70%",
+        "rateByCategory": {
+          "YOUTH": 0.90,
+          "SENIOR": 0.70,
+          "DISABLED": 0.70,
+          "CAREER_INTERRUPTED_WOMAN": 0.70
+        }
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-30-sme-youth-employee-tax-reduction-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION",
+      "subType": "LIMIT",
+      "ruleCode": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "description": "감면 한도 (연간). 청년 200만원, 그 외 150만원",
+        "annualLimitByCategory": {
+          "YOUTH": 2000000,
+          "SENIOR": 1500000,
+          "DISABLED": 1500000,
+          "CAREER_INTERRUPTED_WOMAN": 1500000
+        }
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-30-sme-youth-employee-tax-reduction-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION",
+      "subType": "ELIGIBILITY",
+      "ruleCode": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION_ELIGIBILITY_2025",
+      "ruleCategory": "ELIGIBILITY",
+      "parameters": {
+        "description": "대상 유형별 자격 및 감면 기간",
+        "youthMinAge": 15,
+        "youthMaxAge": 34,
+        "seniorMinAge": 60,
+        "reductionYearsByCategory": {
+          "YOUTH": 5,
+          "SENIOR": 3,
+          "DISABLED": 3,
+          "CAREER_INTERRUPTED_WOMAN": 3
+        },
+        "militaryServiceDeductionMaxYears": 6,
+        "requiresSmeEmployer": true
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-30-sme-youth-employee-tax-reduction-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION",
+      "subType": "TRACE",
+      "ruleCode": "SME_YOUTH_EMPLOYEE_TAX_REDUCTION_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "smeYouthCategory",
+          "smeYouthEmployerIncomeAmount",
+          "smeYouthAllocatedTaxAmount",
+          "smeYouthReductionRate",
+          "smeYouthAnnualLimitAmount",
+          "smeYouthEmployeeTaxReductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-30-sme-youth-employee-tax-reduction-2025-01-01"
       ],
       "confidence": "confirmed"
     }

@@ -149,6 +149,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-article",
       "notes": "소득세법 제150조. 납세조합이 원천징수한 근로소득에 대하여 산출세액 × (납세조합징수근로소득금액 / 근로소득금액) × 5% 를 세액공제. 근로소득금액이 0일 경우 zero-division 방어로 공제액 0. 3개 rule code: TAX_PAYER_ASSOCIATION_CREDIT_RATE_2025 / TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_2025 / TAX_PAYER_ASSOCIATION_CREDIT_TRACE_2025."
+    },
+    {
+      "sourceId": "law-stra-30-sme-youth-employee-tax-reduction-2025-01-01",
+      "sourceName": "조세특례제한법 제30조 (중소기업 취업자 소득세 감면)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0030&lsiSeq=263042&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2024-12-31",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "조세특례제한법 제30조. 중소기업에 취업한 청년(15~34세, 병역기간 최대 6년 차감)·60세 이상·장애인·경력단절여성 근로자에 대해 해당 중소기업체 근로소득에 배분된 산출세액의 감면율(청년 90% / 그 외 70%)을 감면, 연간한도(청년 200만원 / 그 외 150만원) 적용. 미달성 카테고리·미확인 케이스는 감면 0. 4개 rule code: SME_YOUTH_EMPLOYEE_TAX_REDUCTION_RATE_2025 / SME_YOUTH_EMPLOYEE_TAX_REDUCTION_LIMIT_2025 / SME_YOUTH_EMPLOYEE_TAX_REDUCTION_ELIGIBILITY_2025 / SME_YOUTH_EMPLOYEE_TAX_REDUCTION_TRACE_2025."
     }
   ],
   "previousRuns": [
@@ -171,6 +182,7 @@
     ".local/harness/2026-04-20/20260420-131000-venture-investment",
     ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership",
     ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit",
-    ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit"
+    ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit",
+    ".local/harness/2026-04-20/20260420-150000-sme-youth-employee-tax-reduction"
   ]
 }

@@ -54,6 +54,7 @@ public final class SimulationDtos {
         long monthlyRentTaxCreditAmount,
         long foreignTaxCreditAmount,
         long taxPayerAssociationCreditAmount,
+        long smeYouthEmployeeTaxReductionAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

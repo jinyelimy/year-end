@@ -827,6 +827,38 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION,
+                    SmeYouthEmployeeTaxReductionCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"rateByCategory\":{\"YOUTH\":0.90,\"SENIOR\":0.70,\"DISABLED\":0.70,\"CAREER_INTERRUPTED_WOMAN\":0.70}}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION,
+                    SmeYouthEmployeeTaxReductionCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"annualLimitByCategory\":{\"YOUTH\":2000000,\"SENIOR\":1500000,\"DISABLED\":1500000,\"CAREER_INTERRUPTED_WOMAN\":1500000}}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION,
+                    SmeYouthEmployeeTaxReductionCalculator.ELIGIBILITY_RULE_CODE,
+                    RuleCategory.ELIGIBILITY,
+                    "{\"youthMinAge\":15,\"youthMaxAge\":34,\"seniorMinAge\":60,\"reductionYearsByCategory\":{\"YOUTH\":5,\"SENIOR\":3,\"DISABLED\":3,\"CAREER_INTERRUPTED_WOMAN\":3},\"militaryServiceDeductionMaxYears\":6,\"requiresSmeEmployer\":true}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION,
+                    SmeYouthEmployeeTaxReductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"smeYouthCategory\",\"smeYouthEmployerIncomeAmount\",\"smeYouthAllocatedTaxAmount\",\"smeYouthReductionRate\",\"smeYouthAnnualLimitAmount\",\"smeYouthEmployeeTaxReductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.STANDARD_TAX_CREDIT,
                     StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE,
                     RuleCategory.LIMIT,
