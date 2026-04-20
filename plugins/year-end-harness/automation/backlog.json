@@ -457,6 +457,9 @@
       "doneAt": "2026-04-20T14:10:00+09:00",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit"
+      ],
+      "doneCommits": [
+        "f85d921"
       ]
     },
     {
