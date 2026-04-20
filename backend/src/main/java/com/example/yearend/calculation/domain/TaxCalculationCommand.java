@@ -47,6 +47,7 @@ public record TaxCalculationCommand(
     boolean isVentureEmployerForEsop,
     long foreignTaxPaidAmount,
     long foreignSourceIncomeAmount,
+    long taxPayerAssociationIncomeAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

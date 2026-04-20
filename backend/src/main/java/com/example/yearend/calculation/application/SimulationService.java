@@ -20,6 +20,7 @@ import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator;
 import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator;
+import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -99,6 +100,7 @@ public class SimulationService {
         VentureInvestmentSummary ventureInvestmentSummary = summarizeVentureInvestmentItems(deductionItems);
         EmployeeStockOwnershipSummary employeeStockOwnershipSummary = summarizeEmployeeStockOwnershipItems(deductionItems);
         ForeignTaxCreditSummary foreignTaxCreditSummary = summarizeForeignTaxCreditItems(deductionItems);
+        TaxPayerAssociationCreditSummary taxPayerAssociationCreditSummary = summarizeTaxPayerAssociationCreditItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -139,6 +141,7 @@ public class SimulationService {
                 employeeStockOwnershipSummary.isVentureEmployer(),
                 foreignTaxCreditSummary.foreignTaxPaidAmount(),
                 foreignTaxCreditSummary.foreignSourceIncomeAmount(),
+                taxPayerAssociationCreditSummary.incomeAmount(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -203,6 +206,7 @@ public class SimulationService {
             outcome.pensionAccountTaxCreditAmount(),
             outcome.monthlyRentTaxCreditAmount(),
             outcome.foreignTaxCreditAmount(),
+            outcome.taxPayerAssociationCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -471,6 +475,14 @@ public class SimulationService {
         return new ForeignTaxCreditSummary(foreignTaxPaidAmount, foreignSourceIncomeAmount);
     }
 
+    private TaxPayerAssociationCreditSummary summarizeTaxPayerAssociationCreditItems(List<DeductionItem> deductionItems) {
+        long incomeAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.TAX_PAYER_ASSOCIATION_CREDIT)
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        return new TaxPayerAssociationCreditSummary(incomeAmount);
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -595,6 +607,7 @@ public class SimulationService {
             outcome.pensionAccountTaxCreditAmount(),
             outcome.monthlyRentTaxCreditAmount(),
             outcome.foreignTaxCreditAmount(),
+            outcome.taxPayerAssociationCreditAmount(),
             outcome.otherTaxCreditAmount(),
             outcome.taxCreditAmount(),
             outcome.finalTaxAmount(),
@@ -674,7 +687,10 @@ public class SimulationService {
                 EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE,
                 ForeignTaxCreditCalculator.RATE_RULE_CODE,
                 ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE,
-                ForeignTaxCreditCalculator.TRACE_RULE_CODE
+                ForeignTaxCreditCalculator.TRACE_RULE_CODE,
+                TaxPayerAssociationCreditCalculator.RATE_RULE_CODE,
+                TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE,
+                TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -791,6 +807,11 @@ public class SimulationService {
     ) {
     }
 
+    private record TaxPayerAssociationCreditSummary(
+        long incomeAmount
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -844,6 +865,7 @@ public class SimulationService {
         long pensionAccountTaxCreditAmount,
         long monthlyRentTaxCreditAmount,
         long foreignTaxCreditAmount,
+        long taxPayerAssociationCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

@@ -121,6 +121,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit",
         "approvedAt": "2026-04-20T14:10:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "tax-payer-association-credit",
+        "runDir": ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit",
+        "approvedAt": "2026-04-20T14:35:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1736,6 +1742,61 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-income-tax-act-57-foreign-tax-credit-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "TAX_PAYER_ASSOCIATION_CREDIT",
+      "subType": "RATE",
+      "ruleCode": "TAX_PAYER_ASSOCIATION_CREDIT_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "description": "납세조합이 원천징수한 근로소득에 대한 산출세액의 5% 세액공제",
+        "creditRate": 0.05
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-150-tax-payer-association-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "TAX_PAYER_ASSOCIATION_CREDIT",
+      "subType": "FORMULA",
+      "ruleCode": "TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "description": "credit = 산출세액 × (납세조합징수근로소득금액 / 근로소득금액) × 5%",
+        "formula": "domesticCalculatedTax * (taxPayerAssociationIncomeAmount / earnedIncomeAmount) * creditRate",
+        "zeroDivisionPolicy": "return_zero_when_denominator_zero",
+        "eligibleIncomeType": "EARNED_INCOME"
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-150-tax-payer-association-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "TAX_PAYER_ASSOCIATION_CREDIT",
+      "subType": "TRACE",
+      "ruleCode": "TAX_PAYER_ASSOCIATION_CREDIT_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "taxPayerAssociationIncomeAmount",
+          "earnedIncomeAmount",
+          "domesticCalculatedTaxAmount",
+          "taxPayerAssociationAllocatedTaxAmount",
+          "taxPayerAssociationCreditAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-income-tax-act-150-tax-payer-association-2025-01-01"
       ],
       "confidence": "confirmed"
     }

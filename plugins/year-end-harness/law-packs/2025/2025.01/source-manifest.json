@@ -138,6 +138,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-article",
       "notes": "소득세법 제57조. 거주자의 종합소득금액에 국외원천소득이 포함된 경우 해당 국외원천소득에 대해 외국정부에 납부한 세액을 산출세액에서 공제. 공제 한도 = 산출세액 × (국외원천소득금액 / 종합소득금액). 3개 rule code: FOREIGN_TAX_CREDIT_RATE_2025 / FOREIGN_TAX_CREDIT_LIMIT_FORMULA_2025 / FOREIGN_TAX_CREDIT_TRACE_2025."
+    },
+    {
+      "sourceId": "law-income-tax-act-150-tax-payer-association-2025-01-01",
+      "sourceName": "소득세법 제150조 (납세조합공제)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0150&lsiSeq=263042&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2024-12-31",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "소득세법 제150조. 납세조합이 원천징수한 근로소득에 대하여 산출세액 × (납세조합징수근로소득금액 / 근로소득금액) × 5% 를 세액공제. 근로소득금액이 0일 경우 zero-division 방어로 공제액 0. 3개 rule code: TAX_PAYER_ASSOCIATION_CREDIT_RATE_2025 / TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_2025 / TAX_PAYER_ASSOCIATION_CREDIT_TRACE_2025."
     }
   ],
   "previousRuns": [
@@ -159,6 +170,7 @@
     ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
     ".local/harness/2026-04-20/20260420-131000-venture-investment",
     ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership",
-    ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit"
+    ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit",
+    ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit"
   ]
 }

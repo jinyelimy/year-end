@@ -472,8 +472,12 @@
         "4-2",
         "4-3"
       ],
-      "notes": "미구현. 납세조합 가입 근로자에 대한 세액공제. 산출세액의 5%. 특수 케이스, 실무 빈도 낮음.",
-      "status": "pending"
+      "notes": "소득세법 제150조. 세액공제. credit=산출세액×(납세조합징수근로소득/근로소득금액)×5%.",
+      "status": "done",
+      "doneAt": "2026-04-20T14:35:00+09:00",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit"
+      ]
     }
   ],
   "runHistory": [

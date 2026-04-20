@@ -71,6 +71,9 @@
 | FOREIGN_TAX_CREDIT_RATE_2025 | FOREIGN_TAX_CREDIT | creditRate=1.00 (외국납부세액 전액 세액공제) | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
 | FOREIGN_TAX_CREDIT_LIMIT_FORMULA_2025 | FOREIGN_TAX_CREDIT | formula=domesticCalculatedTax * (foreignSourceIncomeAmount / comprehensiveIncomeAmount); zeroDivisionPolicy=return_zero_when_denominator_zero | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
 | FOREIGN_TAX_CREDIT_TRACE_2025 | FOREIGN_TAX_CREDIT | traceFields=[foreignTaxPaidAmount, foreignSourceIncomeAmount, comprehensiveIncomeAmount, domesticCalculatedTaxAmount, foreignTaxCreditLimitAmount, foreignTaxCreditAmount] | law-income-tax-act-57-foreign-tax-credit-2025-01-01 |
+| TAX_PAYER_ASSOCIATION_CREDIT_RATE_2025 | TAX_PAYER_ASSOCIATION_CREDIT | creditRate=0.05 (납세조합 징수 근로소득 산출세액의 5% 세액공제) | law-income-tax-act-150-tax-payer-association-2025-01-01 |
+| TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_2025 | TAX_PAYER_ASSOCIATION_CREDIT | formula=domesticCalculatedTax * (taxPayerAssociationIncomeAmount / earnedIncomeAmount) * creditRate; zeroDivisionPolicy=return_zero_when_denominator_zero; eligibleIncomeType=EARNED_INCOME | law-income-tax-act-150-tax-payer-association-2025-01-01 |
+| TAX_PAYER_ASSOCIATION_CREDIT_TRACE_2025 | TAX_PAYER_ASSOCIATION_CREDIT | traceFields=[taxPayerAssociationIncomeAmount, earnedIncomeAmount, domesticCalculatedTaxAmount, taxPayerAssociationAllocatedTaxAmount, taxPayerAssociationCreditAmount] | law-income-tax-act-150-tax-payer-association-2025-01-01 |
 
 ## Changed Rules
 

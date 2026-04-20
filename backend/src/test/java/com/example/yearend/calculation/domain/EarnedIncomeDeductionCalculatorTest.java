@@ -803,6 +803,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     LocalDate.of(2025, 12, 31)
                 ),
                 deductionRule(
+                    DeductionType.TAX_PAYER_ASSOCIATION_CREDIT,
+                    TaxPayerAssociationCreditCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"creditRate\":0.05}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.TAX_PAYER_ASSOCIATION_CREDIT,
+                    TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"formula\":\"calculatedTax * (associationIncome / earnedIncome) * creditRate\"}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.TAX_PAYER_ASSOCIATION_CREDIT,
+                    TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"taxPayerAssociationIncomeAmount\",\"earnedIncomeAmount\",\"domesticCalculatedTaxAmount\",\"taxPayerAssociationAllocatedTaxAmount\",\"taxPayerAssociationCreditAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
                     DeductionType.STANDARD_TAX_CREDIT,
                     StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE,
                     RuleCategory.LIMIT,

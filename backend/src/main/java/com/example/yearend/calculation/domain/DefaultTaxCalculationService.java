@@ -37,6 +37,8 @@ import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCal
 import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator.EmployeeStockOwnershipRuleSnapshot;
 import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.ForeignTaxCreditCalculation;
 import com.example.yearend.calculation.domain.ForeignTaxCreditCalculator.ForeignTaxCreditRuleSnapshot;
+import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator.TaxPayerAssociationCreditCalculation;
+import com.example.yearend.calculation.domain.TaxPayerAssociationCreditCalculator.TaxPayerAssociationCreditRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -78,6 +80,9 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String FOREIGN_TAX_CREDIT_RATE_CODE          = ForeignTaxCreditCalculator.RATE_RULE_CODE;
     private static final String FOREIGN_TAX_CREDIT_LIMIT_FORMULA_CODE = ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE;
     private static final String FOREIGN_TAX_CREDIT_TRACE_CODE         = ForeignTaxCreditCalculator.TRACE_RULE_CODE;
+    private static final String TAX_PAYER_ASSOCIATION_CREDIT_RATE_CODE    = TaxPayerAssociationCreditCalculator.RATE_RULE_CODE;
+    private static final String TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_CODE = TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE;
+    private static final String TAX_PAYER_ASSOCIATION_CREDIT_TRACE_CODE   = TaxPayerAssociationCreditCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -100,6 +105,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
     private final ForeignTaxCreditCalculator foreignTaxCreditCalculator;
+    private final TaxPayerAssociationCreditCalculator taxPayerAssociationCreditCalculator;
 
     public DefaultTaxCalculationService(
         EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator,
@@ -122,7 +128,8 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
         StandardTaxCreditCalculator standardTaxCreditCalculator,
-        ForeignTaxCreditCalculator foreignTaxCreditCalculator
+        ForeignTaxCreditCalculator foreignTaxCreditCalculator,
+        TaxPayerAssociationCreditCalculator taxPayerAssociationCreditCalculator
     ) {
         this.earnedIncomeDeductionCalculator = earnedIncomeDeductionCalculator;
         this.personalDeductionCalculator = personalDeductionCalculator;
@@ -145,6 +152,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
         this.foreignTaxCreditCalculator = foreignTaxCreditCalculator;
+        this.taxPayerAssociationCreditCalculator = taxPayerAssociationCreditCalculator;
     }
 
     @Override
@@ -332,6 +340,15 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             foreignTaxCreditRuleSnapshot
         );
         long foreignTaxCreditAmount = foreignTaxCreditCalculation.foreignTaxCreditAmount();
+        TaxPayerAssociationCreditRuleSnapshot taxPayerAssociationCreditRuleSnapshot =
+            taxPayerAssociationCreditCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        TaxPayerAssociationCreditCalculation taxPayerAssociationCreditCalculation = taxPayerAssociationCreditCalculator.calculate(
+            command.taxPayerAssociationIncomeAmount(),
+            earnedIncomeAmount,
+            calculatedTaxAmount,
+            taxPayerAssociationCreditRuleSnapshot
+        );
+        long taxPayerAssociationCreditAmount = taxPayerAssociationCreditCalculation.taxPayerAssociationCreditAmount();
         long specialTaxCreditFromDecisions = command.deductionDecisions().stream()
             .filter(DeductionDecision::eligible)
             .filter(d -> d.deductionType() == DeductionType.INSURANCE
@@ -356,7 +373,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             standardTaxCreditRuleSnapshot
         );
         long chosenSpecialOrStandardCreditAmount = standardTaxCreditCalculation.appliedAmount();
-        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + foreignTaxCreditAmount + nonSpecialOtherTaxCreditAmount;
+        long taxCreditAmount = earnedIncomeTaxCreditAmount + chosenSpecialOrStandardCreditAmount + childTaxCreditAmount + pensionAccountTaxCreditAmount + monthlyRentTaxCreditAmount + foreignTaxCreditAmount + taxPayerAssociationCreditAmount + nonSpecialOtherTaxCreditAmount;
         long finalTaxAmount = Math.max(0L, calculatedTaxAmount - taxCreditAmount);
         long expectedRefundAmount = command.withholdingTax() - finalTaxAmount;
 
@@ -556,6 +573,14 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("foreignTaxCreditLimitAmount = " + foreignTaxCreditCalculation.foreignTaxCreditLimitAmount());
         trace.add("ruleCode " + FOREIGN_TAX_CREDIT_TRACE_CODE + " applied");
         trace.add("foreignTaxCreditAmount = " + foreignTaxCreditAmount);
+        trace.add("ruleCode " + TAX_PAYER_ASSOCIATION_CREDIT_RATE_CODE + " applied");
+        trace.add("taxPayerAssociationIncomeAmount = " + taxPayerAssociationCreditCalculation.taxPayerAssociationIncomeAmount());
+        trace.add("earnedIncomeAmountForAssociation = " + taxPayerAssociationCreditCalculation.earnedIncomeAmount());
+        trace.add("domesticCalculatedTaxAmount = " + taxPayerAssociationCreditCalculation.domesticCalculatedTaxAmount());
+        trace.add("ruleCode " + TAX_PAYER_ASSOCIATION_CREDIT_FORMULA_CODE + " applied");
+        trace.add("taxPayerAssociationAllocatedTaxAmount = " + taxPayerAssociationCreditCalculation.taxPayerAssociationAllocatedTaxAmount());
+        trace.add("ruleCode " + TAX_PAYER_ASSOCIATION_CREDIT_TRACE_CODE + " applied");
+        trace.add("taxPayerAssociationCreditAmount = " + taxPayerAssociationCreditAmount);
         trace.add("ruleCode " + StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE + " applied");
         trace.add("ruleCode " + StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE + " applied");
         trace.add("specialTaxCreditTotal = " + standardTaxCreditCalculation.specialTaxCreditTotal());
@@ -595,6 +620,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             pensionAccountTaxCreditAmount,
             monthlyRentTaxCreditAmount,
             foreignTaxCreditAmount,
+            taxPayerAssociationCreditAmount,
             nonSpecialOtherTaxCreditAmount,
             taxCreditAmount,
             finalTaxAmount,

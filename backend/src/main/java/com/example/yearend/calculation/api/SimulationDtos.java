@@ -53,6 +53,7 @@ public final class SimulationDtos {
         long pensionAccountTaxCreditAmount,
         long monthlyRentTaxCreditAmount,
         long foreignTaxCreditAmount,
+        long taxPayerAssociationCreditAmount,
         long otherTaxCreditAmount,
         long taxCreditAmount,
         long finalTaxAmount,

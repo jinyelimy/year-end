@@ -1,6 +1,6 @@
 {
-  "approvedAt": "2026-04-20T14:10:00+09:00",
-  "sourceRunDir": ".local/harness/2026-04-20/20260420-140000-foreign-tax-credit",
+  "approvedAt": "2026-04-20T14:35:00+09:00",
+  "sourceRunDir": ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
@@ -175,6 +175,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["foreign-tax-credit"]
+    },
+    {
+      "approvedAt": "2026-04-20T14:35:00+09:00",
+      "sourceRunDir": ".local/harness/2026-04-20/20260420-142500-tax-payer-association-credit",
+      "ruleSetId": "2025@2025.01-tax-payer-association-credit-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["tax-payer-association-credit"]
     }
   ]
 }

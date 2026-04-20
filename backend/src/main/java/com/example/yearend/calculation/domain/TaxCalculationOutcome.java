@@ -31,6 +31,7 @@ public record TaxCalculationOutcome(
     long pensionAccountTaxCreditAmount,
     long monthlyRentTaxCreditAmount,
     long foreignTaxCreditAmount,
+    long taxPayerAssociationCreditAmount,
     long otherTaxCreditAmount,
     long taxCreditAmount,
     long finalTaxAmount,
