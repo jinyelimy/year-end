@@ -374,9 +374,12 @@
       ],
       "notes": "미구현. 만 19~34세, 총급여 5천만원 이하. 납입액 40% 소득공제, 한도 240만원. 나이/소득 요건 검증 필요.",
       "status": "done",
-      "doneAt": "2026-04-20T04:52:47Z",
+      "doneAt": "2026-04-20T04:53:14Z",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment"
+      ],
+      "doneCommits": [
+        "de420cd342ad282cc4e7403fc35c86e541e10fb3"
       ]
     },
     {
@@ -595,6 +598,12 @@
       "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
       "commitSha": null,
       "at": "2026-04-20T04:52:47Z"
+    },
+    {
+      "sliceId": "youth-long-term-collective-investment",
+      "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
+      "commitSha": "de420cd342ad282cc4e7403fc35c86e541e10fb3",
+      "at": "2026-04-20T04:53:14Z"
     }
   ]
 }
