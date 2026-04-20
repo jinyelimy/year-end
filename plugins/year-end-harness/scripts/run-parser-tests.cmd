@@ -5,7 +5,7 @@ for %%I in ("%~dp0..\..\..") do set "REPO_ROOT=%%~fI"
 set "ARTIFACT=backend\build\reports\tests\test\index.html"
 
 pushd "%REPO_ROOT%\backend" >nul
-call gradlew.bat test --tests "*HometaxPdf*"
+call .\gradlew.bat test --tests "*HometaxPdf*"
 set "EXIT_CODE=%ERRORLEVEL%"
 popd >nul
 
