@@ -2,7 +2,7 @@
   "meta": {
     "schemaVersion": 1,
     "updatedAt": "2026-04-20",
-    "scope": "P0 remaining + P1 + P2 + P3 공제",
+    "scope": "P0 remaining + P1 + P2 + P3 공제 + P3 감면",
     "timezone": "Asia/Seoul"
   },
   "slices": [
@@ -481,6 +481,26 @@
       "doneCommits": [
         "5522cb8"
       ]
+    },
+    {
+      "id": "sme-youth-employee-tax-reduction",
+      "name": "중소기업 취업자 소득세 감면",
+      "priority": "P3",
+      "category": "감면 슬라이스",
+      "flow": [
+        "4-1",
+        "4-2",
+        "4-3"
+      ],
+      "notes": "조세특례제한법 제30조. 세액감면. 청년 90%/연 200만원, 60세이상·장애인·경력단절여성 70%/연 150만원. 감면기간 5/3년, 병역기간 최대 6년 차감.",
+      "status": "done",
+      "doneAt": "2026-04-20T15:00:00+09:00",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-150000-sme-youth-employee-tax-reduction"
+      ],
+      "doneCommits": [
+        "3f36fd2"
+      ]
     }
   ],
   "runHistory": [
@@ -639,6 +659,18 @@
       "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
       "commitSha": "de420cd342ad282cc4e7403fc35c86e541e10fb3",
       "at": "2026-04-20T04:53:14Z"
+    },
+    {
+      "sliceId": "sme-youth-employee-tax-reduction",
+      "runDir": ".local/harness/2026-04-20/20260420-150000-sme-youth-employee-tax-reduction",
+      "commitSha": null,
+      "at": "2026-04-20T15:00:00+09:00"
+    },
+    {
+      "sliceId": "sme-youth-employee-tax-reduction",
+      "runDir": ".local/harness/2026-04-20/20260420-150000-sme-youth-employee-tax-reduction",
+      "commitSha": "3f36fd2d6df5d6057d5aea1f3086e05dc9250c48",
+      "at": "2026-04-20T15:05:00+09:00"
     }
   ]
 }
