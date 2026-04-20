@@ -354,7 +354,7 @@ Phase 0부터 5까지 수행해줘.
 | P3 | 청년형 장기집합투자증권저축 | backlog 등록 (`youth-long-term-collective-investment`) | `4-1 -> 4-2 -> 4-3` | 나이/소득 요건 검증 필요 |
 | P3 | 외국납부세액공제 | backlog 등록 (`foreign-tax-credit`) | `4-1 -> 4-2 -> 4-3` | 특수 케이스, 증빙과 환율 기준 확인 필요 |
 | P3 | 납세조합공제 | backlog 등록 (`tax-payer-association-credit`) | `4-1 -> 4-2 -> 4-3` | 특수 케이스 |
-| P3 | 표준세액공제 | backlog 등록 (`standard-tax-credit`) | `4-1 -> 4-2 -> 4-3` | 특별세액공제와의 선택/대체 관계 확인 필요 |
+| ★ P3 | 표준세액공제 | 구현 완료 | `4-1 -> 4-2 -> 4-3` | commit 1b8cc98 |
 
 ### 공제보다 감면에 가까운 후보
 
