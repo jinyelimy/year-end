@@ -39,6 +39,7 @@ public final class SimulationDtos {
         long housingLoanDeductionAmount,
         long longTermMortgageDeductionAmount,
         long housingSavingsDeductionAmount,
+        long longTermCollectiveInvestmentDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

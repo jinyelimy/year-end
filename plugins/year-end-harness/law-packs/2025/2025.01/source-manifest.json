@@ -72,6 +72,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-act",
       "notes": "소득세법 제59조의4 제9항. 근로소득자 연 13만원, 성실사업자 연 12만원, 그 외 종합소득자 연 7만원. 특별소득공제·특별세액공제·월세액세액공제 신청을 하지 아니한 경우 적용. 2025-10-01 타법개정 시행 (법률 제21065호)."
+    },
+    {
+      "sourceId": "law-stra-91-16-long-term-collective-investment-2025-01-01",
+      "sourceName": "조세특례제한법 제91조의16 (장기집합투자증권저축에 대한 소득공제)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0091_16&lsiSeq=263042&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2024-12-31",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "조세특례제한법 제91조의16. 가입 당시 총급여 5천만원 이하 근로자, 2025-12-31까지 가입, 10년 이상 계약. 납입액의 40%를 근로소득금액에서 공제, 연 240만원 한도 (=600만원 납입한도 × 40%)."
     }
   ],
   "previousRuns": [
@@ -87,6 +98,7 @@
     ".local/harness/2026-04-16/20260416-134405-social-insurance-special",
     ".local/harness/2026-04-16/20260416-155000-credit-card",
     ".local/harness/2026-04-16/20260416-162250-donation",
-    ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext"
+    ".local/harness/2026-04-16/20260416-162527-insurance-premium-ext",
+    ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment"
   ]
 }

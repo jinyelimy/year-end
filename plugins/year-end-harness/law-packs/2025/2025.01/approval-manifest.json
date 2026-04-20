@@ -127,6 +127,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["standard-tax-credit"]
+    },
+    {
+      "approvedAt": "2026-04-20T12:30:00+09:00",
+      "sourceRunDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
+      "ruleSetId": "2025@2025.01-long-term-collective-investment-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["long-term-collective-investment"]
     }
   ]
 }

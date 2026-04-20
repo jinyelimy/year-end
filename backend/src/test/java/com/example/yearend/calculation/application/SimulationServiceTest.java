@@ -139,6 +139,7 @@ class SimulationServiceTest {
                 0L,  // housingLoanDeductionAmount
                 0L,  // longTermMortgageDeductionAmount
                 0L,  // housingSavingsDeductionAmount
+                0L,  // longTermCollectiveInvestmentDeductionAmount
                 480_000L,
                 37_270_000L,
                 2_236_200L,

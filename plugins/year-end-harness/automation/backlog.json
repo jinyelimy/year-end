@@ -353,7 +353,11 @@
         "4-3"
       ],
       "notes": "미구현. 금융기관 자료 기반. 납입액 40% 소득공제, 한도 240만원. 가입기간/총급여 요건.",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-20T04:36:40Z",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment"
+      ]
     },
     {
       "id": "youth-long-term-collective-investment",
@@ -566,6 +570,12 @@
       "runDir": ".local/harness/2026-04-20/20260420-110743-standard-tax-credit",
       "commitSha": null,
       "at": "2026-04-20T02:54:03Z"
+    },
+    {
+      "sliceId": "long-term-collective-investment",
+      "runDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
+      "commitSha": null,
+      "at": "2026-04-20T04:36:40Z"
     }
   ]
 }

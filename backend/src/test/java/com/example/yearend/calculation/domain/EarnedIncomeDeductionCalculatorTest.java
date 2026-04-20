@@ -11,6 +11,7 @@ import com.example.yearend.calculation.domain.MonthlyRentTaxCreditCalculator;
 import com.example.yearend.calculation.domain.HousingLoanDeductionCalculator;
 import com.example.yearend.calculation.domain.LongTermMortgageDeductionCalculator;
 import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator;
+import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -642,6 +643,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     HousingSavingsDeductionCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"housingSavingsContributionAmount\",\"deductionBeforeLimitAmount\",\"housingSavingsDeductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.LONG_TERM_COLLECTIVE_INVESTMENT,
+                    LongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"annualDeductionLimit\":2400000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.LONG_TERM_COLLECTIVE_INVESTMENT,
+                    LongTermCollectiveInvestmentDeductionCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"deductionRate\":0.40}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.LONG_TERM_COLLECTIVE_INVESTMENT,
+                    LongTermCollectiveInvestmentDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"longTermCollectiveInvestmentContributionAmount\",\"longTermCollectiveInvestmentDeductionBeforeLimitAmount\",\"longTermCollectiveInvestmentDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 ),

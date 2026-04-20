@@ -37,6 +37,7 @@ public record TaxCalculationCommand(
     long longTermMortgageInterestAmount,
     String longTermMortgageRepaymentType,
     long housingSavingsContributionAmount,
+    long longTermCollectiveInvestmentContributionAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

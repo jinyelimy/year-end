@@ -52,6 +52,9 @@
 | STANDARD_TAX_CREDIT_FLAT_AMOUNT_2025 | STANDARD_TAX_CREDIT | amountPerPerson=130000 (근로자 연 13만원) | law-income-tax-act-59-4-9-2025 |
 | STANDARD_TAX_CREDIT_WORKER_ELIGIBILITY_2025 | STANDARD_TAX_CREDIT | requiresEarnedIncome=True | law-income-tax-act-59-4-9-2025 |
 | STANDARD_TAX_CREDIT_VS_SPECIAL_CHOICE_FORMULA_2025 | STANDARD_TAX_CREDIT | method=max; competingSubTypes=[INSURANCE_PREMIUM,MEDICAL_EXPENSE,EDUCATION_EXPENSE,DONATION]; tieBreakPreference=STANDARD | law-income-tax-act-59-4-9-2025 |
+| LONG_TERM_COLLECTIVE_INVESTMENT_RATE_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | deductionRate=0.40 | law-stra-91-16-long-term-collective-investment-2025-01-01 |
+| LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | annualDeductionLimit=2400000; maxAnnualContributionAmount=6000000; maxGrossSalaryAtEnrollmentAmount=50000000; contractEnrollmentDeadline=2025-12-31; minimumContractYears=10 | law-stra-91-16-long-term-collective-investment-2025-01-01 |
+| LONG_TERM_COLLECTIVE_INVESTMENT_TRACE_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | traceFields=[longTermCollectiveInvestmentContributionAmount, longTermCollectiveInvestmentDeductionBeforeLimitAmount, longTermCollectiveInvestmentDeductionAmount] | law-stra-91-16-long-term-collective-investment-2025-01-01 |
 
 ## Changed Rules
 
