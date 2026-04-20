@@ -397,6 +397,9 @@
       "doneAt": "2026-04-20T13:05:00+09:00",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid"
+      ],
+      "doneCommits": [
+        "fad0038"
       ]
     },
     {
