@@ -354,9 +354,12 @@
       ],
       "notes": "미구현. 금융기관 자료 기반. 납입액 40% 소득공제, 한도 240만원. 가입기간/총급여 요건.",
       "status": "done",
-      "doneAt": "2026-04-20T04:36:40Z",
+      "doneAt": "2026-04-20T04:37:25Z",
       "doneRuns": [
         ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment"
+      ],
+      "doneCommits": [
+        "82e0533e02324287d6832f6933dfda90e73e54a5"
       ]
     },
     {
@@ -576,6 +579,12 @@
       "runDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
       "commitSha": null,
       "at": "2026-04-20T04:36:40Z"
+    },
+    {
+      "sliceId": "long-term-collective-investment",
+      "runDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
+      "commitSha": "82e0533e02324287d6832f6933dfda90e73e54a5",
+      "at": "2026-04-20T04:37:25Z"
     }
   ]
 }
