@@ -18,6 +18,7 @@ import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeduct
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator;
+import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator;
 import com.example.yearend.calculation.domain.TaxCalculationCommand;
 import com.example.yearend.calculation.domain.TaxCalculationOutcome;
 import com.example.yearend.calculation.domain.TaxCalculationService;
@@ -95,6 +96,7 @@ public class SimulationService {
         YouthLongTermCollectiveInvestmentSummary youthLongTermCollectiveInvestmentSummary = summarizeYouthLongTermCollectiveInvestmentItems(deductionItems);
         SmeMutualAidSummary smeMutualAidSummary = summarizeSmeMutualAidItems(deductionItems);
         VentureInvestmentSummary ventureInvestmentSummary = summarizeVentureInvestmentItems(deductionItems);
+        EmployeeStockOwnershipSummary employeeStockOwnershipSummary = summarizeEmployeeStockOwnershipItems(deductionItems);
         List<DeductionDecision> decisions = deductionEngine.evaluate(context, deductionItems);
         TaxCalculationOutcome outcome = taxCalculationService.calculate(
             new TaxCalculationCommand(
@@ -131,6 +133,8 @@ public class SimulationService {
                 smeMutualAidSummary.incomeBasisAmount(),
                 ventureInvestmentSummary.directInvestmentAmount(),
                 ventureInvestmentSummary.fundInvestmentAmount(),
+                employeeStockOwnershipSummary.contributionAmount(),
+                employeeStockOwnershipSummary.isVentureEmployer(),
                 context.dependents(),
                 context.basicInfoAttributes(),
                 decisions,
@@ -185,6 +189,7 @@ public class SimulationService {
             outcome.youthLongTermCollectiveInvestmentDeductionAmount(),
             outcome.smeMutualAidDeductionAmount(),
             outcome.ventureInvestmentDeductionAmount(),
+            outcome.employeeStockOwnershipDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -434,6 +439,19 @@ public class SimulationService {
         return new VentureInvestmentSummary(directInvestmentAmount, fundInvestmentAmount);
     }
 
+    private EmployeeStockOwnershipSummary summarizeEmployeeStockOwnershipItems(List<DeductionItem> deductionItems) {
+        long contributionAmount = deductionItems.stream()
+            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.EMPLOYEE_STOCK_OWNERSHIP
+                && "CONTRIBUTION".equals(item.getSubType()))
+            .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
+            .sum();
+        boolean isVentureEmployer = deductionItems.stream()
+            .anyMatch(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.EMPLOYEE_STOCK_OWNERSHIP
+                && "VENTURE_EMPLOYER".equals(item.getSubType())
+                && item.getAmount() != null && item.getAmount() > 0L);
+        return new EmployeeStockOwnershipSummary(contributionAmount, isVentureEmployer);
+    }
+
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
             .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
@@ -548,6 +566,7 @@ public class SimulationService {
             outcome.youthLongTermCollectiveInvestmentDeductionAmount(),
             outcome.smeMutualAidDeductionAmount(),
             outcome.ventureInvestmentDeductionAmount(),
+            outcome.employeeStockOwnershipDeductionAmount(),
             outcome.totalDeductionAmount(),
             outcome.taxableIncomeAmount(),
             outcome.calculatedTaxAmount(),
@@ -629,7 +648,10 @@ public class SimulationService {
                 VentureInvestmentDeductionCalculator.RATE_DIRECT_TIERED_RULE_CODE,
                 VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE,
                 VentureInvestmentDeductionCalculator.INCOME_LIMIT_RULE_CODE,
-                VentureInvestmentDeductionCalculator.TRACE_RULE_CODE
+                VentureInvestmentDeductionCalculator.TRACE_RULE_CODE,
+                EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE,
+                EmployeeStockOwnershipDeductionCalculator.LIMIT_RULE_CODE,
+                EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE
             ),
             outcome.trace()
         );
@@ -734,6 +756,12 @@ public class SimulationService {
     ) {
     }
 
+    private record EmployeeStockOwnershipSummary(
+        long contributionAmount,
+        boolean isVentureEmployer
+    ) {
+    }
+
     private record HousingLoanRepaymentSummary(
         long bankRepaymentAmount,
         long individualRepaymentAmount
@@ -777,6 +805,7 @@ public class SimulationService {
         long youthLongTermCollectiveInvestmentDeductionAmount,
         long smeMutualAidDeductionAmount,
         long ventureInvestmentDeductionAmount,
+        long employeeStockOwnershipDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

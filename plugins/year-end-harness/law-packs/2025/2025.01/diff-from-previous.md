@@ -65,6 +65,9 @@
 | VENTURE_INVESTMENT_RATE_FUND_2025 | VENTURE_INVESTMENT | deductionRate=0.10 (조합/전문회사/투자신탁 출자 10% 일률) | law-stra-16-venture-investment-2025-01-01 |
 | VENTURE_INVESTMENT_INCOME_LIMIT_2025 | VENTURE_INVESTMENT | comprehensiveIncomeLimitRate=0.50 (종합소득금액의 50% 한도) | law-stra-16-venture-investment-2025-01-01 |
 | VENTURE_INVESTMENT_TRACE_2025 | VENTURE_INVESTMENT | traceFields=[ventureDirectInvestmentAmount, ventureFundInvestmentAmount, ventureDirectDeductionAmount, ventureFundDeductionAmount, ventureDeductionBeforeIncomeCapAmount, ventureInvestmentDeductionAmount] | law-stra-16-venture-investment-2025-01-01 |
+| EMPLOYEE_STOCK_OWNERSHIP_RATE_2025 | EMPLOYEE_STOCK_OWNERSHIP | deductionRate=1.00 (출연금 100% 공제) | law-stra-88-4-employee-stock-ownership-2025-01-01 |
+| EMPLOYEE_STOCK_OWNERSHIP_LIMIT_2025 | EMPLOYEE_STOCK_OWNERSHIP | regularAnnualDeductionLimit=4000000 (일반 기업 연 400만원); ventureAnnualDeductionLimit=15000000 (벤처기업 연 1,500만원) | law-stra-88-4-employee-stock-ownership-2025-01-01 |
+| EMPLOYEE_STOCK_OWNERSHIP_TRACE_2025 | EMPLOYEE_STOCK_OWNERSHIP | traceFields=[employeeStockOwnershipContributionAmount, employeeStockOwnershipAppliedLimitAmount, employeeStockOwnershipDeductionAmount] | law-stra-88-4-employee-stock-ownership-2025-01-01 |
 
 ## Changed Rules
 

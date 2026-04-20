@@ -33,6 +33,8 @@ import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.Sm
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.SmeMutualAidRuleSnapshot;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator.VentureInvestmentCalculation;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator.VentureInvestmentRuleSnapshot;
+import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator.EmployeeStockOwnershipCalculation;
+import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator.EmployeeStockOwnershipRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -68,6 +70,9 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String VENTURE_INVESTMENT_RATE_FUND_CODE          = VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE;
     private static final String VENTURE_INVESTMENT_INCOME_LIMIT_CODE       = VentureInvestmentDeductionCalculator.INCOME_LIMIT_RULE_CODE;
     private static final String VENTURE_INVESTMENT_TRACE_CODE              = VentureInvestmentDeductionCalculator.TRACE_RULE_CODE;
+    private static final String EMPLOYEE_STOCK_OWNERSHIP_RATE_CODE  = EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE;
+    private static final String EMPLOYEE_STOCK_OWNERSHIP_LIMIT_CODE = EmployeeStockOwnershipDeductionCalculator.LIMIT_RULE_CODE;
+    private static final String EMPLOYEE_STOCK_OWNERSHIP_TRACE_CODE = EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -85,6 +90,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator;
     private final SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator;
     private final VentureInvestmentDeductionCalculator ventureInvestmentDeductionCalculator;
+    private final EmployeeStockOwnershipDeductionCalculator employeeStockOwnershipDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
@@ -106,6 +112,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator,
         SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator,
         VentureInvestmentDeductionCalculator ventureInvestmentDeductionCalculator,
+        EmployeeStockOwnershipDeductionCalculator employeeStockOwnershipDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
         StandardTaxCreditCalculator standardTaxCreditCalculator
@@ -126,6 +133,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.youthLongTermCollectiveInvestmentDeductionCalculator = youthLongTermCollectiveInvestmentDeductionCalculator;
         this.smeMutualAidDeductionCalculator = smeMutualAidDeductionCalculator;
         this.ventureInvestmentDeductionCalculator = ventureInvestmentDeductionCalculator;
+        this.employeeStockOwnershipDeductionCalculator = employeeStockOwnershipDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
@@ -244,7 +252,15 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             ventureInvestmentRuleSnapshot
         );
         long ventureInvestmentDeductionAmount = ventureInvestmentCalculation.ventureInvestmentDeductionAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount + smeMutualAidDeductionAmount + ventureInvestmentDeductionAmount;
+        EmployeeStockOwnershipRuleSnapshot employeeStockOwnershipRuleSnapshot =
+            employeeStockOwnershipDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        EmployeeStockOwnershipCalculation employeeStockOwnershipCalculation = employeeStockOwnershipDeductionCalculator.calculate(
+            command.employeeStockOwnershipContributionAmount(),
+            command.isVentureEmployerForEsop(),
+            employeeStockOwnershipRuleSnapshot
+        );
+        long employeeStockOwnershipDeductionAmount = employeeStockOwnershipCalculation.employeeStockOwnershipDeductionAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount + smeMutualAidDeductionAmount + ventureInvestmentDeductionAmount + employeeStockOwnershipDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -444,6 +460,12 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("ventureDeductionBeforeIncomeCapAmount = " + ventureInvestmentCalculation.ventureDeductionBeforeIncomeCapAmount());
         trace.add("ruleCode " + VENTURE_INVESTMENT_TRACE_CODE + " applied");
         trace.add("ventureInvestmentDeductionAmount = " + ventureInvestmentDeductionAmount);
+        trace.add("ruleCode " + EMPLOYEE_STOCK_OWNERSHIP_RATE_CODE + " applied");
+        trace.add("employeeStockOwnershipContributionAmount = " + employeeStockOwnershipCalculation.employeeStockOwnershipContributionAmount());
+        trace.add("ruleCode " + EMPLOYEE_STOCK_OWNERSHIP_LIMIT_CODE + " applied");
+        trace.add("employeeStockOwnershipAppliedLimitAmount = " + employeeStockOwnershipCalculation.employeeStockOwnershipAppliedLimitAmount());
+        trace.add("ruleCode " + EMPLOYEE_STOCK_OWNERSHIP_TRACE_CODE + " applied");
+        trace.add("employeeStockOwnershipDeductionAmount = " + employeeStockOwnershipDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -538,6 +560,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             youthLongTermCollectiveInvestmentDeductionAmount,
             smeMutualAidDeductionAmount,
             ventureInvestmentDeductionAmount,
+            employeeStockOwnershipDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,

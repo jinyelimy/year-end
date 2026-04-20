@@ -109,6 +109,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-131000-venture-investment",
         "approvedAt": "2026-04-20T13:25:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "employee-stock-ownership",
+        "runDir": ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership",
+        "approvedAt": "2026-04-20T13:50:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1617,6 +1623,58 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-stra-16-venture-investment-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "EMPLOYEE_STOCK_OWNERSHIP",
+      "subType": "RATE",
+      "ruleCode": "EMPLOYEE_STOCK_OWNERSHIP_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "description": "조세특례제한법 제88조의4 제1항 우리사주조합 출연금 100% 소득공제율",
+        "deductionRate": 1.00
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-88-4-employee-stock-ownership-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "EMPLOYEE_STOCK_OWNERSHIP",
+      "subType": "LIMIT",
+      "ruleCode": "EMPLOYEE_STOCK_OWNERSHIP_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "description": "일반 기업 연 400만원, 벤처 기업 연 1,500만원 한도",
+        "regularAnnualDeductionLimit": 4000000,
+        "ventureAnnualDeductionLimit": 15000000
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-88-4-employee-stock-ownership-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "EMPLOYEE_STOCK_OWNERSHIP",
+      "subType": "TRACE",
+      "ruleCode": "EMPLOYEE_STOCK_OWNERSHIP_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "employeeStockOwnershipContributionAmount",
+          "employeeStockOwnershipAppliedLimitAmount",
+          "employeeStockOwnershipDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-88-4-employee-stock-ownership-2025-01-01"
       ],
       "confidence": "confirmed"
     }

@@ -143,6 +143,7 @@ class SimulationServiceTest {
                 0L,  // youthLongTermCollectiveInvestmentDeductionAmount
                 0L,  // smeMutualAidDeductionAmount
                 0L,  // ventureInvestmentDeductionAmount
+                0L,  // employeeStockOwnershipDeductionAmount
                 480_000L,
                 37_270_000L,
                 2_236_200L,

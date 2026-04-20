@@ -43,6 +43,8 @@ public record TaxCalculationCommand(
     long smeMutualAidIncomeBasisAmount,
     long ventureDirectInvestmentAmount,
     long ventureFundInvestmentAmount,
+    long employeeStockOwnershipContributionAmount,
+    boolean isVentureEmployerForEsop,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

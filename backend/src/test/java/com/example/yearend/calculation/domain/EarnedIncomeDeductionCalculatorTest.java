@@ -15,6 +15,7 @@ import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeduct
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
 import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator;
+import com.example.yearend.calculation.domain.EmployeeStockOwnershipDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -750,6 +751,30 @@ class EarnedIncomeDeductionCalculatorTest {
                     VentureInvestmentDeductionCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"ventureDirectInvestmentAmount\",\"ventureFundInvestmentAmount\",\"ventureDirectDeductionAmount\",\"ventureFundDeductionAmount\",\"ventureDeductionBeforeIncomeCapAmount\",\"ventureInvestmentDeductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.EMPLOYEE_STOCK_OWNERSHIP,
+                    EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"deductionRate\":1.00}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.EMPLOYEE_STOCK_OWNERSHIP,
+                    EmployeeStockOwnershipDeductionCalculator.LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"regularAnnualDeductionLimit\":4000000,\"ventureAnnualDeductionLimit\":15000000}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.EMPLOYEE_STOCK_OWNERSHIP,
+                    EmployeeStockOwnershipDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"employeeStockOwnershipContributionAmount\",\"employeeStockOwnershipAppliedLimitAmount\",\"employeeStockOwnershipDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 ),

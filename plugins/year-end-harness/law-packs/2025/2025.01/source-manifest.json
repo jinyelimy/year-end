@@ -116,6 +116,17 @@
       "checkedAt": "2026-04-20",
       "contentType": "law-article",
       "notes": "조세특례제한법 제16조. 벤처기업 직접투자 및 벤처투자조합/신기술사업투자조합/전문투자회사/투자신탁 출자액 소득공제. 직접투자는 3구간 차등 공제율(≤3천만원→100%, ≤5천만원→70%, >5천만원→30%), 조합 출자는 10% 일률. 종합소득금액의 50% 한도. 4개 rule code: VENTURE_INVESTMENT_RATE_DIRECT_TIERED_2025 / VENTURE_INVESTMENT_RATE_FUND_2025 / VENTURE_INVESTMENT_INCOME_LIMIT_2025 / VENTURE_INVESTMENT_TRACE_2025."
+    },
+    {
+      "sourceId": "law-stra-88-4-employee-stock-ownership-2025-01-01",
+      "sourceName": "조세특례제한법 제88조의4 제1항 (우리사주조합원에 대한 과세특례)",
+      "authority": "국가법령정보센터",
+      "sourceUrl": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joNo=0088_04&lsiSeq=263042&urlMode=lsScJoRltInfoR",
+      "publishedAt": "2024-12-31",
+      "effectiveAt": "2025-01-01",
+      "checkedAt": "2026-04-20",
+      "contentType": "law-article",
+      "notes": "조세특례제한법 제88조의4 제1항. 우리사주조합원이 조합에 출연한 금액의 100%를 소득공제. 일반 기업 연 400만원 한도, 벤처기업 연 1,500만원 한도. 3개 rule code: EMPLOYEE_STOCK_OWNERSHIP_RATE_2025 / EMPLOYEE_STOCK_OWNERSHIP_LIMIT_2025 / EMPLOYEE_STOCK_OWNERSHIP_TRACE_2025."
     }
   ],
   "previousRuns": [
@@ -135,6 +146,7 @@
     ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
     ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
     ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
-    ".local/harness/2026-04-20/20260420-131000-venture-investment"
+    ".local/harness/2026-04-20/20260420-131000-venture-investment",
+    ".local/harness/2026-04-20/20260420-134000-employee-stock-ownership"
   ]
 }
