@@ -91,6 +91,12 @@
         "runDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
         "approvedAt": "2026-04-20T12:30:00+09:00",
         "mergeMethod": "manual-append-to-2025.01"
+      },
+      {
+        "sliceId": "youth-long-term-collective-investment",
+        "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
+        "approvedAt": "2026-04-20T12:50:00+09:00",
+        "mergeMethod": "manual-append-to-2025.01"
       }
     ]
   },
@@ -1413,6 +1419,63 @@
       "effectiveTo": "2025-12-31",
       "sourceRefs": [
         "law-stra-91-16-long-term-collective-investment-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT",
+      "subType": "RATE",
+      "ruleCode": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_RATE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "deductionRate": 0.40
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-91-20-youth-long-term-collective-investment-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT",
+      "subType": "LIMIT",
+      "ruleCode": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_2025",
+      "ruleCategory": "LIMIT",
+      "parameters": {
+        "annualDeductionLimit": 2400000,
+        "maxAnnualContributionAmount": 6000000,
+        "maxGrossSalaryAtEnrollmentAmount": 50000000,
+        "youthMinAge": 19,
+        "youthMaxAge": 34,
+        "militaryServiceDeductionMaxYears": 6,
+        "contractEnrollmentDeadline": "2025-12-31",
+        "minimumContractYears": 3,
+        "maximumContractYears": 5
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-91-20-youth-long-term-collective-investment-2025-01-01"
+      ],
+      "confidence": "confirmed"
+    },
+    {
+      "deductionType": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT",
+      "subType": "TRACE",
+      "ruleCode": "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_TRACE_2025",
+      "ruleCategory": "FORMULA",
+      "parameters": {
+        "traceFields": [
+          "youthLongTermCollectiveInvestmentContributionAmount",
+          "youthLongTermCollectiveInvestmentDeductionBeforeLimitAmount",
+          "youthLongTermCollectiveInvestmentDeductionAmount"
+        ]
+      },
+      "effectiveFrom": "2025-01-01",
+      "effectiveTo": "2025-12-31",
+      "sourceRefs": [
+        "law-stra-91-20-youth-long-term-collective-investment-2025-01-01"
       ],
       "confidence": "confirmed"
     }

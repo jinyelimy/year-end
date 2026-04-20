@@ -55,6 +55,9 @@
 | LONG_TERM_COLLECTIVE_INVESTMENT_RATE_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | deductionRate=0.40 | law-stra-91-16-long-term-collective-investment-2025-01-01 |
 | LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | annualDeductionLimit=2400000; maxAnnualContributionAmount=6000000; maxGrossSalaryAtEnrollmentAmount=50000000; contractEnrollmentDeadline=2025-12-31; minimumContractYears=10 | law-stra-91-16-long-term-collective-investment-2025-01-01 |
 | LONG_TERM_COLLECTIVE_INVESTMENT_TRACE_2025 | LONG_TERM_COLLECTIVE_INVESTMENT | traceFields=[longTermCollectiveInvestmentContributionAmount, longTermCollectiveInvestmentDeductionBeforeLimitAmount, longTermCollectiveInvestmentDeductionAmount] | law-stra-91-16-long-term-collective-investment-2025-01-01 |
+| YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_RATE_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | deductionRate=0.40 | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
+| YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_LIMIT_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | annualDeductionLimit=2400000; maxAnnualContributionAmount=6000000; maxGrossSalaryAtEnrollmentAmount=50000000; youthMinAge=19; youthMaxAge=34; militaryServiceDeductionMaxYears=6; contractEnrollmentDeadline=2025-12-31; minimumContractYears=3; maximumContractYears=5 | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
+| YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT_TRACE_2025 | YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT | traceFields=[youthLongTermCollectiveInvestmentContributionAmount, youthLongTermCollectiveInvestmentDeductionBeforeLimitAmount, youthLongTermCollectiveInvestmentDeductionAmount] | law-stra-91-20-youth-long-term-collective-investment-2025-01-01 |
 
 ## Changed Rules
 

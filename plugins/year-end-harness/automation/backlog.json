@@ -373,7 +373,11 @@
         "4-3"
       ],
       "notes": "미구현. 만 19~34세, 총급여 5천만원 이하. 납입액 40% 소득공제, 한도 240만원. 나이/소득 요건 검증 필요.",
-      "status": "pending"
+      "status": "done",
+      "doneAt": "2026-04-20T04:52:47Z",
+      "doneRuns": [
+        ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment"
+      ]
     },
     {
       "id": "sme-mutual-aid",
@@ -585,6 +589,12 @@
       "runDir": ".local/harness/2026-04-20/20260420-115500-long-term-collective-investment",
       "commitSha": "82e0533e02324287d6832f6933dfda90e73e54a5",
       "at": "2026-04-20T04:37:25Z"
+    },
+    {
+      "sliceId": "youth-long-term-collective-investment",
+      "runDir": ".local/harness/2026-04-20/20260420-124000-youth-long-term-collective-investment",
+      "commitSha": null,
+      "at": "2026-04-20T04:52:47Z"
     }
   ]
 }
