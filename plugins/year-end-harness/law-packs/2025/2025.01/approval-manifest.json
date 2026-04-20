@@ -1,6 +1,6 @@
 {
-  "approvedAt": "2026-04-20T13:10:00+09:00",
-  "sourceRunDir": ".local/harness/2026-04-20/20260420-125500-sme-mutual-aid",
+  "approvedAt": "2026-04-20T13:25:00+09:00",
+  "sourceRunDir": ".local/harness/2026-04-20/20260420-131000-venture-investment",
   "destinationDir": "plugins/year-end-harness/law-packs/2025/2025.01",
   "taxYear": 2025,
   "ruleVersion": "2025.01",
@@ -151,6 +151,14 @@
       "approvalCommand": "manual-merge-into-2025.01",
       "approvedBy": "manual CLI approval",
       "slices": ["sme-mutual-aid"]
+    },
+    {
+      "approvedAt": "2026-04-20T13:25:00+09:00",
+      "sourceRunDir": ".local/harness/2026-04-20/20260420-131000-venture-investment",
+      "ruleSetId": "2025@2025.01-venture-investment-proposal",
+      "approvalCommand": "manual-merge-into-2025.01",
+      "approvedBy": "manual CLI approval",
+      "slices": ["venture-investment"]
     }
   ]
 }

@@ -42,6 +42,7 @@ public final class SimulationDtos {
         long longTermCollectiveInvestmentDeductionAmount,
         long youthLongTermCollectiveInvestmentDeductionAmount,
         long smeMutualAidDeductionAmount,
+        long ventureInvestmentDeductionAmount,
         long totalDeductionAmount,
         long taxableIncomeAmount,
         long calculatedTaxAmount,

@@ -41,6 +41,8 @@ public record TaxCalculationCommand(
     long youthLongTermCollectiveInvestmentContributionAmount,
     long smeMutualAidContributionAmount,
     long smeMutualAidIncomeBasisAmount,
+    long ventureDirectInvestmentAmount,
+    long ventureFundInvestmentAmount,
     List<Dependent> dependents,
     Map<String, Object> basicInfoAttributes,
     List<DeductionDecision> deductionDecisions,

@@ -61,6 +61,10 @@
 | SME_MUTUAL_AID_RATE_2025 | SME_MUTUAL_AID | deductionRate=1.00 (납입액 100% 공제) | law-stra-86-3-sme-mutual-aid-2025-01-01 |
 | SME_MUTUAL_AID_TIERED_LIMIT_2025 | SME_MUTUAL_AID | tiers=[{max:40M,limit:5M},{max:100M,limit:3M},{max:null,limit:2M}]; eligibleRole=SME_REPRESENTATIVE | law-stra-86-3-sme-mutual-aid-2025-01-01 |
 | SME_MUTUAL_AID_TRACE_2025 | SME_MUTUAL_AID | traceFields=[smeMutualAidContributionAmount, smeMutualAidIncomeBasisAmount, smeMutualAidAppliedTierLimit, smeMutualAidDeductionAmount] | law-stra-86-3-sme-mutual-aid-2025-01-01 |
+| VENTURE_INVESTMENT_RATE_DIRECT_TIERED_2025 | VENTURE_INVESTMENT | tiers=[{max:30M,rate:1.00},{max:50M,rate:0.70},{max:null,rate:0.30}] (직접투자 구간별 공제율) | law-stra-16-venture-investment-2025-01-01 |
+| VENTURE_INVESTMENT_RATE_FUND_2025 | VENTURE_INVESTMENT | deductionRate=0.10 (조합/전문회사/투자신탁 출자 10% 일률) | law-stra-16-venture-investment-2025-01-01 |
+| VENTURE_INVESTMENT_INCOME_LIMIT_2025 | VENTURE_INVESTMENT | comprehensiveIncomeLimitRate=0.50 (종합소득금액의 50% 한도) | law-stra-16-venture-investment-2025-01-01 |
+| VENTURE_INVESTMENT_TRACE_2025 | VENTURE_INVESTMENT | traceFields=[ventureDirectInvestmentAmount, ventureFundInvestmentAmount, ventureDirectDeductionAmount, ventureFundDeductionAmount, ventureDeductionBeforeIncomeCapAmount, ventureInvestmentDeductionAmount] | law-stra-16-venture-investment-2025-01-01 |
 
 ## Changed Rules
 

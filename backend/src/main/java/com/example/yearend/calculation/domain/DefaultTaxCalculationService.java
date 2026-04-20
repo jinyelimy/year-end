@@ -31,6 +31,8 @@ import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentD
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator.YouthLongTermCollectiveInvestmentRuleSnapshot;
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.SmeMutualAidCalculation;
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator.SmeMutualAidRuleSnapshot;
+import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator.VentureInvestmentCalculation;
+import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator.VentureInvestmentRuleSnapshot;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionCalculation;
 import com.example.yearend.calculation.domain.PersonalDeductionCalculator.PersonalDeductionRuleSnapshot;
 import com.example.yearend.calculation.domain.StandardTaxCreditCalculator.StandardTaxCreditCalculation;
@@ -62,6 +64,10 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private static final String SME_MUTUAL_AID_TIERED_LIMIT_CODE = SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE;
     private static final String SME_MUTUAL_AID_RATE_CODE         = SmeMutualAidDeductionCalculator.RATE_RULE_CODE;
     private static final String SME_MUTUAL_AID_TRACE_CODE        = SmeMutualAidDeductionCalculator.TRACE_RULE_CODE;
+    private static final String VENTURE_INVESTMENT_RATE_DIRECT_TIERED_CODE = VentureInvestmentDeductionCalculator.RATE_DIRECT_TIERED_RULE_CODE;
+    private static final String VENTURE_INVESTMENT_RATE_FUND_CODE          = VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE;
+    private static final String VENTURE_INVESTMENT_INCOME_LIMIT_CODE       = VentureInvestmentDeductionCalculator.INCOME_LIMIT_RULE_CODE;
+    private static final String VENTURE_INVESTMENT_TRACE_CODE              = VentureInvestmentDeductionCalculator.TRACE_RULE_CODE;
 
     private final EarnedIncomeDeductionCalculator earnedIncomeDeductionCalculator;
     private final PersonalDeductionCalculator personalDeductionCalculator;
@@ -78,6 +84,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
     private final LongTermCollectiveInvestmentDeductionCalculator longTermCollectiveInvestmentDeductionCalculator;
     private final YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator;
     private final SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator;
+    private final VentureInvestmentDeductionCalculator ventureInvestmentDeductionCalculator;
     private final IncomeTaxRateTableCalculator incomeTaxRateTableCalculator;
     private final EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator;
     private final StandardTaxCreditCalculator standardTaxCreditCalculator;
@@ -98,6 +105,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         LongTermCollectiveInvestmentDeductionCalculator longTermCollectiveInvestmentDeductionCalculator,
         YouthLongTermCollectiveInvestmentDeductionCalculator youthLongTermCollectiveInvestmentDeductionCalculator,
         SmeMutualAidDeductionCalculator smeMutualAidDeductionCalculator,
+        VentureInvestmentDeductionCalculator ventureInvestmentDeductionCalculator,
         IncomeTaxRateTableCalculator incomeTaxRateTableCalculator,
         EarnedIncomeTaxCreditCalculator earnedIncomeTaxCreditCalculator,
         StandardTaxCreditCalculator standardTaxCreditCalculator
@@ -117,6 +125,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         this.longTermCollectiveInvestmentDeductionCalculator = longTermCollectiveInvestmentDeductionCalculator;
         this.youthLongTermCollectiveInvestmentDeductionCalculator = youthLongTermCollectiveInvestmentDeductionCalculator;
         this.smeMutualAidDeductionCalculator = smeMutualAidDeductionCalculator;
+        this.ventureInvestmentDeductionCalculator = ventureInvestmentDeductionCalculator;
         this.incomeTaxRateTableCalculator = incomeTaxRateTableCalculator;
         this.earnedIncomeTaxCreditCalculator = earnedIncomeTaxCreditCalculator;
         this.standardTaxCreditCalculator = standardTaxCreditCalculator;
@@ -226,7 +235,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             smeMutualAidRuleSnapshot
         );
         long smeMutualAidDeductionAmount = smeMutualAidCalculation.smeMutualAidDeductionAmount();
-        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount + smeMutualAidDeductionAmount;
+        VentureInvestmentRuleSnapshot ventureInvestmentRuleSnapshot =
+            ventureInvestmentDeductionCalculator.resolveRuleSnapshot(command.ruleSetSnapshot());
+        VentureInvestmentCalculation ventureInvestmentCalculation = ventureInvestmentDeductionCalculator.calculate(
+            command.ventureDirectInvestmentAmount(),
+            command.ventureFundInvestmentAmount(),
+            totalIncomeAmount,
+            ventureInvestmentRuleSnapshot
+        );
+        long ventureInvestmentDeductionAmount = ventureInvestmentCalculation.ventureInvestmentDeductionAmount();
+        long totalDeductionAmount = itemDeductionAmount + personalDeductionAmount + pensionInsurancePremiumDeductionAmount + socialInsurancePremiumDeductionAmount + creditCardDeductionAmount + housingLoanDeductionAmount + longTermMortgageDeductionAmount + housingSavingsDeductionAmount + longTermCollectiveInvestmentDeductionAmount + youthLongTermCollectiveInvestmentDeductionAmount + smeMutualAidDeductionAmount + ventureInvestmentDeductionAmount;
         long taxableIncomeAmount = Math.max(0L, totalIncomeAmount - totalDeductionAmount);
         IncomeTaxCalculation incomeTaxCalculation = incomeTaxRateTableCalculator.calculate(
             taxableIncomeAmount,
@@ -416,6 +434,16 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
         trace.add("smeMutualAidAppliedTierLimit = " + smeMutualAidCalculation.smeMutualAidAppliedTierLimit());
         trace.add("ruleCode " + SME_MUTUAL_AID_TRACE_CODE + " applied");
         trace.add("smeMutualAidDeductionAmount = " + smeMutualAidDeductionAmount);
+        trace.add("ruleCode " + VENTURE_INVESTMENT_RATE_DIRECT_TIERED_CODE + " applied");
+        trace.add("ventureDirectInvestmentAmount = " + ventureInvestmentCalculation.ventureDirectInvestmentAmount());
+        trace.add("ventureDirectDeductionAmount = " + ventureInvestmentCalculation.ventureDirectDeductionAmount());
+        trace.add("ruleCode " + VENTURE_INVESTMENT_RATE_FUND_CODE + " applied");
+        trace.add("ventureFundInvestmentAmount = " + ventureInvestmentCalculation.ventureFundInvestmentAmount());
+        trace.add("ventureFundDeductionAmount = " + ventureInvestmentCalculation.ventureFundDeductionAmount());
+        trace.add("ruleCode " + VENTURE_INVESTMENT_INCOME_LIMIT_CODE + " applied");
+        trace.add("ventureDeductionBeforeIncomeCapAmount = " + ventureInvestmentCalculation.ventureDeductionBeforeIncomeCapAmount());
+        trace.add("ruleCode " + VENTURE_INVESTMENT_TRACE_CODE + " applied");
+        trace.add("ventureInvestmentDeductionAmount = " + ventureInvestmentDeductionAmount);
         trace.add("totalDeductionAmount = " + totalDeductionAmount);
         trace.add("ruleCode " + IncomeTaxRateTableCalculator.TAX_BASE_FORMULA_RULE_CODE + " applied");
         trace.add("taxableIncomeAmount = " + taxableIncomeAmount);
@@ -509,6 +537,7 @@ public class DefaultTaxCalculationService implements TaxCalculationService {
             longTermCollectiveInvestmentDeductionAmount,
             youthLongTermCollectiveInvestmentDeductionAmount,
             smeMutualAidDeductionAmount,
+            ventureInvestmentDeductionAmount,
             totalDeductionAmount,
             taxableIncomeAmount,
             calculatedTaxAmount,

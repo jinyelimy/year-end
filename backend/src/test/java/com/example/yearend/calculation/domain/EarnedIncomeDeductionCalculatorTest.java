@@ -14,6 +14,7 @@ import com.example.yearend.calculation.domain.HousingSavingsDeductionCalculator;
 import com.example.yearend.calculation.domain.LongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.YouthLongTermCollectiveInvestmentDeductionCalculator;
 import com.example.yearend.calculation.domain.SmeMutualAidDeductionCalculator;
+import com.example.yearend.calculation.domain.VentureInvestmentDeductionCalculator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -717,6 +718,38 @@ class EarnedIncomeDeductionCalculatorTest {
                     SmeMutualAidDeductionCalculator.TRACE_RULE_CODE,
                     RuleCategory.FORMULA,
                     "{\"traceFields\":[\"smeMutualAidContributionAmount\",\"smeMutualAidIncomeBasisAmount\",\"smeMutualAidAppliedTierLimit\",\"smeMutualAidDeductionAmount\"]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.VENTURE_INVESTMENT,
+                    VentureInvestmentDeductionCalculator.RATE_DIRECT_TIERED_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"tiers\":[{\"maxContributionAmount\":30000000,\"deductionRate\":1.00},{\"maxContributionAmount\":50000000,\"deductionRate\":0.70},{\"maxContributionAmount\":null,\"deductionRate\":0.30}]}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.VENTURE_INVESTMENT,
+                    VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"deductionRate\":0.10}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.VENTURE_INVESTMENT,
+                    VentureInvestmentDeductionCalculator.INCOME_LIMIT_RULE_CODE,
+                    RuleCategory.LIMIT,
+                    "{\"comprehensiveIncomeLimitRate\":0.50}",
+                    LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2025, 12, 31)
+                ),
+                deductionRule(
+                    DeductionType.VENTURE_INVESTMENT,
+                    VentureInvestmentDeductionCalculator.TRACE_RULE_CODE,
+                    RuleCategory.FORMULA,
+                    "{\"traceFields\":[\"ventureDirectInvestmentAmount\",\"ventureFundInvestmentAmount\",\"ventureDirectDeductionAmount\",\"ventureFundDeductionAmount\",\"ventureDeductionBeforeIncomeCapAmount\",\"ventureInvestmentDeductionAmount\"]}",
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2025, 12, 31)
                 ),
