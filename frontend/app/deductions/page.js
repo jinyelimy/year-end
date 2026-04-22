@@ -447,6 +447,8 @@ export default function DeductionsPage() {
   const selectedConfidence = selectedItem ? getConfidenceMeta(selectedItem) : null;
   const selectedReviewReason = selectedItem ? getImportReviewReason(selectedItem) : "";
   const selectedTypeMeta = getTypeMeta(form.deductionType);
+  const isSingleItemDuplicate = !selectedItemId && selectedTypeMeta.singleItem &&
+    deductionItems.some((item) => item.deductionType === form.deductionType);
   const totalDeduction = deductionItems.filter(isDeductionIncludedInCalculation).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const importedCount = deductionItems.filter(isImportedDeduction).length;
   const manualCount = deductionItems.length - importedCount;
@@ -634,7 +636,7 @@ export default function DeductionsPage() {
                 </div>
 
                 <div className="mt-5 rounded-3xl border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-sm font-semibold text-slate-700">현재 입력 구조 안내</p>
+                  <p className="text-sm font-semibold text-slate-700">입력 항목 안내</p>
                   <p className="mt-2 text-sm leading-6 text-slate-500">기본 5종(보험료, 의료비, 교육비, 카드사용액, 기부금)과 함께 장기집합투자·노란우산·투자조합·우리사주·외국납부·납세조합 등 연간 누계형 공제도 입력할 수 있습니다. 연간 누계 공제는 한 해 합산 금액으로 한 번만 입력해 주세요.</p>
                 </div>
 
@@ -748,11 +750,16 @@ export default function DeductionsPage() {
                   </section>
 
                   {!isConfirmed ? (
-                    <div className="flex justify-end gap-3">
-                      <button className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50" onClick={resetForm} type="button">초기화</button>
-                      <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
-                        {isSaving ? "저장 중..." : selectedItemId && selectedSource?.type === "HOMETAX" ? "검토 완료로 저장" : selectedItemId ? "공제 항목 수정" : "공제 항목 추가"}
-                      </button>
+                    <div className="flex flex-col gap-3">
+                      {isSingleItemDuplicate ? (
+                        <p className="text-right text-xs font-semibold text-amber-600">이 공제는 한 건만 입력할 수 있습니다. 기존 항목을 선택해 수정해 주세요.</p>
+                      ) : null}
+                      <div className="flex justify-end gap-3">
+                        <button className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50" onClick={resetForm} type="button">초기화</button>
+                        <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving || isSingleItemDuplicate} type="submit">
+                          {isSaving ? "저장 중..." : selectedItemId && selectedSource?.type === "HOMETAX" ? "검토 완료로 저장" : selectedItemId ? "공제 항목 수정" : "공제 항목 추가"}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </form>
