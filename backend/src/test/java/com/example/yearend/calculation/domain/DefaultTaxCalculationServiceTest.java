@@ -1118,4 +1118,46 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.trace()).anyMatch(line -> line.contains(VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("ventureInvestmentDeductionAmount = 500000"));
     }
+
+    @Test
+    @DisplayName("integrates SME youth employee tax reduction into taxCreditAmount (중소기업 취업자 소득세 감면 — GAP #5)")
+    void appliesSmeYouthEmployeeTaxReduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "YOUTH", 20_000_000L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        assertThat(outcome.smeYouthEmployeeTaxReductionAmount()).isPositive();
+        assertThat(outcome.taxCreditAmount()).isGreaterThanOrEqualTo(outcome.smeYouthEmployeeTaxReductionAmount());
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthCategory = YOUTH"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthEmployeeTaxReductionAmount"));
+    }
 }
