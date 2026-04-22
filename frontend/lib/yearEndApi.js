@@ -446,3 +446,12 @@ export async function initializeAuthenticatedContext() {
   const currentSession = await ensureCurrentSession();
   return { user, currentSession };
 }
+
+export async function importLawPack(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request("/api/v1/admin/rule-sets/import", {
+    method: "POST",
+    body: formData
+  });
+}
