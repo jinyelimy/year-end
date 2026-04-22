@@ -16,4 +16,6 @@ public interface TaxRuleSetRepository extends JpaRepository<TaxRuleSet, UUID> {
     );
 
     Optional<TaxRuleSet> findFirstByTaxYearAndStatusOrderByPublishedAtDesc(Integer taxYear, RuleSetStatus status);
+
+    Optional<TaxRuleSet> findFirstByTaxYearAndRuleVersion(Integer taxYear, String ruleVersion);
 }

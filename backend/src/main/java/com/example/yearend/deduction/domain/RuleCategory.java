@@ -5,5 +5,7 @@ public enum RuleCategory {
     ELIGIBILITY,
     FORMULA,
     LIMIT,
-    RATE
+    RATE,
+    AGGREGATE_CAP,
+    TRACE
 }

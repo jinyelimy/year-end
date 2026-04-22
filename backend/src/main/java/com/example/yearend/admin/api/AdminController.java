@@ -2,6 +2,7 @@ package com.example.yearend.admin.api;
 
 import com.example.yearend.admin.application.AdminReviewService;
 import com.example.yearend.admin.application.AdminRuleSetService;
+import com.example.yearend.admin.application.LawPackImportService;
 import com.example.yearend.common.api.ApiResponse;
 import com.example.yearend.taxsession.domain.SessionStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +32,7 @@ public class AdminController {
 
     private final AdminReviewService adminReviewService;
     private final AdminRuleSetService adminRuleSetService;
+    private final LawPackImportService lawPackImportService;
 
     @Operation(summary = "검토 대상 세션 목록 조회")
     @GetMapping("/tax-sessions")
@@ -71,5 +75,13 @@ public class AdminController {
         @PathVariable UUID ruleSetId
     ) {
         return ApiResponse.success(adminRuleSetService.publishRuleSet(userDetails.getUsername(), ruleSetId));
+    }
+
+    @Operation(summary = "normalized-rule-pack.json을 DRAFT 룰셋으로 임포트")
+    @PostMapping(value = "/rule-sets/import", consumes = "multipart/form-data")
+    public ApiResponse<AdminDtos.ImportRuleSetResponse> importLawPack(
+        @RequestPart("file") MultipartFile file
+    ) {
+        return ApiResponse.success(lawPackImportService.importLawPack(file));
     }
 }

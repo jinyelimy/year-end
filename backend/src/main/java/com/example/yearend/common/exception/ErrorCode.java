@@ -25,7 +25,9 @@ public enum ErrorCode {
     UNSUPPORTED_DEDUCTION_TYPE(HttpStatus.BAD_REQUEST, "RULE_400", "Unsupported deduction type."),
     ADMIN_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "ADMIN_400", "This checklist cannot be reviewed in the current state."),
     RULE_SET_REVIEW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "RULESET_400", "This rule set cannot be reviewed in the current state."),
-    RULE_SET_PUBLISH_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "RULESET_400_1", "This rule set cannot be published in the current state.");
+    RULE_SET_PUBLISH_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "RULESET_400_1", "This rule set cannot be published in the current state."),
+    RULE_SET_IMPORT_INVALID(HttpStatus.BAD_REQUEST, "RULESET_400_2", "The law pack could not be parsed or is missing required fields."),
+    RULE_SET_IMPORT_CONFLICT(HttpStatus.CONFLICT, "RULESET_409", "A rule set with the same taxYear and ruleVersion already exists and is not in DRAFT state.");
 
     private final HttpStatus status;
     private final String code;

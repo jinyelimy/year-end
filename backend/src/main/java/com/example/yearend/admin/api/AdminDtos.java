@@ -73,4 +73,14 @@ public final class AdminDtos {
         OffsetDateTime publishedAt
     ) {
     }
+
+    public record ImportRuleSetResponse(
+        UUID ruleSetId,
+        Integer taxYear,
+        String ruleVersion,
+        RuleSetStatus status,
+        int importedRuleCount,
+        int replacedRuleCount
+    ) {
+    }
 }
