@@ -174,6 +174,16 @@ const TYPE_META = {
     ],
     strictSubType: true,
     singleItem: true
+  },
+  SME_YOUTH_EMPLOYEE_TAX_REDUCTION: {
+    label: "중소기업 취업자 소득세 감면",
+    desc: "청년·60세 이상·장애인·경력단절여성의 중소기업 취업 근로소득 감면",
+    help: "'중소기업 근로소득'과 '감면 대상 유형'을 각각 입력하세요. 유형: 1=청년, 2=60세 이상, 3=장애인, 4=경력단절여성",
+    subs: [
+      { value: "EMPLOYER_INCOME", label: "중소기업 근로소득" },
+      { value: "CATEGORY", label: "감면 대상 유형(1~4)" }
+    ],
+    strictSubType: true
   }
 };
 

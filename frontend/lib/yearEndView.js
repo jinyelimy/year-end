@@ -20,7 +20,8 @@ export const DEDUCTION_TYPE_OPTIONS = [
   { value: "VENTURE_INVESTMENT", label: "투자조합 출자" },
   { value: "EMPLOYEE_STOCK_OWNERSHIP", label: "우리사주조합 출연금" },
   { value: "FOREIGN_TAX_CREDIT", label: "외국납부세액공제" },
-  { value: "TAX_PAYER_ASSOCIATION_CREDIT", label: "납세조합공제" }
+  { value: "TAX_PAYER_ASSOCIATION_CREDIT", label: "납세조합공제" },
+  { value: "SME_YOUTH_EMPLOYEE_TAX_REDUCTION", label: "중소기업 취업자 소득세 감면" }
 ];
 
 export const EVIDENCE_STATUS_OPTIONS = [

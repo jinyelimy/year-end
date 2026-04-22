@@ -1155,9 +1155,11 @@ class DefaultTaxCalculationServiceTest {
 
         TaxCalculationOutcome outcome = buildService().calculate(command);
 
-        assertThat(outcome.smeYouthEmployeeTaxReductionAmount()).isPositive();
+        // 30M gross → earnedIncome 20,250,000; tax 1,552,500; allocated=round(1,552,500×20M/20.25M)=1,533,333
+        // reduction = round(1,533,333×0.9)=1,380,000 < annual limit 2,000,000
+        assertThat(outcome.smeYouthEmployeeTaxReductionAmount()).isEqualTo(1_380_000L);
         assertThat(outcome.taxCreditAmount()).isGreaterThanOrEqualTo(outcome.smeYouthEmployeeTaxReductionAmount());
         assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthCategory = YOUTH"));
-        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthEmployeeTaxReductionAmount"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthEmployeeTaxReductionAmount = 1380000"));
     }
 }

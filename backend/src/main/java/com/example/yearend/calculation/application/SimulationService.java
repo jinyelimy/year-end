@@ -34,6 +34,7 @@ import com.example.yearend.deduction.application.DeductionItemReviewPolicy;
 import com.example.yearend.deduction.application.RuleSetResolver;
 import com.example.yearend.deduction.domain.DeductionDecision;
 import com.example.yearend.deduction.domain.DeductionItem;
+import com.example.yearend.deduction.domain.DeductionType;
 import com.example.yearend.deduction.domain.RuleSetSnapshot;
 import com.example.yearend.deduction.domain.TaxContext;
 import com.example.yearend.document.application.DocumentChecklistService;
@@ -365,7 +366,7 @@ public class SimulationService {
 
     private long sumCreditCardSubType(List<DeductionItem> deductionItems, String subType) {
         return deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.CREDIT_CARD
+            .filter(item -> item.getDeductionType() == DeductionType.CREDIT_CARD
                 && subType.equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -382,18 +383,18 @@ public class SimulationService {
 
     private long summarizeMonthlyRentItems(List<DeductionItem> deductionItems) {
         return deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.MONTHLY_RENT)
+            .filter(item -> item.getDeductionType() == DeductionType.MONTHLY_RENT)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
     }
 
     private LongTermMortgageSummary summarizeLongTermMortgageItems(List<DeductionItem> deductionItems) {
         long interestAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.LONG_TERM_MORTGAGE)
+            .filter(item -> item.getDeductionType() == DeductionType.LONG_TERM_MORTGAGE)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         String repaymentType = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.LONG_TERM_MORTGAGE
+            .filter(item -> item.getDeductionType() == DeductionType.LONG_TERM_MORTGAGE
                 && item.getSubType() != null)
             .map(item -> item.getSubType())
             .findFirst()
@@ -403,7 +404,7 @@ public class SimulationService {
 
     private HousingSavingsSummary summarizeHousingSavingsItems(List<DeductionItem> deductionItems) {
         long contributionAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_SAVINGS)
+            .filter(item -> item.getDeductionType() == DeductionType.HOUSING_SAVINGS)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         return new HousingSavingsSummary(contributionAmount);
@@ -411,7 +412,7 @@ public class SimulationService {
 
     private LongTermCollectiveInvestmentSummary summarizeLongTermCollectiveInvestmentItems(List<DeductionItem> deductionItems) {
         long contributionAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.LONG_TERM_COLLECTIVE_INVESTMENT)
+            .filter(item -> item.getDeductionType() == DeductionType.LONG_TERM_COLLECTIVE_INVESTMENT)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         return new LongTermCollectiveInvestmentSummary(contributionAmount);
@@ -419,7 +420,7 @@ public class SimulationService {
 
     private YouthLongTermCollectiveInvestmentSummary summarizeYouthLongTermCollectiveInvestmentItems(List<DeductionItem> deductionItems) {
         long contributionAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT)
+            .filter(item -> item.getDeductionType() == DeductionType.YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         return new YouthLongTermCollectiveInvestmentSummary(contributionAmount);
@@ -427,12 +428,12 @@ public class SimulationService {
 
     private SmeMutualAidSummary summarizeSmeMutualAidItems(List<DeductionItem> deductionItems) {
         long contributionAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_MUTUAL_AID
+            .filter(item -> item.getDeductionType() == DeductionType.SME_MUTUAL_AID
                 && "CONTRIBUTION".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         long incomeBasisAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_MUTUAL_AID
+            .filter(item -> item.getDeductionType() == DeductionType.SME_MUTUAL_AID
                 && "INCOME_BASIS".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -441,12 +442,12 @@ public class SimulationService {
 
     private VentureInvestmentSummary summarizeVentureInvestmentItems(List<DeductionItem> deductionItems) {
         long directInvestmentAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.VENTURE_INVESTMENT
+            .filter(item -> item.getDeductionType() == DeductionType.VENTURE_INVESTMENT
                 && "DIRECT".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         long fundInvestmentAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.VENTURE_INVESTMENT
+            .filter(item -> item.getDeductionType() == DeductionType.VENTURE_INVESTMENT
                 && "FUND".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -455,12 +456,12 @@ public class SimulationService {
 
     private EmployeeStockOwnershipSummary summarizeEmployeeStockOwnershipItems(List<DeductionItem> deductionItems) {
         long contributionAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.EMPLOYEE_STOCK_OWNERSHIP
+            .filter(item -> item.getDeductionType() == DeductionType.EMPLOYEE_STOCK_OWNERSHIP
                 && "CONTRIBUTION".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         boolean isVentureEmployer = deductionItems.stream()
-            .anyMatch(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.EMPLOYEE_STOCK_OWNERSHIP
+            .anyMatch(item -> item.getDeductionType() == DeductionType.EMPLOYEE_STOCK_OWNERSHIP
                 && "VENTURE_EMPLOYER".equals(item.getSubType())
                 && item.getAmount() != null && item.getAmount() > 0L);
         return new EmployeeStockOwnershipSummary(contributionAmount, isVentureEmployer);
@@ -468,12 +469,12 @@ public class SimulationService {
 
     private ForeignTaxCreditSummary summarizeForeignTaxCreditItems(List<DeductionItem> deductionItems) {
         long foreignTaxPaidAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.FOREIGN_TAX_CREDIT
+            .filter(item -> item.getDeductionType() == DeductionType.FOREIGN_TAX_CREDIT
                 && "FOREIGN_TAX_PAID".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         long foreignSourceIncomeAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.FOREIGN_TAX_CREDIT
+            .filter(item -> item.getDeductionType() == DeductionType.FOREIGN_TAX_CREDIT
                 && "FOREIGN_SOURCE_INCOME".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -482,7 +483,7 @@ public class SimulationService {
 
     private TaxPayerAssociationCreditSummary summarizeTaxPayerAssociationCreditItems(List<DeductionItem> deductionItems) {
         long incomeAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.TAX_PAYER_ASSOCIATION_CREDIT)
+            .filter(item -> item.getDeductionType() == DeductionType.TAX_PAYER_ASSOCIATION_CREDIT)
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         return new TaxPayerAssociationCreditSummary(incomeAmount);
@@ -490,12 +491,12 @@ public class SimulationService {
 
     private SmeYouthEmployeeTaxReductionSummary summarizeSmeYouthEmployeeTaxReductionItems(List<DeductionItem> deductionItems) {
         long employerIncomeAmount = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
+            .filter(item -> item.getDeductionType() == DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
                 && "EMPLOYER_INCOME".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         String category = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
+            .filter(item -> item.getDeductionType() == DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION
                 && "CATEGORY".equals(item.getSubType()))
             .map(item -> item.getAmount() == null ? null : categoryFromCode(item.getAmount()))
             .filter(value -> value != null)
@@ -516,12 +517,12 @@ public class SimulationService {
 
     private HousingLoanRepaymentSummary summarizeHousingLoanItems(List<DeductionItem> deductionItems) {
         long bankRepayment = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
+            .filter(item -> item.getDeductionType() == DeductionType.HOUSING_LOAN
                 && "BANK".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
         long individualRepayment = deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.HOUSING_LOAN
+            .filter(item -> item.getDeductionType() == DeductionType.HOUSING_LOAN
                 && "INDIVIDUAL".equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -537,7 +538,7 @@ public class SimulationService {
 
     private long sumPensionAccountSubType(List<DeductionItem> deductionItems, String subType) {
         return deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.PENSION_ACCOUNT
+            .filter(item -> item.getDeductionType() == DeductionType.PENSION_ACCOUNT
                 && subType.equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();
@@ -545,7 +546,7 @@ public class SimulationService {
 
     private long sumDonationSubType(List<DeductionItem> deductionItems, String subType) {
         return deductionItems.stream()
-            .filter(item -> item.getDeductionType() == com.example.yearend.deduction.domain.DeductionType.DONATION
+            .filter(item -> item.getDeductionType() == DeductionType.DONATION
                 && subType.equals(item.getSubType()))
             .mapToLong(item -> item.getAmount() == null ? 0L : item.getAmount())
             .sum();

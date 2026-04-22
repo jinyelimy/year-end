@@ -18,6 +18,7 @@ public class DeductionEngine {
 
     public List<DeductionDecision> evaluate(TaxContext context, List<DeductionItem> items) {
         return items.stream()
+            .filter(item -> deductionPolicyRegistry.supports(item.getDeductionType()))
             .map(item -> deductionPolicyRegistry.get(item.getDeductionType()).evaluate(context, item))
             .toList();
     }

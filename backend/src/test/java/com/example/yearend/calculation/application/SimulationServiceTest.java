@@ -236,28 +236,34 @@ class SimulationServiceTest {
     }
 
     @Test
-    @DisplayName("categoryFromCode maps codes 2-4 and unknown code to correct strings (GAP #8 branches)")
+    @DisplayName("categoryFromCode maps all codes to correct category strings (GAP #8 branches)")
     @SuppressWarnings("unchecked")
     void categoryFromCodeMapsAllBranches() {
         String email = "tester@example.com";
         UUID sessionId = UUID.randomUUID();
         TaxSession session = taxSession(sessionId);
         RuleSetSnapshot snapshot = new RuleSetSnapshot("2025@2025.01", "2025.01", "abc123", false, List.of());
+        java.util.Map<Long, String> expectedByCode = java.util.Map.of(
+            1L, "YOUTH",
+            2L, "SENIOR",
+            3L, "DISABLED",
+            4L, "CAREER_INTERRUPTED_WOMAN",
+            99L, "NONE"
+        );
 
         when(taxSessionService.getOwnedSession(email, sessionId)).thenReturn(session);
         when(ruleSetResolver.resolve(eq(2025), eq("rule-2025.1"), eq(LocalDate.of(2025, 12, 31)))).thenReturn(snapshot);
         when(incomeItemService.getEntities(email, sessionId)).thenReturn(List.of(incomeItem(session)));
         when(dependentService.getEntities(email, sessionId)).thenReturn(List.of());
-        when(taxCalculationService.calculate(any())).thenReturn(zeroOutcome());
         when(calculationResultRepository.findFirstByTaxSessionIdOrderByCalculationVersionDesc(sessionId))
             .thenReturn(Optional.empty());
 
-        for (long[] codeAndExpected : new long[][]{
-            {2L, -1}, {3L, -2}, {4L, -3}, {99L, -4}
-        }) {
-            long code = codeAndExpected[0];
-            String expectedCategory = code == 2 ? "SENIOR" : code == 3 ? "DISABLED"
-                : code == 4 ? "CAREER_INTERRUPTED_WOMAN" : "NONE";
+        for (java.util.Map.Entry<Long, String> entry : expectedByCode.entrySet()) {
+            long code = entry.getKey();
+            String expectedCategory = entry.getValue();
+
+            org.mockito.Mockito.reset(taxCalculationService);
+            when(taxCalculationService.calculate(any())).thenReturn(zeroOutcome());
 
             DeductionItem categoryItem = deductionItemWithSubType(
                 DeductionType.SME_YOUTH_EMPLOYEE_TAX_REDUCTION, code, "CATEGORY"
@@ -269,7 +275,7 @@ class SimulationServiceTest {
             simulationService.run(email, sessionId);
 
             ArgumentCaptor<TaxCalculationCommand> commandCaptor = ArgumentCaptor.forClass(TaxCalculationCommand.class);
-            verify(taxCalculationService, org.mockito.Mockito.atLeastOnce()).calculate(commandCaptor.capture());
+            verify(taxCalculationService).calculate(commandCaptor.capture());
             assertThat(commandCaptor.getValue().smeYouthCategory())
                 .as("code %d should map to %s", code, expectedCategory)
                 .isEqualTo(expectedCategory);
