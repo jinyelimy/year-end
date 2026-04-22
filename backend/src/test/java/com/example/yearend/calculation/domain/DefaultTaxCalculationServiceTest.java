@@ -517,4 +517,649 @@ class DefaultTaxCalculationServiceTest {
         assertThat(outcome.trace()).anyMatch(line -> line.contains(DonationTaxCreditCalculator.POLITICAL_BRACKET_RULE_CODE));
         assertThat(outcome.trace()).anyMatch(line -> line.contains("donationTaxCreditAmount = 105910"));
     }
+
+    @Test
+    @DisplayName("selects SPECIAL variant when special tax credits exceed the 130,000 standard flat (표준세액공제 SPECIAL 분기)")
+    void selectsSpecialStandardTaxCreditWhenSpecialExceedsFlat() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(
+                new DeductionDecision(UUID.randomUUID(), DeductionType.INSURANCE, true, 2_000_000L, 2_000_000L, 2_000_000L, 200_000L, List.of("applied"))
+            ),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // specialTaxCreditFromDecisions = 200_000 > standardFlat (130_000) → SPECIAL wins
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(StandardTaxCreditCalculator.FLAT_AMOUNT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(StandardTaxCreditCalculator.CHOICE_FORMULA_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("standardTaxCreditChosenVariant = SPECIAL"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("standardTaxCreditAppliedAmount = 200000"));
+    }
+
+    @Test
+    @DisplayName("applies long-term collective investment deduction at 40% within 2.4M cap (장기집합투자증권저축 공제)")
+    void appliesLongTermCollectiveInvestmentDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            3_000_000L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 3,000,000 × 40% = 1,200,000 (under 2,400,000 cap)
+        assertThat(outcome.longTermCollectiveInvestmentDeductionAmount()).isEqualTo(1_200_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(LongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("longTermCollectiveInvestmentDeductionAmount = 1200000"));
+    }
+
+    @Test
+    @DisplayName("applies youth long-term collective investment deduction at 40% within 2.4M cap (청년형 장기집합투자증권저축)")
+    void appliesYouthLongTermCollectiveInvestmentDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            3_000_000L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 3,000,000 × 40% = 1,200,000 (under 2,400,000 cap)
+        assertThat(outcome.youthLongTermCollectiveInvestmentDeductionAmount()).isEqualTo(1_200_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(YouthLongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("youthLongTermCollectiveInvestmentDeductionAmount = 1200000"));
+    }
+
+    @Test
+    @DisplayName("applies SME mutual aid deduction at 100% within lowest-tier 5M limit (소기업·소상공인 공제부금)")
+    void appliesSmeMutualAidDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            3_000_000L, 30_000_000L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // businessIncome 30M → lowest tier (≤40M) limit 5M; 3M × 100% = 3M < 5M (no cap)
+        assertThat(outcome.smeMutualAidDeductionAmount()).isEqualTo(3_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeMutualAidAppliedTierLimit = 5000000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeMutualAidDeductionAmount = 3000000"));
+    }
+
+    @Test
+    @DisplayName("applies venture direct investment deduction at 100% within first tier (투자조합 출자 등)")
+    void appliesVentureInvestmentDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            20_000_000L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 20M direct in first tier (≤30M) at 100% = 20M; 50% comprehensive cap (≈23.6M) does not bind
+        assertThat(outcome.ventureInvestmentDeductionAmount()).isEqualTo(20_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(VentureInvestmentDeductionCalculator.RATE_DIRECT_TIERED_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("ventureInvestmentDeductionAmount = 20000000"));
+    }
+
+    @Test
+    @DisplayName("applies employee stock ownership deduction within 4M regular-employer limit (우리사주조합 출연금)")
+    void appliesEmployeeStockOwnershipDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            3_000_000L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // regular employer → limit 4M; contribution 3M < 4M → deduction 3M
+        assertThat(outcome.employeeStockOwnershipDeductionAmount()).isEqualTo(3_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("employeeStockOwnershipAppliedLimitAmount = 4000000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("employeeStockOwnershipDeductionAmount = 3000000"));
+    }
+
+    @Test
+    @DisplayName("grants foreign tax credit equal to paid amount when below proportional limit (외국납부세액공제)")
+    void appliesForeignTaxCredit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            50_000L, 20_000_000L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // gross 60M → earnedIncome 47,250,000; taxableIncome 45,750,000 (personal 1.5M)
+        // calcTax = 45,750,000 × 0.15 − 1,260,000 = 5,602,500
+        // limit = Math.round(5,602,500 × 20M / 47,250,000) ≈ 2,371,429; paid 50k < limit → credit = 50k
+        assertThat(outcome.foreignTaxCreditAmount()).isEqualTo(50_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(ForeignTaxCreditCalculator.RATE_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("foreignTaxCreditAmount = 50000"));
+    }
+
+    @Test
+    @DisplayName("applies tax payer association credit at 5% of allocated tax (납세조합공제)")
+    void appliesTaxPayerAssociationCredit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            47_250_000L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // gross 60M → earnedIncome 47,250,000; calcTax 5,602,500
+        // associationIncome = earnedIncome → ratio 1.0; allocated = 5,602,500; credit = 5,602,500 × 5% = 280,125
+        assertThat(outcome.taxPayerAssociationCreditAmount()).isEqualTo(280_125L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(TaxPayerAssociationCreditCalculator.RATE_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(TaxPayerAssociationCreditCalculator.FORMULA_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("taxPayerAssociationCreditAmount = 280125"));
+    }
+
+    @Test
+    @DisplayName("caps long-term collective investment deduction at 2.4M ceiling (한도 초과 캡 적용)")
+    void capsLongTermCollectiveInvestmentAtCeiling() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            7_000_000L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 7,000,000 × 40% = 2,800,000 exceeds 2,400,000 cap → capped at 2,400,000
+        assertThat(outcome.longTermCollectiveInvestmentDeductionAmount()).isEqualTo(2_400_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(LongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("longTermCollectiveInvestmentDeductionAmount = 2400000"));
+    }
+
+    @Test
+    @DisplayName("caps youth long-term collective investment deduction at 2.4M ceiling (청년형 한도 초과 캡)")
+    void capsYouthLongTermCollectiveInvestmentAtCeiling() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            7_000_000L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 7,000,000 × 40% = 2,800,000 exceeds 2,400,000 cap → capped at 2,400,000
+        assertThat(outcome.youthLongTermCollectiveInvestmentDeductionAmount()).isEqualTo(2_400_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(YouthLongTermCollectiveInvestmentDeductionCalculator.LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("youthLongTermCollectiveInvestmentDeductionAmount = 2400000"));
+    }
+
+    @Test
+    @DisplayName("applies venture employer ESOP limit of 15M instead of regular 4M (우리사주 벤처기업 한도)")
+    void appliesVentureEmployerEsopLimit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            5_000_000L, true,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // venture employer → limit 15M; contribution 5M < 15M → deduction 5M
+        assertThat(outcome.employeeStockOwnershipDeductionAmount()).isEqualTo(5_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(EmployeeStockOwnershipDeductionCalculator.RATE_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("employeeStockOwnershipAppliedLimitAmount = 15000000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("employeeStockOwnershipDeductionAmount = 5000000"));
+    }
+
+    @Test
+    @DisplayName("caps foreign tax credit at proportional limit when paid amount exceeds it (비례한도 초과 시 캡)")
+    void capsForeignTaxCreditAtProportionalLimit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            3_000_000L, 20_000_000L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // gross 60M → earnedIncome 47,250,000; calcTax 5,602,500
+        // limit = Math.round(5,602,500 × 20M / 47,250,000) = 2,371,429; paid 3M > limit → credit = 2,371,429
+        assertThat(outcome.foreignTaxCreditAmount()).isEqualTo(2_371_429L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(ForeignTaxCreditCalculator.LIMIT_FORMULA_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("foreignTaxCreditAmount = 2371429"));
+    }
+
+    @Test
+    @DisplayName("applies SME mutual aid deduction under middle income tier limit of 3M (소득 4~10천만 구간 한도 300만)")
+    void appliesSmeMutualAidMiddleTierLimit() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            5_000_000L, 70_000_000L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // businessIncome 70M → middle tier (40M~100M) limit 3M; 5M × 100% = 5M → capped at 3M
+        assertThat(outcome.smeMutualAidDeductionAmount()).isEqualTo(3_000_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(SmeMutualAidDeductionCalculator.TIERED_LIMIT_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeMutualAidAppliedTierLimit = 3000000"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeMutualAidDeductionAmount = 3000000"));
+    }
+
+    @Test
+    @DisplayName("applies venture fund investment deduction at 10% rate (조합 출자 10% 공제율)")
+    void appliesVentureFundInvestmentDeduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            60_000_000L,
+            0L,
+            60_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 5_000_000L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "NONE", 0L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // fund 5M × 10% = 500,000; 50% comprehensive cap does not bind
+        assertThat(outcome.ventureInvestmentDeductionAmount()).isEqualTo(500_000L);
+        assertThat(outcome.trace()).anyMatch(line -> line.contains(VentureInvestmentDeductionCalculator.RATE_FUND_RULE_CODE));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("ventureInvestmentDeductionAmount = 500000"));
+    }
+
+    @Test
+    @DisplayName("integrates SME youth employee tax reduction into taxCreditAmount (중소기업 취업자 소득세 감면 — GAP #5)")
+    void appliesSmeYouthEmployeeTaxReduction() {
+        TaxCalculationCommand command = new TaxCalculationCommand(
+            2025,
+            30_000_000L,
+            0L,
+            30_000_000L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L,
+            0L, 0L, 0L, 0L,
+            0L, 0L, 0L, 0L, 0L,
+            0L, 0L, 0L,
+            0L,
+            0L, 0L,
+            0L, "NONE",
+            0L,
+            0L,
+            0L,
+            0L, 0L,
+            0L, 0L,
+            0L, false,
+            0L, 0L,
+            0L,
+            "YOUTH", 20_000_000L,
+            List.of(),
+            Map.of(),
+            List.of(),
+            EarnedIncomeDeductionCalculatorTest.officialRuleSetSnapshot()
+        );
+
+        TaxCalculationOutcome outcome = buildService().calculate(command);
+
+        // 30M gross → earnedIncome 20,250,000; tax 1,552,500; allocated=round(1,552,500×20M/20.25M)=1,533,333
+        // reduction = round(1,533,333×0.9)=1,380,000 < annual limit 2,000,000
+        assertThat(outcome.smeYouthEmployeeTaxReductionAmount()).isEqualTo(1_380_000L);
+        assertThat(outcome.taxCreditAmount()).isGreaterThanOrEqualTo(outcome.smeYouthEmployeeTaxReductionAmount());
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthCategory = YOUTH"));
+        assertThat(outcome.trace()).anyMatch(line -> line.contains("smeYouthEmployeeTaxReductionAmount = 1380000"));
+    }
 }

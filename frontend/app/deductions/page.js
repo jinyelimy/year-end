@@ -51,37 +51,145 @@ const TYPE_META = {
     label: "보험료",
     desc: "보장성보험, 장애인전용보험",
     help: "보험사나 상품명을 남겨 두면 검토가 쉬워집니다.",
-    subs: ["보장성보험", "장애인전용보험", "실손보험"]
+    subs: [
+      { value: "보장성보험", label: "보장성보험" },
+      { value: "장애인전용보험", label: "장애인전용보험" },
+      { value: "실손보험", label: "실손보험" }
+    ]
   },
   MEDICAL_EXPENSE: {
     label: "의료비",
     desc: "병원비, 약제비, 안경 구입비",
     help: "사용처와 지출일을 함께 남기면 추적이 쉬워집니다.",
-    subs: ["병원비", "약제비", "치과 치료비", "안경/렌즈", "산후조리원", "난임시술비"]
+    subs: [
+      { value: "병원비", label: "병원비" },
+      { value: "약제비", label: "약제비" },
+      { value: "치과 치료비", label: "치과 치료비" },
+      { value: "안경/렌즈", label: "안경/렌즈" },
+      { value: "산후조리원", label: "산후조리원" },
+      { value: "난임시술비", label: "난임시술비" }
+    ]
   },
   EDUCATION_EXPENSE: {
     label: "교육비",
     desc: "본인·부양가족 교육비",
     help: "누구를 위한 교육비인지 세부 설명에 남겨 주세요.",
-    subs: ["본인 교육비", "취학 전 아동", "초중고 교육비", "대학교 등록금", "학원비"]
+    subs: [
+      { value: "본인 교육비", label: "본인 교육비" },
+      { value: "취학 전 아동", label: "취학 전 아동" },
+      { value: "초중고 교육비", label: "초중고 교육비" },
+      { value: "대학교 등록금", label: "대학교 등록금" },
+      { value: "학원비", label: "학원비" }
+    ]
   },
   CREDIT_CARD: {
     label: "카드사용액",
     desc: "신용카드, 직불카드, 현금영수증",
     help: "카드 유형을 남겨 두면 나중에 비교가 쉽습니다.",
-    subs: ["신용카드", "직불카드", "현금영수증", "전통시장", "대중교통"]
+    subs: [
+      { value: "신용카드", label: "신용카드" },
+      { value: "직불카드", label: "직불카드" },
+      { value: "현금영수증", label: "현금영수증" },
+      { value: "전통시장", label: "전통시장" },
+      { value: "대중교통", label: "대중교통" }
+    ]
   },
   DONATION: {
     label: "기부금",
     desc: "일반기부금, 종교단체, 정치자금",
     help: "기부처와 영수증 상태를 함께 정리해 두면 좋습니다.",
-    subs: ["일반기부금", "종교단체", "정치자금", "고향사랑기부"]
+    subs: [
+      { value: "일반기부금", label: "일반기부금" },
+      { value: "종교단체", label: "종교단체" },
+      { value: "정치자금", label: "정치자금" },
+      { value: "고향사랑기부", label: "고향사랑기부" }
+    ]
+  },
+  LONG_TERM_COLLECTIVE_INVESTMENT: {
+    label: "장기집합투자증권저축",
+    desc: "소득공제용 장기집합투자증권저축 납입액",
+    help: "연간 납입액을 한 항목으로 입력하면 됩니다. 세부 항목 구분은 없습니다.",
+    subs: [
+      { value: "납입액", label: "납입액" }
+    ],
+    strictSubType: true,
+    singleItem: true
+  },
+  YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT: {
+    label: "청년형 장기집합투자증권저축",
+    desc: "청년 대상 장기집합투자증권저축 납입액",
+    help: "만 19~34세 청년 대상 저축입니다. 연간 납입액을 입력해 주세요.",
+    subs: [
+      { value: "납입액", label: "납입액" }
+    ],
+    strictSubType: true,
+    singleItem: true
+  },
+  SME_MUTUAL_AID: {
+    label: "소기업·소상공인 공제부금",
+    desc: "노란우산공제 납입액 + 사업소득 기준",
+    help: "'납입액'과 '사업소득 기준'을 각각 한 건씩 입력해야 한도가 정해집니다.",
+    subs: [
+      { value: "CONTRIBUTION", label: "납입액" },
+      { value: "INCOME_BASIS", label: "사업소득 기준" }
+    ],
+    strictSubType: true
+  },
+  VENTURE_INVESTMENT: {
+    label: "투자조합 출자",
+    desc: "창업·벤처투자조합 출자금 소득공제",
+    help: "직접 투자와 조합 출자는 공제율이 다르니 각각 입력해 주세요.",
+    subs: [
+      { value: "DIRECT", label: "직접 투자" },
+      { value: "FUND", label: "조합 출자" }
+    ],
+    strictSubType: true
+  },
+  EMPLOYEE_STOCK_OWNERSHIP: {
+    label: "우리사주조합 출연금",
+    desc: "우리사주조합 가입자 출연금 공제",
+    help: "'출연액'을 입력하고, 벤처기업 근로자라면 '벤처기업 여부'에 금액 1로 체크해 주세요.",
+    subs: [
+      { value: "CONTRIBUTION", label: "출연액" },
+      { value: "VENTURE_EMPLOYER", label: "벤처기업 여부(1=예)" }
+    ],
+    strictSubType: true
+  },
+  FOREIGN_TAX_CREDIT: {
+    label: "외국납부세액공제",
+    desc: "국외원천소득에 대한 외국 납부세액 공제",
+    help: "'외국 납부세액'과 '국외원천소득'을 각각 입력하면 비례한도가 계산됩니다.",
+    subs: [
+      { value: "FOREIGN_TAX_PAID", label: "외국 납부세액" },
+      { value: "FOREIGN_SOURCE_INCOME", label: "국외원천소득" }
+    ],
+    strictSubType: true
+  },
+  TAX_PAYER_ASSOCIATION_CREDIT: {
+    label: "납세조합공제",
+    desc: "납세조합 징수 근로소득에 대한 5% 세액공제",
+    help: "납세조합이 징수한 근로소득 금액을 한 건으로 입력하세요.",
+    subs: [
+      { value: "징수근로소득", label: "징수 근로소득" }
+    ],
+    strictSubType: true,
+    singleItem: true
+  },
+  SME_YOUTH_EMPLOYEE_TAX_REDUCTION: {
+    label: "중소기업 취업자 소득세 감면",
+    desc: "청년·60세 이상·장애인·경력단절여성의 중소기업 취업 근로소득 감면",
+    help: "'중소기업 근로소득'과 '감면 대상 유형'을 각각 입력하세요. 유형: 1=청년, 2=60세 이상, 3=장애인, 4=경력단절여성",
+    subs: [
+      { value: "EMPLOYER_INCOME", label: "중소기업 근로소득" },
+      { value: "CATEGORY", label: "감면 대상 유형(1~4)" }
+    ],
+    strictSubType: true
   }
 };
 
 const baseForm = () => ({
   deductionType: "MEDICAL_EXPENSE",
-  subType: TYPE_META.MEDICAL_EXPENSE.subs[0],
+  subType: TYPE_META.MEDICAL_EXPENSE.subs[0].value,
   amount: "0",
   usedAt: "",
   sourceName: "",
@@ -181,7 +289,7 @@ export default function DeductionsPage() {
     setForm((current) => ({
       ...current,
       deductionType: type,
-      subType: current.deductionType === type ? current.subType : meta.subs[0] || ""
+      subType: current.deductionType === type ? current.subType : meta.subs[0]?.value || ""
     }));
   }
 
@@ -349,6 +457,8 @@ export default function DeductionsPage() {
   const selectedConfidence = selectedItem ? getConfidenceMeta(selectedItem) : null;
   const selectedReviewReason = selectedItem ? getImportReviewReason(selectedItem) : "";
   const selectedTypeMeta = getTypeMeta(form.deductionType);
+  const isSingleItemDuplicate = !selectedItemId && selectedTypeMeta.singleItem &&
+    deductionItems.some((item) => item.deductionType === form.deductionType);
   const totalDeduction = deductionItems.filter(isDeductionIncludedInCalculation).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const importedCount = deductionItems.filter(isImportedDeduction).length;
   const manualCount = deductionItems.length - importedCount;
@@ -536,8 +646,8 @@ export default function DeductionsPage() {
                 </div>
 
                 <div className="mt-5 rounded-3xl border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-sm font-semibold text-slate-700">현재 입력 구조 안내</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">지금 화면은 보험료, 의료비, 교육비, 카드사용액, 기부금 중심으로 먼저 정리합니다. 연금/저축, 주택자금, 기타 세액공제는 다음 구조 확장 대상으로 남겨 두었습니다.</p>
+                  <p className="text-sm font-semibold text-slate-700">입력 항목 안내</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">기본 5종(보험료, 의료비, 교육비, 카드사용액, 기부금)과 함께 장기집합투자·노란우산·투자조합·우리사주·외국납부·납세조합 등 연간 누계형 공제도 입력할 수 있습니다. 연간 누계 공제는 한 해 합산 금액으로 한 번만 입력해 주세요.</p>
                 </div>
 
                 {selectedItem ? (
@@ -586,19 +696,23 @@ export default function DeductionsPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {selectedTypeMeta.subs.map((subType) => {
-                        const selected = form.subType === subType;
+                      {selectedTypeMeta.subs.map((sub) => {
+                        const selected = form.subType === sub.value;
                         return (
-                          <button key={subType} className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${selected ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100"}`} onClick={() => setForm((current) => ({ ...current, subType }))} type="button">
-                            {subType}
+                          <button key={sub.value} className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${selected ? "border-primary bg-primary text-white" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100"}`} onClick={() => setForm((current) => ({ ...current, subType: sub.value }))} type="button">
+                            {sub.label}
                           </button>
                         );
                       })}
                     </div>
-                    <div className="mt-4 space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700" htmlFor="sub-type">세부 설명</label>
-                      <input className={`h-12 w-full rounded-xl border px-4 text-sm ${isConfirmed ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-200 bg-white focus:border-primary focus:ring-primary"}`} disabled={isConfirmed} id="sub-type" onChange={(event) => setForm((current) => ({ ...current, subType: event.target.value }))} placeholder={selectedTypeMeta.subs[0] || "예: 병원비, 현금영수증, 종교단체"} type="text" value={form.subType} />
-                    </div>
+                    {selectedTypeMeta.strictSubType ? (
+                      <p className="mt-3 text-xs leading-5 text-slate-500">이 공제는 위 분류 중 하나를 그대로 선택해 주세요. 자유 입력은 계산에 반영되지 않습니다.</p>
+                    ) : (
+                      <div className="mt-4 space-y-2">
+                        <label className="block text-sm font-semibold text-slate-700" htmlFor="sub-type">세부 설명</label>
+                        <input className={`h-12 w-full rounded-xl border px-4 text-sm ${isConfirmed ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400" : "border-slate-200 bg-white focus:border-primary focus:ring-primary"}`} disabled={isConfirmed} id="sub-type" onChange={(event) => setForm((current) => ({ ...current, subType: event.target.value }))} placeholder={selectedTypeMeta.subs[0]?.label || "예: 병원비, 현금영수증, 종교단체"} type="text" value={form.subType} />
+                      </div>
+                    )}
                   </section>
 
                   <section className="rounded-3xl border border-white bg-white p-5">
@@ -646,11 +760,16 @@ export default function DeductionsPage() {
                   </section>
 
                   {!isConfirmed ? (
-                    <div className="flex justify-end gap-3">
-                      <button className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50" onClick={resetForm} type="button">초기화</button>
-                      <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
-                        {isSaving ? "저장 중..." : selectedItemId && selectedSource?.type === "HOMETAX" ? "검토 완료로 저장" : selectedItemId ? "공제 항목 수정" : "공제 항목 추가"}
-                      </button>
+                    <div className="flex flex-col gap-3">
+                      {isSingleItemDuplicate ? (
+                        <p className="text-right text-xs font-semibold text-amber-600">이 공제는 한 건만 입력할 수 있습니다. 기존 항목을 선택해 수정해 주세요.</p>
+                      ) : null}
+                      <div className="flex justify-end gap-3">
+                        <button className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium transition hover:bg-slate-50" onClick={resetForm} type="button">초기화</button>
+                        <button className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving || isSingleItemDuplicate} type="submit">
+                          {isSaving ? "저장 중..." : selectedItemId && selectedSource?.type === "HOMETAX" ? "검토 완료로 저장" : selectedItemId ? "공제 항목 수정" : "공제 항목 추가"}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </form>

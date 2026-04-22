@@ -13,7 +13,15 @@ export const DEDUCTION_TYPE_OPTIONS = [
   { value: "EDUCATION_EXPENSE", label: "교육비" },
   { value: "INSURANCE", label: "보험료" },
   { value: "DONATION", label: "기부금" },
-  { value: "CREDIT_CARD", label: "카드사용액" }
+  { value: "CREDIT_CARD", label: "카드사용액" },
+  { value: "LONG_TERM_COLLECTIVE_INVESTMENT", label: "장기집합투자증권저축" },
+  { value: "YOUTH_LONG_TERM_COLLECTIVE_INVESTMENT", label: "청년형 장기집합투자증권저축" },
+  { value: "SME_MUTUAL_AID", label: "소기업·소상공인 공제부금" },
+  { value: "VENTURE_INVESTMENT", label: "투자조합 출자" },
+  { value: "EMPLOYEE_STOCK_OWNERSHIP", label: "우리사주조합 출연금" },
+  { value: "FOREIGN_TAX_CREDIT", label: "외국납부세액공제" },
+  { value: "TAX_PAYER_ASSOCIATION_CREDIT", label: "납세조합공제" },
+  { value: "SME_YOUTH_EMPLOYEE_TAX_REDUCTION", label: "중소기업 취업자 소득세 감면" }
 ];
 
 export const EVIDENCE_STATUS_OPTIONS = [

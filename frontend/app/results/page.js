@@ -332,6 +332,39 @@ export default function ResultsPage() {
               </p>
             </div>
 
+            {calculationResult ? (
+              <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                <h3 className="mb-6 flex items-center gap-2 text-lg font-bold">
+                  <span className="material-symbols-outlined text-primary">savings</span>
+                  연간 누계 공제·세액공제 상세
+                </h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    ["장기집합투자증권저축", calculationResult.longTermCollectiveInvestmentDeductionAmount, "소득공제"],
+                    ["청년형 장기집합투자증권저축", calculationResult.youthLongTermCollectiveInvestmentDeductionAmount, "소득공제"],
+                    ["소기업·소상공인 공제부금", calculationResult.smeMutualAidDeductionAmount, "소득공제"],
+                    ["투자조합 출자", calculationResult.ventureInvestmentDeductionAmount, "소득공제"],
+                    ["우리사주조합 출연금", calculationResult.employeeStockOwnershipDeductionAmount, "소득공제"],
+                    ["외국납부세액공제", calculationResult.foreignTaxCreditAmount, "세액공제"],
+                    ["납세조합공제", calculationResult.taxPayerAssociationCreditAmount, "세액공제"]
+                  ].map(([label, value, kind]) => (
+                    <div className="rounded-lg bg-slate-50 p-4" key={label}>
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${kind === "세액공제" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
+                          {kind}
+                        </span>
+                        <p className="text-xs font-bold text-slate-500">{label}</p>
+                      </div>
+                      <p className="mt-2 text-lg font-black text-slate-900">{formatCurrency(value)}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-4 text-xs text-slate-500">
+                  입력된 공제 항목이 없으면 0원으로 표시됩니다. 공제 입력 화면에서 연간 누계 금액을 추가할 수 있습니다.
+                </p>
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-5">
                 <span className="material-symbols-outlined text-primary">info</span>

@@ -48,8 +48,6 @@ public class SmeYouthEmployeeTaxReductionCalculator {
 
         JsonNode rateParameters  = readParameters(rateRule);
         JsonNode limitParameters = readParameters(limitRule);
-        // eligibilityRule 파라미터는 문서화 목적으로만 조회 — 자격 판정은 상위 레이어에서 수행.
-        readParameters(eligibilityRule);
         JsonNode traceParameters = readParameters(traceRule);
 
         Map<String, Double> rateByCategory   = readDoubleMap(rateParameters, "rateByCategory");
