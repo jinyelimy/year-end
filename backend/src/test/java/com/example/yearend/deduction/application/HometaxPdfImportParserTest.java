@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -32,6 +33,11 @@ class HometaxPdfImportParserTest {
     @Test
     @DisplayName("extracts phase 1 candidates from multiple section pages")
     void parsePhaseOneSections() throws IOException {
+        Assumptions.assumeTrue(
+            Files.exists(KOREAN_FONT_PATH),
+            "Korean font not available; skipping PDF generation test on this environment."
+        );
+
         TaxSession session = new TaxSession();
         session.setTaxYear(2025);
 
